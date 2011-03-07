@@ -1,0 +1,8 @@
+name: RubySlippers
+main: crussell52.RubySlippers.RubySlippers
+version: 0.1.0
+commands:
+    ruby:
+       description: Are you a good witch or a bad witch?
+       usage: /ruby tap - There's no place like home.
+       
