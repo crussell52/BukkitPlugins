@@ -7,8 +7,10 @@ import java.util.HashMap;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.Material;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -18,155 +20,182 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @author crussell52
  */
 public class RubySlippers extends JavaPlugin {
-	
-	public static final String dataDir = "plugins/RubySlippers/"; 
-	
-    //private final RubySlippersPlayerListener playerListener = new RubySlippersPlayerListener(this);
-    //private final RubySlippersBlockListener blockListener = new RubySlippersBlockListener(this);
-    private final HashMap<Player, Boolean> debugees = new HashMap<Player, Boolean>();
+
+    /**
+     * Instance of Homes to manage homes for each player per world.
+     */
+    private final Homes _homes = new Homes();
     
-    private final HashMap<String, WorldHomes> homes = new HashMap<String, WorldHomes>();
-    
+    /**
+     * {@inheritDoc}
+     */
     public void onEnable() {
-        // TODO: Place any custom enable code here including the registration of any events
-    	
+        // create files necessary for operation
     	_createSupportingFiles();
-    	
-        // Register our events
-        //PluginManager pm = getServer().getPluginManager();
        
-        // EXAMPLE: Custom code, here we just output some info so we can check all is well
+        // Identify that we have been loaded
         PluginDescriptionFile pdfFile = this.getDescription();
         System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
+
+        // try to get homes data
+        try {
+        	_homes.load(this.getDataFolder());
+        } catch (Exception ex) {
+        	ex.printStackTrace();
+        	System.out.println("Failed to load existing homes");
+        	// TODO: maybe we should let all the users know on login?
+        }
     }
     
+    /**
+     * Responsible for creating files necessary for operation
+     */
     protected void _createSupportingFiles() {
     	try {
-    		System.out.println("Trying to create directory");
-	    	System.out.println(new File(dataDir).mkdir());
-	    	System.out.println("Trying to create properties");
-	    	System.out.println(new File(dataDir + "plugin.properties").createNewFile());
-    	} catch (Exception ex) {
-    		ex.printStackTrace();
-    	}
-    }
-    
-    protected Location _getHome(Player player) {
-    	WorldHomes worldHomes = _getWorldHomes(player.getWorld());
-    	return worldHomes.get(player);
-    }
-    
-    protected void _setHome(Player player, Location home) {
-    	WorldHomes worldHomes = _getWorldHomes(home.getWorld());
-    	worldHomes.put(player, home);
-    	try {
-    		worldHomes.store();
+	    	this.getDataFolder().mkdir();
+	    	new File(this.getDataFolder(), "homes.yml").createNewFile();
     	} catch (IOException ex) {
-    		// output to the console and let the player know that we did not save their home
-    		String notification = "Failed to persist homes for world: " + home.getWorld(); 
-    		System.out.println("RubySlippers: " + notification + ", player: " + player.getName());
-    		player.sendMessage(notification);
-    		player.sendMessage("(It will still work, unless the server restarts.)");
     		ex.printStackTrace();
     	}
     }
     
-    protected WorldHomes _getWorldHomes(World world) {
-    	// see if the world homes has already been initialized.
-    	if (homes.containsKey(world.getName())) {
-    		// nothing to do.
-    		return homes.get(world.getName());
-    	}
+    /**
+     * used to get the received player's home within their current world.
+     * 
+     * <p>If no home data is availble, then the world's spawn point is used.</p>
+     * 
+     * @param player
+     * @return
+     */
+    private Location _getHome(Player player) {
+    	// try to get the recorded home for the player
+    	Location home = _homes.getHome(player);
     	
-    	// we don't have home data for this world
-    	// create a new WorldHomes class and add it to the HashTable
-    	WorldHomes worldHomes = new WorldHomes();
-    	homes.put(world.getName(), worldHomes);
+    	// see if we found a home
+    	if (home == null) {
+    		// no home found, use spawn location
+    		// TODO: should we do this without notifying the user? maybe we just fail.
+    		home = player.getWorld().getSpawnLocation();
+    	}    	
     	
-    	// attempt to load existing data
-    	try {
-    		worldHomes.load(world);
-    	} catch (IOException ex) {
-    		// report failure to the console.
-    		System.out.println("Unable to load home data for world: " + world.getName());
-    		ex.printStackTrace();
-    	}
-    	
-		// return the instance
-		return worldHomes;
+    	return home;
     }
     
+    /**
+     * Sends the player home, altering inventory as appropriate.
+     * 
+     * @param player
+     * @param home
+     */
+    private void _sendHome(Player player, Location home) {
+    	// TODO: very rough implementation
+    	
+    	int total = 0;
+    	int totalRemove = 0;
+    	int stackRemove = 0;
+    	PlayerInventory inv = player.getInventory();
+    	HashMap<Integer, ? extends ItemStack> stack = inv.all(Material.DIAMOND);
+
+    	// TODO: Looping twice is less than efficient - find way accurately decrement in a single loop.
+    	for (ItemStack value : stack.values()) {
+    		total += value.getAmount();
+    	}
+    	
+    	totalRemove = (int)Math.ceil(total * .10);
+    	System.out.println("removing: " + Integer.toString(totalRemove));
+    	for (ItemStack value : stack.values()) {
+    		stackRemove = Math.min(totalRemove, value.getAmount());
+    		value.setAmount(value.getAmount() - stackRemove);
+    		totalRemove -= stackRemove;
+    		if (totalRemove <= 0) {
+    			// stop looping
+    			break;
+    		}
+    	}
+   	
+    	player.teleportTo(home);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
     	
-    	if (commandLabel.equals("ruby")) {
+    	// check for the ruby slippers command
+    	// TODO: figure out the difference between commandLabel and command.getName() (aliases?)
+    	if (commandLabel.equals("rs")) {
+    		// make sure it was a plyer that issued the command
     		if (!(sender instanceof Player)) {
     			sender.sendMessage("This command does nothing from the server console.");
     			return true;
     		}
     		
+    		// currently, all executions should have one or zero arguments
     		if (args.length > 1) {
     			return false;
     		}
     		
+    		// passed basic validation, cast the sender as a player
+    		// and evaluate the action
     		Player player = (Player) sender;
     		
+    		// see if we have arguments
     		if (args.length == 0) {
-    			player.sendMessage(command.getUsage());
+    			// no argument, assume they were trying to put on their slippers 
+    			// (this does nothing... just personal amusement)
     			player.sendMessage("You are now wearing your ruby slippers... they look fabulous!");
+    			return false;
       		}
-    		else {
-    			if ("home".equals(args[0])) {
-    				Location home = player.getLocation();
-    				_setHome(player, home);
-    				
-    				player.sendMessage("This is now your home. (" + home.toString() + ")");
-    				System.out.println("RubySlippers: " + player.getDisplayName() + " set a new home at " + home.toString());
-    			}
-    			else if ("tap".equals(args[0])) { 
-					try {
-						Location home = _getHome(player);
-						
-						if (home.toVector().distance(player.getLocation().toVector()) > 100) {
-							player.sendMessage("You are too far from home. (Next version!)");
-						}
-						else {
-							player.teleportTo(home);
-	    					player.sendMessage("There's no place like home!");
-	    					System.out.println("RubySlippers: " + player.getDisplayName() + " teleported home: " + home.toString());
-						}
-						
-					} catch (Exception ex) {
-						homes.remove(player.getName());
-						System.out.println("Bad home stored for " + player.getName() + ".  Value cleared.");
-					}
-    			}
-    		}
-    
-    	    return true;
-    	}
+    		
+			// kansas action is used to set home
+			if ("kansas".equals(args[0])) {
+				
+				// set the players home
+				Location newHome = _homes.setHome(player);
+				
+				// report to the player and to the console.
+				// TODO: better formatted player message (report coordinates at all?)
+				// TODO: once stable, stop reporting to console.
+				player.sendMessage("This is now your home. (" + newHome.toString() + ")");
+				System.out.println("RubySlippers: " + player.getDisplayName() + " set a new home at " + newHome.toString());
+			}
+			else if ("cost".equals(args[0])) {
+				// cost is simply for now... always 10% of diamonds.
+				// TODO: calculate what they will actually lose based on configuration
+				player.sendMessage("You will lose 10% of your diamonds!");
+			}
+			else if ("tap".equals(args[0])) { 
+				// get the player's home and send them there.
+				Location home = _getHome(player);
+				_sendHome(player, home);
+				
+				// TODO: stop reporting to console once stable.
+				System.out.println("RubySlippers: " + player.getName() + " has been sent home: " + home.toString());
+			}
+			else {
+				// unrecognized action
+				return false;
+			}
+			
+			// recognized and handled action
+			return true;
+		} // end handling of "rs" command
     	
+    	// no other commands recognized, return false (displays usage)
     	return false;
     }
     
     
+    /**
+     * {@inheritDoc}
+     */
     public void onDisable() {
         // TODO: Place any custom disable code here
 
         // NOTE: All registered events are automatically unregistered when a plugin is disabled
 
         // EXAMPLE: Custom code, here we just output some info so we can check all is well
-        System.out.println("Goodbye world!");
-    }
-    public boolean isDebugging(final Player player) {
-        if (debugees.containsKey(player)) {
-            return debugees.get(player);
-        } else {
-            return false;
-        }
-    }
-
-    public void setDebugging(final Player player, final boolean value) {
-        debugees.put(player, value);
+        System.out.println("Ruby Slippers disabled.");
     }
 }
 
