@@ -1,14 +1,13 @@
 package crussell52.RubySlippers;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -25,6 +24,8 @@ public class RubySlippers extends JavaPlugin {
      * Instance of Homes to manage homes for each player per world.
      */
     private final Homes _homes = new Homes();
+    
+    private final ConfigParser _config = new ConfigParser();
     
     /**
      * {@inheritDoc}
@@ -45,6 +46,20 @@ public class RubySlippers extends JavaPlugin {
         	System.out.println("Failed to load existing homes");
         	// TODO: maybe we should let all the users know on login?
         }
+        
+        // try to load up configurations
+        try {
+			_config.parse(this.getDataFolder());
+		} catch (ClassCastException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
     /**
@@ -54,6 +69,7 @@ public class RubySlippers extends JavaPlugin {
     	try {
 	    	this.getDataFolder().mkdir();
 	    	new File(this.getDataFolder(), "homes.yml").createNewFile();
+	    	new File(this.getDataFolder(), "config.yml").createNewFile();
     	} catch (IOException ex) {
     		ex.printStackTrace();
     	}
@@ -89,31 +105,12 @@ public class RubySlippers extends JavaPlugin {
      */
     private void _sendHome(Player player, Location home) {
     	// TODO: very rough implementation
-    	
-    	int total = 0;
-    	int totalRemove = 0;
-    	int stackRemove = 0;
-    	PlayerInventory inv = player.getInventory();
-    	HashMap<Integer, ? extends ItemStack> stack = inv.all(Material.DIAMOND);
-
-    	// TODO: Looping twice is less than efficient - find way accurately decrement in a single loop.
-    	for (ItemStack value : stack.values()) {
-    		total += value.getAmount();
-    	}
-    	
-    	totalRemove = (int)Math.ceil(total * .10);
-    	System.out.println("removing: " + Integer.toString(totalRemove));
-    	for (ItemStack value : stack.values()) {
-    		stackRemove = Math.min(totalRemove, value.getAmount());
-    		value.setAmount(value.getAmount() - stackRemove);
-    		totalRemove -= stackRemove;
-    		if (totalRemove <= 0) {
-    			// stop looping
-    			break;
-    		}
+    	Map<Material, Integer> costs = _config.getCostManager().getCosts(player);
+    	for (Map.Entry<Material, Integer> entry : costs.entrySet()) {
+    		player.sendMessage(entry.getKey().name() + ":" + entry.getValue().toString());
     	}
    	
-    	player.teleportTo(home);
+    	//player.teleportTo(home);
     }
     
     /**
@@ -162,7 +159,7 @@ public class RubySlippers extends JavaPlugin {
 			else if ("cost".equals(args[0])) {
 				// cost is simply for now... always 10% of diamonds.
 				// TODO: calculate what they will actually lose based on configuration
-				player.sendMessage("You will lose 10% of your diamonds!");
+				player.sendMessage("You will lose 10% of your diamonds! (not for real... yet)");
 			}
 			else if ("tap".equals(args[0])) { 
 				// get the player's home and send them there.
