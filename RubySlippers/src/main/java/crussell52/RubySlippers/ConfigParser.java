@@ -17,6 +17,11 @@ public class ConfigParser {
 	private final CostManager _costManager = new CostManager();
 	
 	/**
+	 * Maximum distance players are allowed to be away from home.
+	 */
+	private Integer _maxDistance = 100;
+	
+	/**
 	 * Yaml instance for handling saved data (.yml file)
 	 */
 	private static final Yaml _yaml = new Yaml(new SafeConstructor());
@@ -35,6 +40,10 @@ public class ConfigParser {
 		return _costManager;
 	}
 	
+	public int getMaxDistance() {
+		return _maxDistance;
+	}
+	
 	/**
 	 * Loads saved data from config.yml under specified data folder, and parses
 	 * the content.
@@ -51,7 +60,9 @@ public class ConfigParser {
 		
 		try {
 			// parse the file as a map.
-			_processConfigMap((Map<String, Object>)_yaml.load(new FileInputStream(_dataFile)));
+			FileInputStream input = new FileInputStream(_dataFile);
+			_processConfigMap((Map<String, Object>)_yaml.load(input));
+			input.close();
 		}
 		catch (ClassCastException ex) {
 			System.out.println("RubySlippers: Invalid config file: config.yml");
@@ -69,7 +80,17 @@ public class ConfigParser {
 		if (map == null) {
 			System.out.println("RubySlippers: Empty Configuration!");
 			return;
-		}		
+		}
+		
+		// see if max distance is configured
+		if (map.containsKey("maxDistance")) {
+			try {
+				_maxDistance = (Integer)map.get("maxDistance");
+			}
+			catch (Exception ex) {
+				System.out.println("RubySlippers: Bad configuration for maxDistance.");
+			}
+		}
 		
 		// see if costs are configured
 		if (map.containsKey("costs")) {
@@ -84,6 +105,7 @@ public class ConfigParser {
 				_costManager.loadMaterialCosts(materialCosts);
 			}
 			catch (ClassCastException ex) {
+				ex.printStackTrace();
 				// Something was not in the format we were expecting.
 				// report a problem with the cost configuration.
 				System.out.println("RubySlippers: Invalid configuration key (costs).");

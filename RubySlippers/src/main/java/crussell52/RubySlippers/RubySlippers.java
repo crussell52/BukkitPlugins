@@ -25,6 +25,11 @@ public class RubySlippers extends JavaPlugin {
      */
     private final Homes _homes = new Homes();
     
+    /**
+     * Parses config file and stores parsed values for use.
+     * 
+     * TODO: consider singleton to allow direct access by all classes
+     */
     private final ConfigParser _config = new ConfigParser();
     
     /**
@@ -104,13 +109,34 @@ public class RubySlippers extends JavaPlugin {
      * @param home
      */
     private void _sendHome(Player player, Location home) {
-    	// TODO: very rough implementation
+    	// see if player is within teleporting range.
+    	if (home.toVector().distance(player.getLocation().toVector()) > _config.getMaxDistance()) {
+    		player.sendMessage("You are too far away from home.");
+    		return;
+    	}
+    	
+    	// within allowed teleport range... perform teleport
+    	player.teleportTo(home);
+    	
+    	// TODO: actually deduct the items
+    	_reportCosts(player);
+    	
+    	// TODO: stop reporting to console once stable.
+		System.out.println("RubySlippers: " + player.getName() + " has been sent home: " + home.toString());
+    }
+    
+    /**
+     * Reports the costs of teleporting home with the current inventory
+     * to the player.
+     * 
+     * @param player
+     */
+    private void _reportCosts(Player player) {
     	Map<Material, Integer> costs = _config.getCostManager().getCosts(player);
     	for (Map.Entry<Material, Integer> entry : costs.entrySet()) {
+    		// TODO: Figure out ideal formatting
     		player.sendMessage(entry.getKey().name() + ":" + entry.getValue().toString());
     	}
-   	
-    	//player.teleportTo(home);
     }
     
     /**
@@ -121,7 +147,26 @@ public class RubySlippers extends JavaPlugin {
     	// check for the ruby slippers command
     	// TODO: figure out the difference between commandLabel and command.getName() (aliases?)
     	if (commandLabel.equals("rs")) {
-    		// make sure it was a plyer that issued the command
+    		// look for op commands
+    		if (sender.isOp()) {
+    			if (args.length > 0 && "config".equals(args[0])) {
+    				// TODO: abstract this out.
+    				try {
+						_config.parse(this.getDataFolder());
+					} catch (ClassCastException e) {
+						e.printStackTrace();
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					sender.sendMessage("RubySlippers: Config file reloaded.");
+					return true;
+    			}
+    		}
+    		
+    		// make sure it was a player that issued the command
     		if (!(sender instanceof Player)) {
     			sender.sendMessage("This command does nothing from the server console.");
     			return true;
@@ -149,6 +194,11 @@ public class RubySlippers extends JavaPlugin {
 				
 				// set the players home
 				Location newHome = _homes.setHome(player);
+				try {
+					_homes.save();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				
 				// report to the player and to the console.
 				// TODO: better formatted player message (report coordinates at all?)
@@ -158,16 +208,13 @@ public class RubySlippers extends JavaPlugin {
 			}
 			else if ("cost".equals(args[0])) {
 				// cost is simply for now... always 10% of diamonds.
-				// TODO: calculate what they will actually lose based on configuration
-				player.sendMessage("You will lose 10% of your diamonds! (not for real... yet)");
+				_reportCosts(player);
 			}
 			else if ("tap".equals(args[0])) { 
 				// get the player's home and send them there.
 				Location home = _getHome(player);
-				_sendHome(player, home);
+				_sendHome(player, home);			
 				
-				// TODO: stop reporting to console once stable.
-				System.out.println("RubySlippers: " + player.getName() + " has been sent home: " + home.toString());
 			}
 			else {
 				// unrecognized action

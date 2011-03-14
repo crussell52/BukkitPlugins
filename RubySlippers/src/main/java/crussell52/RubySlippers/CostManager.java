@@ -1,5 +1,5 @@
 package crussell52.RubySlippers;
-
+ 
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,11 +31,29 @@ public class CostManager {
 		for (Map.Entry<String, Object> entry : map.entrySet()) {
 			
 			// attempt to get a Material using the provided key
-			Material material = Material.getMaterial(entry.getKey());
+			Material material = Material.matchMaterial(entry.getKey());
 			if (material == null) {
+				System.out.println("no name match on " + entry.getKey() + "; trying by id");
+				
 				// we failed to get a Material, so the the key was unrecognized.
-				System.out.println("RubySlippers: Skipping unrecognized material: " + entry.getKey());
-				continue;
+				// maybe it was the material id... 
+				try {
+					material = Material.getMaterial(Integer.parseInt(entry.getKey()));
+				}
+				catch (NumberFormatException nfe) {
+					// failed to parse into an integer
+					// make sure material has a null value
+					material = null;
+				}
+				finally {
+					// success or failure, see if we have a material now.
+					if (material == null) {
+						// still no material... nothing left to do but report the unrecogized material
+						// amd move on to the next one.
+						System.out.println("RubySlippers: Skipping unrecognized material: " + entry.getKey());
+						continue;
+					}
+				}
 			}
 			
 			// try to read in the cost as a double first

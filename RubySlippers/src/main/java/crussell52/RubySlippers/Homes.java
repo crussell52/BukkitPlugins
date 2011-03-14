@@ -46,7 +46,9 @@ public class Homes {
 		
 		try {
 			// parse the file into map property.
-			_homes = (Map<String, Map<String, ArrayList<Integer>>>)_yaml.load(new FileInputStream(_dataFile));
+			FileInputStream input = new FileInputStream(_dataFile);
+			_homes = (Map<String, Map<String, ArrayList<Integer>>>)_yaml.load(input);
+			input.close();
 		}
 		finally {
 			// regardless of error or not, make sure we have a map to store _homes
