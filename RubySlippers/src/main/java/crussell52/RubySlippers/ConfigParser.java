@@ -17,9 +17,18 @@ public class ConfigParser {
 	private final CostManager _costManager = new CostManager();
 	
 	/**
-	 * Maximum distance players are allowed to be away from home.
+	 * Maximum distance players are allowed teleport.
+	 * 
+	 * <p>Default value is 0 (zero), which indicates "no maximum"</p>
 	 */
-	private Integer _maxDistance = 100;
+	private Integer _maxDistance = 0;
+	
+	/**
+	 * Teleports from this distance or closer do not cost anything.
+	 * 
+	 * <p>Default value is 0 (zero), which indicates "never free"</p>
+	 */
+	private Integer _freeDistance = 0;
 	
 	/**
 	 * Yaml instance for handling saved data (.yml file)
@@ -40,8 +49,22 @@ public class ConfigParser {
 		return _costManager;
 	}
 	
+	/**
+	 * Maximum distance players are allowed teleport.
+	 * 
+	 * <p>Default value is 0 (zero), which indicates "no maximum"</p>
+	 */
 	public int getMaxDistance() {
 		return _maxDistance;
+	}
+	
+	/**
+	 * Teleports from this distance or closer do not cost anything.
+	 * 
+	 * <p>Default value is 0 (zero), which indicates "never free"</p>
+	 */
+	public int getFreeDistance() {
+		return _freeDistance;
 	}
 	
 	/**
@@ -92,6 +115,21 @@ public class ConfigParser {
 			}
 		}
 		
+		// see if free distance is configured
+		if (map.containsKey("freeDistance")) {
+			try {
+				_freeDistance = (Integer)map.get("freeDistance");
+			}
+			catch (Exception ex) {
+				System.out.println("RubySlippers: Bad configuration for freeDistance.");
+			}
+		}
+		
+		// extract the default cost (if configured)
+		if (map.containsKey("defaultCost")) {
+			_costManager.setDefaultCost(ConfigParser.extractCost(map, "defaultCost", 0d));
+		}
+		
 		// see if costs are configured
 		if (map.containsKey("costs")) {
 			// attempt to read in the data of the cost key
@@ -111,5 +149,39 @@ public class ConfigParser {
 				System.out.println("RubySlippers: Invalid configuration key (costs).");
 			}
 		}
+	}
+	
+	/**
+	 * Given a key and a map, extracts the related Map item and attempts to convert it to a double.
+	 * 
+	 * <p>If the item can not be read in, then the value of <code>defaultVal</code> is returned.</p>
+	 * 
+	 * @param map
+	 * @param key
+	 * @param defaultVal
+	 * @return
+	 */
+	public static Double extractCost(Map<String, Object> map, String key, Double defaultVal) 
+	{
+		double returnVal;
+		// try to read in the cost as a double first
+		try {
+			returnVal = (Double)map.get(key);
+		}
+		catch (ClassCastException ex) {
+			// failed reading it in as a double... 
+			// it might be written as an int
+			try {
+				returnVal = (double)(Integer)map.get(key);
+			}
+			catch (ClassCastException ex2) {
+				// Also not configured as an int... it is misconfigured.
+				// notify the console
+				System.out.println("RubySlippers: Invalid cost configured under key, \"" + key + "\"");
+				return defaultVal;
+			}
+		}
+		
+		return returnVal;
 	}
 }

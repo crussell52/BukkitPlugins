@@ -1,5 +1,6 @@
 package crussell52.RubySlippers;
  
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +14,20 @@ public class CostManager {
 	 * Mapping of Material -> Cost
 	 */
 	private final Map<Material, Double> _materialCosts = new HashMap<Material, Double>();
+	
+	/**
+	 * Cost to apply if no specific cost is specified for any given material.
+	 */
+	private Double _defaultCost = 0d;
+
+	
+	/**
+	 * Cost to apply if no specific cost is specified for any given material.
+	 */
+	public void setDefaultCost(Double cost) {
+		_defaultCost = cost;
+	}
+
 	
 	/**
 	 * Uses the received map to set all material costs.
@@ -57,21 +72,11 @@ public class CostManager {
 			}
 			
 			// try to read in the cost as a double first
-			try {
-				cost = (Double)entry.getValue();
-			}
-			catch (ClassCastException ex) {
-				// failed reading it in as a double... 
-				// it might be written as an int
-				try {
-					cost = (double)(Integer)entry.getValue();
-				}
-				catch (ClassCastException ex2) {
-					// Also not configured as an int... it is misconfigured.
-					// notify the console and move to the next material.
-					System.out.println("RubySlippers: Skipped invalid cost for: " + entry.getKey());
-					continue;
-				}
+			cost = ConfigParser.extractCost(map, entry.getKey(), null);
+			if (cost == null) {
+				// notify the console and move to the next material.
+				System.out.println("RubySlippers: Skipped invalid cost for: " + entry.getKey());
+				continue;
 			}
 			
 			// whole number represents flat amount.
@@ -94,7 +99,7 @@ public class CostManager {
 	 * @param player
 	 * @return
 	 */
-	public Map<Material, Integer> getCosts(Player player) {
+	public Map<Material, Integer> getCosts(Player player, boolean remove) {
 		
 		// set up some aggregate vars
 		int total = 0;
@@ -113,25 +118,30 @@ public class CostManager {
     	// method.
     	Map<Material, Integer> cost = new HashMap<Material, Integer>();
     	
-    	// loop over each material with a configured cost
-    	for (Map.Entry<Material, Double> entry : _materialCosts.entrySet()) {
-    		// see if the player has any of this material
-    		if (!inv.contains(entry.getKey())) {
-    			// material not present, move on to next one.
+    	// we want to keep track of materials that we have specific costs for
+    	ArrayList<Material> accountedMaterials = new ArrayList<Material>();
+    	
+    	ItemStack[] inventory = inv.getContents();
+
+    	for (int i = 0; i < inventory.length; i++) {
+    		Material targetMaterial = inventory[i].getType();
+    		if (accountedMaterials.contains(targetMaterial) || (_defaultCost.compareTo(0d) <= 0 && !inv.contains(targetMaterial))) {
     			continue;
     		}
+    		
+    		accountedMaterials.add(targetMaterial);
     		
     		// player has some of the material...
     		// reset aggregate vars
     		total = 0;
     		totalRemove = 0;
     		materialCost = 0d;
-
+    		
     		// we know that we have some, get all stacks of given material
-    		materialStacks = inv.all(entry.getKey());
+    		materialStacks = inv.all(targetMaterial);
     		
     		// pull out the configured cost
-    		materialCost = entry.getValue();
+    		materialCost = _materialCosts.containsKey(targetMaterial) ? _materialCosts.get(targetMaterial) : _defaultCost;
     		
     		// find out how many of the material the user has
     		// across all stacks.
@@ -151,10 +161,28 @@ public class CostManager {
     			totalRemove = (int)Math.min(materialCost, (double)total);
     		}
     		
+    		if (remove) {
+    			int targetRemove = totalRemove;
+    			// find out how many of the material the user has
+        		// across all stacks.
+    			for (ItemStack value : materialStacks.values()) {
+            		if (targetRemove >= value.getAmount()) {
+            			targetRemove -= value.getAmount();
+            			inv.removeItem(value);
+            		}
+            		else {
+            			inv.remove(value);
+            			value.setAmount(value.getAmount() - targetRemove);
+            			inv.addItem(value);
+            			break;
+            		}
+            	}	
+    		}
+    		
     		// record the calculated cost
-    		cost.put(entry.getKey(), totalRemove);
-		}
-    	
+    		cost.put(targetMaterial, totalRemove);
+    	}
+    	    	    	
     	// return the mapping of Material->Cost
     	return cost;
 	}
