@@ -99,12 +99,12 @@ public class CostManager {
 	 * @param player
 	 * @return
 	 */
-	public Map<Material, Integer> getCosts(Player player, boolean remove) {
-		
+	public Map<Material, Integer> getCosts(Player player, boolean remove) {		
 		// set up some aggregate vars
 		int total = 0;
     	int totalRemove = 0;
     	double materialCost = 0d;
+    	boolean haveDefaultCost = _defaultCost.compareTo(0d) > 0;
     	
     	// we're going to be working with the player inventory a lot,
     	// so pull it out once and assign it locally
@@ -121,16 +121,33 @@ public class CostManager {
     	// we want to keep track of materials that we have specific costs for
     	ArrayList<Material> accountedMaterials = new ArrayList<Material>();
     	
+    	// loop over each inventory slot
     	ItemStack[] inventory = inv.getContents();
-
     	for (int i = 0; i < inventory.length; i++) {
-    		Material targetMaterial = inventory[i].getType();
-    		if (accountedMaterials.contains(targetMaterial) || (_defaultCost.compareTo(0d) <= 0 && !inv.contains(targetMaterial))) {
+    		// skip empty slots
+    		if (inventory[i] == null) {
     			continue;
     		}
     		
-    		accountedMaterials.add(targetMaterial);
+    		// find out what material is in this slot
+    		Material targetMaterial = inventory[i].getType();
     		
+    		// see this material has been already been accounted for
+    		if (accountedMaterials.contains(targetMaterial)) {
+    			// already accounted for, move on to the next inventory slot
+    			continue;
+    		}
+    		
+			// not accounted for, we will process it
+			// mark is as accounted for
+			accountedMaterials.add(targetMaterial);
+    			
+			// if we don't have a cost to apply to this material, just move to the next
+			// inventory slot
+			if (!haveDefaultCost && !_materialCosts.containsKey(targetMaterial)) {
+				continue;
+			}
+			
     		// player has some of the material...
     		// reset aggregate vars
     		total = 0;

@@ -38,6 +38,34 @@ public class RubySlippers extends JavaPlugin {
      */
     private final ConfigParser _config = new ConfigParser();
     
+    /**
+     * Constant indicating that the player is too far from home.
+     * 
+     * @see RubySlippers#_checkTeleportDistance(Location, Player)
+     */
+    private final int TOO_FAR_FROM_HOME = 1;
+    
+    /**
+     * Constant indicating that the player is within range for a free teleport.
+     * 
+     * @see RubySlippers#_checkTeleportDistance(Location, Player)
+     */
+    private final int WITHIN_FREE_RANGE = 2;
+    
+    /**
+     * Constant indicating that the player does not have a home.
+     * 
+     * @see RubySlippers#_checkTeleportDistance(Location, Player)
+     */
+    private final int NO_HOME = 3;
+    
+    /**
+     * Constant indicating that the player is at a range which requires payment.
+     * 
+     * @see RubySlippers#_checkTeleportDistance(Location, Player)
+     */
+    private final int WITHIN_COST_RANGE = 4;
+    
     //private final PlayerListener playerListener = new RubySlippersPlayerListener();
     
     /**
@@ -77,8 +105,8 @@ public class RubySlippers extends JavaPlugin {
         	// TODO: maybe we should let all the users know on login?
         }
         
-        // PluginManager pm = getServer().getPluginManager();
-        // pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
+//        PluginManager pm = getServer().getPluginManager();
+//        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
         
         // try to load up configurations
         try {
@@ -114,10 +142,7 @@ public class RubySlippers extends JavaPlugin {
      * @param player
      * @return
      */
-    private Location _findSafeHome(Player player) {
-    	// try to get the recorded home for the player
-    	Location home = _homes.getHome(player);
-    	
+    private Location _findSafeHome(Location home) {
     	// if we have a home and it is unsafe, start making adjustments
     	if (home != null && !_isSafeHome(home)) {
     		// make a record of the original y
@@ -176,7 +201,7 @@ public class RubySlippers extends JavaPlugin {
     		home.setY(Math.floor(home.getY()));
     		home.setZ(Math.floor(home.getZ()) + .5d);
     	}
-    	
+
     	// return the safe home.
     	return home;
     }
@@ -192,32 +217,75 @@ public class RubySlippers extends JavaPlugin {
     }
     
     /**
-     * Sends the player home, altering inventory as appropriate.
+     * Checks the distance of the specified player from the specified home and returns
+     * an indicator of how the distance relates to the teleport
      * 
-     * @param player
+     * @see #NO_HOME
+     * @see #WITHIN_COST_RANGE
+     * @see #WITHIN_FREE_RANGE
+     * @see #TOO_FAR_FROM_HOME
+     * 
      * @param home
+     * @param player
+     * @return
      */
-    private void _sendHome(Player player, Location home) {
+    private int _checkTeleportDistance(Location home, Player player)
+    {
+    	// no home
+    	if (home == null) {
+    		return NO_HOME;
+    	}
+    	
     	// see if player is within teleporting range.
     	double distance = home.toVector().distance(player.getLocation().toVector());
     	
     	// make sure we arent' outside the max distance
     	if (_config.getMaxDistance() > 0 && distance > _config.getMaxDistance()) {
-    		player.sendMessage("You are too far away from home.");
-    		return;
+    		return TOO_FAR_FROM_HOME;
     	}
     	else if (_config.getFreeDistance() > 0 && distance < _config.getFreeDistance()) {
     		// handle free teleport case.
-    		player.teleport(home);
-    		player.sendMessage("There's not place like home -- no charge!");
-    		return;
-    	}    	    	
+    		return WITHIN_FREE_RANGE;
+    	}
     	
-    	// within allowed teleport range... perform teleport
+    	// all else fails, we must be within normal cost range
+    	return WITHIN_COST_RANGE;
+    }
+    
+    /**
+     * Sends the player home, altering inventory as appropriate.
+     * 
+     * @param player
+     * @param home
+     */
+    private void _sendHome(Player player) {
+    	// get the player's unmodified home
+    	Location home = _homes.getHome(player);
+
+    	// check and handle the early exits based on teleport status
+    	int teleportStatus = _checkTeleportDistance(home, player);
+    	if (teleportStatus == NO_HOME) {
+    		player.sendMessage("There's no place like home -- don't you wish you had one?");
+    		return;
+    	}
+    	else if (teleportStatus == WITHIN_FREE_RANGE) {
+    		player.sendMessage("There's not place like home -- no charge!");
+    		home = _findSafeHome(home);
+    		player.teleport(home);
+    		return;
+    	}
+    	else if (teleportStatus == TOO_FAR_FROM_HOME) {
+    		player.sendMessage("You are too far away from home.");
+    		return;
+    	}
+    	// find a safe home for the player
+    	home = _findSafeHome(home);
+
+    	// if we're here, then we have a standard, for-charge teleport
+    	// perform the teleport then calculate, deduct and report the costs.
     	if (player.teleport(home)) {
-    		// TODO: actually deduct the items
         	Map<Material, Integer> costs = _config.getCostManager().getCosts(player, true);
-        	_reportCosts(costs, player);
+        	_reportCosts(costs, player, true);
         	player.sendMessage("There's not place like home!");
     	}
     	
@@ -231,12 +299,32 @@ public class RubySlippers extends JavaPlugin {
      * 
      * @param player
      */
-    private void _reportCosts(Map<Material, Integer> costs, Player player) {
+    private void _reportCosts(Map<Material, Integer> costs, Player player, boolean log) {
+    	String serverMsg = "";
+		String playerMsg = "";
+		String costString = "";
     	for (Map.Entry<Material, Integer> entry : costs.entrySet()) {
     		// TODO: Figure out ideal formatting
     		if (entry.getValue() > 0) {
-    			player.sendMessage(entry.getKey().name() + ":" + entry.getValue().toString());
+    			costString = entry.getKey().name() + ":" + entry.getValue().toString();
+    			if ((playerMsg.length() + costString.length() + 3) > 60) {
+    				player.sendMessage(playerMsg);
+    				playerMsg = "";
+    			}
+    				
+    			playerMsg += (playerMsg.length() > 0 ? " - " : "") + costString;
+    			serverMsg += " - " + costString;
     		}
+    	}
+    	
+    	// done looping.. if we have an unsent message, send it.
+    	if (playerMsg.length() > 0) {
+    		player.sendMessage(playerMsg);
+    	}
+    	
+    	// log the server message
+    	if (log) {
+    		System.out.println("RubySlippers: Charged " + player.getDisplayName() + serverMsg);
     	}
     }
     
@@ -308,20 +396,31 @@ public class RubySlippers extends JavaPlugin {
 				System.out.println("RubySlippers: " + player.getDisplayName() + " set a new home at " + newHome.toString());
 			}
 			else if ("cost".equals(args[0])) {
-				// TODO: this should factor in maxDistance and the freeDistance values
-	        	Map<Material, Integer> costs = _config.getCostManager().getCosts(player, false);
-	        	_reportCosts(costs, player);
+				// get the player's home
+		    	Location home = _homes.getHome(player);
+		    	
+		    	// check the teleport status to see if we need to bother calculating costs
+		    	int teleportStatus = _checkTeleportDistance(home, player);
+		    	if (teleportStatus == NO_HOME) {
+		    		// no need to calculate cost, nowhere to go.
+		    		player.sendMessage("There's no place like home -- don't you wish you had one?");
+		    	}
+		    	else if (teleportStatus == WITHIN_FREE_RANGE) {
+		    		// no need to calculate costs, within range for a free teleport
+		    		player.sendMessage("You are right down the street! -- no charge!");
+		    	}
+		    	else if (teleportStatus == TOO_FAR_FROM_HOME) {
+		    		// no need to calculate costs, too far to teleport
+		    		player.sendMessage("You are too far away from home.");
+		    	}
+		    	else {
+		    		// no special range conditions, we need to cacluate and report the costs
+		    		Map<Material, Integer> costs = _config.getCostManager().getCosts(player, false);
+		        	_reportCosts(costs, player, false); // do not log - no actual deduction made.
+		    	}
 			}
 			else if ("tap".equals(args[0])) { 
-				// get the player's home and send them there.
-				Location home = _findSafeHome(player);
-				if (home != null) {
-					_sendHome(player, home);
-				}
-				else {
-					player.sendMessage("There's no place like home -- don't you wish you had one?");
-				}
-			}
+				_sendHome(player);			}
 			else {
 				// unrecognized action
 				return false;
