@@ -1,0 +1,7 @@
+name: PointsOfInterest
+main: crussell52.PointsOfInterest.PointsOfInterest
+version: 0.1
+commands:
+    poi:
+       description: Are you a good witch or a bad witch?
+       usage: |
