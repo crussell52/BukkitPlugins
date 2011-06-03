@@ -10,6 +10,17 @@ public class POI {
 	private String _name;
 	private int _id;
 	private String _owner;
+	private String _world;
+	
+	public void setWorld(String world)
+	{
+		_world = world;
+	}
+	
+	public String getWorld()
+	{
+		return _world;
+	}
 
 	public void setX(int x)
 	{

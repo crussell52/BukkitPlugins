@@ -9,7 +9,10 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.logging.Logger;
 
 
 /**
@@ -28,11 +31,17 @@ public class PointsOfInterest extends JavaPlugin {
 	
 	private final POIManager _poiManager = new POIManager();
     
+	private Logger _log;
+	
+	private Map<Player, POI> _selectedPOIs = new HashMap<Player, POI>();
         
     /**
      * {@inheritDoc}
      */
     public void onEnable() {
+    	// get a handle to the Minecraft logger
+    	_log = Logger.getLogger("Minecraft");
+    	
         // create files necessary for operation
     	_createSupportingFiles();
     	
@@ -41,7 +50,7 @@ public class PointsOfInterest extends JavaPlugin {
     	
         // Identify that we have been loaded
         PluginDescriptionFile pdfFile = this.getDescription();
-        System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );        
+        _log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );        
     }
     
     
@@ -55,7 +64,7 @@ public class PointsOfInterest extends JavaPlugin {
 	    	//new File(this.getDataFolder(), "homes.yml").createNewFile();
 	    	//new File(this.getDataFolder(), "config.yml").createNewFile();
     	} catch (Exception ex) {
-    		ex.printStackTrace();
+    		_log.severe("PointsOfInterest failed to create supporting files with error:" + ex);
     	}
     }
     
@@ -77,11 +86,14 @@ public class PointsOfInterest extends JavaPlugin {
     		
     		// pull out the players location so we don't have to keep using the getter
     		Location playerLoc = ((Player)sender).getLocation();
-    		// check to see how many args we got
     		if (args.length == 0) {
+    			sender.sendMessage("You must specify an action.");
+    			return true;
+    		}
+    		else if (args[0].equalsIgnoreCase("search")) {
     			// output a list of nearby POIs
     			try {
-    				ArrayList<POI> poiList = _poiManager.getPOIs(playerLoc, 2000, 9);
+    				ArrayList<POI> poiList = _poiManager.getPOIs(playerLoc, 2000, 5);
     				sender.sendMessage("\u00a72" + poiList.size() + " POIs found:");
         			Iterator<POI> iterator = poiList.iterator();
         			int i = 0;
@@ -100,19 +112,53 @@ public class PointsOfInterest extends JavaPlugin {
             			String message = colorCode + "    " + distance + " meters (";
             			message += (deltaX > 0 ? "North:" : "South:") + (int)Math.abs(deltaX) + ", ";
             			message += (deltaZ > 0 ? "East:" : "West:") + (int)Math.abs(deltaZ) + ", ";
-            			message += (deltaY > 0 ? "Down:" : "UP:") + (int)Math.abs(deltaY) + ")";
+            			message += (deltaY > 0 ? "Down:" : "Up:") + (int)Math.abs(deltaY) + ")";
             			sender.sendMessage(message);
             		}
     			}
     			catch (POIException poiEx) {
     				sender.sendMessage("There was a system error while looking for nearby POIs");
-    				System.out.println(poiEx);
+    				_log.severe(poiEx.toString());
+    			}    			
+    		}
+    		else if (args[0].equalsIgnoreCase("select")) {
+    			int id;
+    			try {
+    				id = Integer.parseInt(args[1]);
+    			}
+    			catch (Exception ex) {
+    				sender.sendMessage("A numeric id must be specified.");
+    				return true;
     			}
     			
-    		}
-    		else if (args.length == 1) {
     			try {
-    				_poiManager.addLocation(args[0], (Player)sender, 20);
+    				_selectedPOIs.put((Player)sender, _poiManager.getPOI(id, (Player)sender, 2000));
+    			}
+    			catch (POIException ex) {
+    				if (ex.getErrorCode() == POIException.NO_POI_AT_ID) {
+    					sender.sendMessage("No POI found with that id.");
+    				}
+    				else if (ex.getErrorCode() == POIException.POI_OUT_OF_WORLD) {
+    					sender.sendMessage("You can not select a POI in another world, unless you own it.");
+    				}
+    				else if (ex.getErrorCode() == POIException.POI_OUT_OF_RANGE) {
+    					sender.sendMessage("You can not select a POI which is that far away, unless you own it.");
+    				}
+    				else {
+    					sender.sendMessage("An unexpected system error occured.");
+    					_log.severe("Unexpected error while trying to get id.");
+    					_log.severe(ex.toString());
+    				}
+    			}
+    		}
+    		else if (args[0].equalsIgnoreCase("add")) {
+    			if (args.length != 2) {
+    				sender.sendMessage("A name (without spaces) must be given."); 
+    				return true;
+    			}
+    			
+    			try {
+    				_poiManager.addPOI(args[1], (Player)sender, 50);
     				sender.sendMessage("POI " + args[0] + " Created!");
     			}
     			catch (POIException poiEx) {
@@ -120,7 +166,8 @@ public class PointsOfInterest extends JavaPlugin {
     					sender.sendMessage("You are too close to another POI.");
     				}
     				else {
-    					System.out.println(poiEx);
+    					_log.severe("There was an unexpected error while trying to add a location: " + args[1] + "|" + sender + "|" + 50);
+    					_log.severe(poiEx.toString());
     					sender.sendMessage("There was a system error setting your POI.");
     				}
     			}
@@ -148,7 +195,7 @@ public class PointsOfInterest extends JavaPlugin {
         // NOTE: All registered events are automatically unregistered when a plugin is disabled
 
         // EXAMPLE: Custom code, here we just output some info so we can check all is well
-        System.out.println("PointsOfInterest disabled.");
+        _log.info("PointsOfInterest disabled.");
     }
 }
 

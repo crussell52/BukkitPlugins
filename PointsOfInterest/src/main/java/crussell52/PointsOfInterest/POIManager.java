@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -15,8 +16,11 @@ import org.sqlite.Function;
 
 public class POIManager {
 	
+	private Logger _log;
+	
 	public boolean initialize()
 	{
+		_log = Logger.getLogger("Minecraft");
 		Connection conn = null;
 		Boolean success = false;
 		try {
@@ -53,7 +57,51 @@ public class POIManager {
 		
 	}
 	
-	public void addLocation(String name, Player player, int distanceThreshold) throws POIException
+	public POI getPOI(int id, Player player, int distanceThreshold) throws POIException
+	{
+		Connection conn = _getDBConn();
+		
+		try {
+			PreparedStatement sql = conn.prepareStatement(
+				"SELECT id, name, world, owner, x, y, z " + 
+				"FROM poi " +
+				"WHERE id = ?;");
+			
+			sql.setInt(1, id);
+			
+			ArrayList<POI> list = _getPOIs(sql, conn);
+			if (list.size() == 0) {
+				throw new POIException(POIException.NO_POI_AT_ID, "No POI with specified id.");
+			}
+			
+			// id selection always returns exactly one POI.
+			POI poi = list.get(0);
+
+			// see if the player owns this POI
+			if (!player.getName().equalsIgnoreCase(poi.getOwner())) {
+				// player does not own this POI, it must be in their current world and withing the distance threshold.
+				if (player.getWorld().getName().equalsIgnoreCase(poi.getWorld())) {
+					// poi isn't even in the same world as the player.
+					throw new POIException(POIException.POI_OUT_OF_WORLD, "Player does not own POI, and it is outside of Player's current world.");
+				}
+				else if (player.getLocation().toVector().distance(poi.getVector()) > distanceThreshold) {
+					// poi isn't within the distance threshold.
+					throw new POIException(POIException.POI_OUT_OF_RANGE, "Player does not own POI, and it is outside of the distance threshold.");
+				}
+			}
+			
+			// if we made it this far, everything went okay, return the poi
+			return poi;
+		}
+		catch (Exception ex) {
+			throw new POIException(POIException.SYSTEM_ERROR, ex);
+		}
+		finally {
+			_closeConn(conn);
+		}
+	}
+	
+	public void addPOI(String name, Player player, int distanceThreshold) throws POIException
 	{
 		Connection conn = _getDBConn();
 		ResultSet rs = null;
@@ -103,8 +151,7 @@ public class POIManager {
             		result(Math.abs(Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2) + Math.pow((z2 - z1), 2))));
             	}
 	            catch (Exception e) {
-	            	System.out.println(e);
-	            	throw new SQLException("Unable to calculate distance - invalid parameters");
+	            	throw new SQLException("Unable to calculate distance - invalid parameters", e);
 	            }
             }
         });
@@ -126,6 +173,7 @@ public class POIManager {
 				poi.setId(rs.getInt("id"));
 				poi.setName(rs.getString("name"));
 				poi.setOwner(rs.getString("owner"));
+				poi.setWorld(rs.getString("world"));
 				list.add(poi);
 			}
 			
@@ -143,7 +191,7 @@ public class POIManager {
 		try {
 			_createDistanceFunc(conn);
 			PreparedStatement sql = conn.prepareStatement(
-				"SELECT id, name, owner, x, y, z, distance(?, ?, ?, poi.x, poi.y, poi.z) AS distance " + 
+				"SELECT id, name, owner, world, x, y, z, distance(?, ?, ?, poi.x, poi.y, poi.z) AS distance " + 
 				"FROM poi " +
 				"WHERE distance <= ? " +
 				"AND world = ? " +
@@ -175,8 +223,7 @@ public class POIManager {
 			}
 		}
 		catch(Exception ex) {
-			System.out.println("Failed to close Connection");
-			System.out.println(ex);
+			_log.info("Failed to close Connection: " + ex);
 		}
     }
     
@@ -188,8 +235,7 @@ public class POIManager {
 			}
 		}
 		catch(Exception ex) {
-			System.out.println("Failed to close ResultSet");
-			System.out.println(ex);
+			_log.info("Failed to close ResultSet: " + ex);
 		}
     }
     
@@ -201,14 +247,14 @@ public class POIManager {
 	        		"`x` INTEGER NOT NULL ," +
 	        		"`y` INTEGER NOT NULL ," +
 	        		"`z` INTEGER NOT NULL ," + 
-	        		"`owner` STRING(16), " +
-	        		"`world` STRING, " + 
-	        		"`name` STRING(16) );"
+	        		"`owner` STRING(16) NOT NULL, " +
+	        		"`world` STRING NOT NULL, " + 
+	        		"`name` STRING(24) NOT NULL);"
 	        		);
 		}
 		catch (SQLException sqlEx) {
-			System.out.println("Failed to setup POI database");
-			System.out.println(sqlEx);
+			_log.severe("Failed to setup POI database");
+			_log.severe(sqlEx.toString());
 		}
 		finally {
 			_closeConn(conn);
