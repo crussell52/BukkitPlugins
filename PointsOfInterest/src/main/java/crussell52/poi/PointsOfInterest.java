@@ -1,15 +1,11 @@
 package crussell52.poi;
 
-
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import crussell52.poi.commands.PoiCommand;
 
 import java.util.logging.Logger;
-
 
 /**
  * PointsOfInterest for Bukkit
