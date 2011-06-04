@@ -12,8 +12,10 @@ import crussell52.poi.PoiManager;
 import crussell52.poi.actions.ActionHandler;
 import crussell52.poi.actions.AddAction;
 import crussell52.poi.actions.PageReportAction;
+import crussell52.poi.actions.RemoveAction;
 import crussell52.poi.actions.SearchAction;
 import crussell52.poi.actions.SelectAction;
+import crussell52.poi.actions.SummaryAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +49,8 @@ public class PoiCommand implements CommandExecutor {
     	actionHandlers.put(ACTION_SEARCH, new SearchAction(this._poiManager));
     	actionHandlers.put(ACTION_SELECT, new SelectAction(this._poiManager));
     	actionHandlers.put(ACTION_LAST, new PageReportAction(this._poiManager));
+    	actionHandlers.put(ACTION_SUMMARY, new SummaryAction(this._poiManager));
+    	actionHandlers.put(ACTION_REMOVE, new RemoveAction(this._poiManager));
     }
     
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

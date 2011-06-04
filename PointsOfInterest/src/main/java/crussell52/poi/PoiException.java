@@ -6,6 +6,9 @@ public class PoiException extends Exception {
 	public static final int TOO_CLOSE_TO_ANOTHER_POI = 1;
 	public static final int NO_POI_AT_ID = 2;
 	public static final int POI_OUT_OF_WORLD = 4;
+	public static final int POI_BELONGS_TO_SOMEONE_ELSE = 5;
+	public static final int POI_NAME_MISMATCH = 6;
+	
 	
 	private int _errorCode;
 	

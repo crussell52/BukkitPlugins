@@ -10,7 +10,6 @@ public class AddAction extends ActionHandler {
 
 	public AddAction(PoiManager poiManager) {
 		super(poiManager);
-		this._isOwnerOnly = false;
 	}
 
 	@Override

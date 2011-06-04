@@ -81,6 +81,11 @@ public class PoiManager {
 		this._recentResults.get(player).put(player.getWorld().getName(), results);
 	}
 	
+	public void unselectPoi(Player player)
+	{
+		this._selectedPOIs.remove(player);
+	}
+	
 		
 	public Poi getSelectedPOI(Player player)
 	{
@@ -92,9 +97,13 @@ public class PoiManager {
 		return null;
 	}
 	
-	public void selectPOI(int id, Player player) throws PoiException
+	private Poi _getPoi(int id, Connection conn) throws PoiException
 	{
-		Connection conn = _getDBConn();
+		boolean createdConnection = false;
+		if (conn == null) {
+			conn = _getDBConn();
+			createdConnection = true;
+		}
 		
 		try {
 			PreparedStatement sql = conn.prepareStatement(
@@ -110,16 +119,7 @@ public class PoiManager {
 			}
 			
 			// id selection always returns exactly one POI.
-			Poi poi = list.get(0);
-
-			// make sure the POI is in the Player's current world
-			if (!player.getWorld().getName().equalsIgnoreCase(poi.getWorld())) {
-				// poi isn't in the same world as the player.
-				throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
-			}
-			
-			// if we made it this far, everything went okay, select the poi
-			this._selectedPOIs.put(player, poi);
+			return list.get(0);
 		}
 		catch (PoiException ex) {
 			throw ex;
@@ -128,8 +128,59 @@ public class PoiManager {
 			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
 		}
 		finally {
-			_closeConn(conn);
+			if (createdConnection) {
+				_closeConn(conn);
+			}
 		}
+	}
+	
+	public void selectPOI(int id, Player player) throws PoiException
+	{
+		// get the POI by id... the method create its own connection
+		Poi poi = this._getPoi(id, null);
+		
+		// make sure the POI is in the Player's current world
+		if (!player.getWorld().getName().equals(poi.getWorld())) {
+			// poi isn't in the same world as the player.
+			throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
+		}
+		
+		// if we made it this far, everything went okay, select the poi
+		this._selectedPOIs.put(player, poi);
+	}
+	
+	public void removePOI(int id, String name, String owner, String world) throws PoiException
+	{
+		Connection conn = _getDBConn();
+		Poi poi = this._getPoi(id, conn);
+		
+		// verify that the poi is in the expected world
+		if (!world.equals(poi.getWorld())) {
+			throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
+		}
+		
+		if (!owner.equals(poi.getOwner())) {
+			throw new PoiException(PoiException.POI_BELONGS_TO_SOMEONE_ELSE, "POI belongs to someone else.");
+		}
+		
+		if (!name.equalsIgnoreCase(poi.getName())) {
+			throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
+		}
+		
+		try {
+			// we made it here, we can perform the DELETE on the database.
+			PreparedStatement sql = conn.prepareStatement("DELETE FROM poi WHERE id = ?;");
+			sql.setInt(1, id);
+			sql.executeUpdate();
+		}
+		catch (Exception ex) {
+			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
+		}
+		
+		// if any players have this POI currently selected, it should flagged as deleted.
+		
+		
+		// if any players have this POI in a result set, it should be flagged as deleted.
 	}
 	
 	public void addPOI(String name, Player player, int distanceThreshold) throws PoiException
@@ -154,8 +205,11 @@ public class PoiManager {
 			sql.setString(6, location.getWorld().getName());
 			sql.executeUpdate();
 		}
-		catch (SQLException sqlEx) {
-			throw new PoiException(PoiException.SYSTEM_ERROR, sqlEx);
+		catch (PoiException ex) {
+			throw ex;
+		}
+		catch (Exception ex) {
+			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
 		}
 		finally {
 			_closeConn(conn);

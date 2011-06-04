@@ -10,7 +10,6 @@ public class SelectAction extends ActionHandler {
 
 	public SelectAction(PoiManager poiManager) {
 		super(poiManager);
-		this._isOwnerOnly = false;
 	}
 
 	@Override

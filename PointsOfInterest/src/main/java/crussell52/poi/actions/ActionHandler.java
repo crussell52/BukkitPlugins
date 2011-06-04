@@ -5,13 +5,11 @@ import java.util.logging.Logger;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.Poi;
 import crussell52.poi.PoiException;
 import crussell52.poi.PoiManager;
 
 public abstract class ActionHandler {
 	
-	protected boolean _isOwnerOnly = false;
 	protected static Logger _log = Logger.getLogger("Minecraft");
 	
 	protected PoiManager _poiManager;
@@ -31,20 +29,6 @@ public abstract class ActionHandler {
 		return true;
 	}
 	
-	protected boolean _canOperateOnPOI(Player player, Poi poi)
-	{
-		// if ownership isn't required, or the player is an op
-		// then they can operate on the POI
-		if (!this._isOwnerOnly || player.isOp()) {
-			return true;
-		}
-		
-		
-		// ownership is required and player is not an op.
-		// make sure the player owns the POI
-		return poi.getOwner().equalsIgnoreCase(player.getName());
-	}
-	
 	protected boolean _selectPOI(String[] args, int expectedIndex, Player player)
 	{
 		try {
@@ -53,7 +37,6 @@ public abstract class ActionHandler {
 			return true;
 		}
 		catch (PoiException ex) {
-			System.out.println("Byahh!" + ex.getErrorCode());
 			
 			switch (ex.getErrorCode()) {
 				case PoiException.NO_POI_AT_ID:

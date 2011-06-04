@@ -16,7 +16,6 @@ public class SearchAction extends ActionHandler {
 	
 	public SearchAction(PoiManager poiManager) {
 		super(poiManager);
-		this._isOwnerOnly = false;
 	}
 	
 	@Override

@@ -14,7 +14,6 @@ public class PageReportAction extends ActionHandler {
 	
 	public PageReportAction(PoiManager poiManager) {
 		super(poiManager);
-		this._isOwnerOnly = false;
 	}
 
 	@Override
