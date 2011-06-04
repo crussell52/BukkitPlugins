@@ -3,12 +3,12 @@ package crussell52.poi.actions;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.POIException;
-import crussell52.poi.POIManager;
+import crussell52.poi.PoiException;
+import crussell52.poi.PoiManager;
 
 public class AddAction extends ActionHandler {
 
-	public AddAction(POIManager poiManager) {
+	public AddAction(PoiManager poiManager) {
 		super(poiManager);
 		this._isOwnerOnly = false;
 	}
@@ -33,8 +33,8 @@ public class AddAction extends ActionHandler {
 		}
 		
 		// make sure the name doesn't exceed the max length.
-		if (args[0].length() > POIManager.MAX_NAME_LENGTH) {
-			sender.sendMessage("Names can not be more that " + POIManager.MAX_NAME_LENGTH + " characters long.");
+		if (args[0].length() > PoiManager.MAX_NAME_LENGTH) {
+			sender.sendMessage("Names can not be more that " + PoiManager.MAX_NAME_LENGTH + " characters long.");
 			return;
 		}
 		
@@ -43,8 +43,8 @@ public class AddAction extends ActionHandler {
 			this._poiManager.addPOI(args[0], (Player)sender, 50);
 			sender.sendMessage("POI " + args[0] + " Created!");
 		}
-		catch (POIException poiEx) {
-			if (poiEx.getErrorCode() == POIException.TOO_CLOSE_TO_ANOTHER_POI) {
+		catch (PoiException poiEx) {
+			if (poiEx.getErrorCode() == PoiException.TOO_CLOSE_TO_ANOTHER_POI) {
 				sender.sendMessage("You are too close to another POI.");
 			}
 			else {

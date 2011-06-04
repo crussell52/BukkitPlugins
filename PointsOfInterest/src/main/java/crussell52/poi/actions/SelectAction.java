@@ -3,12 +3,12 @@ package crussell52.poi.actions;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.POI;
-import crussell52.poi.POIManager;
+import crussell52.poi.Poi;
+import crussell52.poi.PoiManager;
 
 public class SelectAction extends ActionHandler {
 
-	public SelectAction(POIManager poiManager) {
+	public SelectAction(PoiManager poiManager) {
 		super(poiManager);
 		this._isOwnerOnly = false;
 	}
@@ -21,7 +21,7 @@ public class SelectAction extends ActionHandler {
 		}
 		
 		if (this._selectPOI(args, 0, (Player)sender)) {
-			POI poi = this._poiManager.getSelectedPOI((Player)sender);
+			Poi poi = this._poiManager.getSelectedPOI((Player)sender);
 			sender.sendMessage("POI selected:");
 			sender.sendMessage(poi.getShortSummary(""));
 		}		

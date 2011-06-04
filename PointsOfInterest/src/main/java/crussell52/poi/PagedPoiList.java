@@ -7,14 +7,14 @@ import org.bukkit.Location;
 public class PagedPoiList {
 	
 	private int _maxPerPage;
-	private ArrayList<ArrayList<POI>> _pages;
+	private ArrayList<ArrayList<Poi>> _pages;
 	
 	@SuppressWarnings("unused")
 	private PagedPoiList() {
 		// hide the default constructor
 	}
 	
-	public PagedPoiList(int maxPerPage, ArrayList<POI> results) {
+	public PagedPoiList(int maxPerPage, ArrayList<Poi> results) {
 		
 		if (maxPerPage < 1) {
 			throw new IndexOutOfBoundsException("Can not have less than 1 POI per page.");
@@ -27,7 +27,7 @@ public class PagedPoiList {
 	public int getTotalCount() {
 		
 		int total = 0;
-		for (ArrayList<POI> pageContents : this._pages) {
+		for (ArrayList<Poi> pageContents : this._pages) {
 			total += pageContents.size();
 		}
 
@@ -38,13 +38,13 @@ public class PagedPoiList {
 		return this._pages.size();
 	}
 	
-	public ArrayList<POI> getPage(int pageNum) {
+	public ArrayList<Poi> getPage(int pageNum) {
 		return this._pages.get(pageNum);
 	}
 	
-	private ArrayList<ArrayList<POI>> _pageResults(ArrayList<POI> poiList) {
+	private ArrayList<ArrayList<Poi>> _pageResults(ArrayList<Poi> poiList) {
 		
-		ArrayList<ArrayList<POI>> pagedList = new ArrayList<ArrayList<POI>>();
+		ArrayList<ArrayList<Poi>> pagedList = new ArrayList<ArrayList<Poi>>();
 		
 		// handle the easy case first... everything fits on the first page.
 		if (poiList.size() < this._maxPerPage) {
@@ -53,15 +53,15 @@ public class PagedPoiList {
 		}
 
 		// we have more than 1 page worth of POIs... so we need to go through the paging process
-		ArrayList<POI> page = new ArrayList<POI>();
+		ArrayList<Poi> page = new ArrayList<Poi>();
 		
 		// loop over each POI in the list
-		for (POI poi : poiList) {
+		for (Poi poi : poiList) {
 			// if our page is already at the max, then add it to the paged list
 			// and start a new page.
 			if (page.size() == this._maxPerPage) {
 				pagedList.add(page);
-				page = new ArrayList<POI>();
+				page = new ArrayList<Poi>();
 			}
 			
 			// add the POI to the page.
@@ -94,11 +94,11 @@ public class PagedPoiList {
 		// start by producing the header.
 		report.add("\u00a72" + numResults + " POIs found. \u00a7e(Page " + pageNum + " of " + numPages + ")");
 
-		ArrayList<POI> poiList = this.getPage(pageNum - 1);
+		ArrayList<Poi> poiList = this.getPage(pageNum - 1);
 		
 		int summaryIndex = 0;
 		String colorCode;
-		for (POI poi : poiList) {
+		for (Poi poi : poiList) {
 			colorCode = (++summaryIndex % 2) == 0 ? "\u00a77" : "";
 			report.addAll(poi.getSummary(location, distanceThreshold, colorCode));
 		}

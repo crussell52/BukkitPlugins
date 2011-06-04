@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
-public class POI {
+public class Poi {
 	
 	private int _x;
 	private int _y;

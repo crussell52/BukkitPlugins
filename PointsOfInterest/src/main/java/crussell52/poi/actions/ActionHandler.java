@@ -5,17 +5,17 @@ import java.util.logging.Logger;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.POI;
-import crussell52.poi.POIException;
-import crussell52.poi.POIManager;
+import crussell52.poi.Poi;
+import crussell52.poi.PoiException;
+import crussell52.poi.PoiManager;
 
 public abstract class ActionHandler {
 	
 	protected boolean _isOwnerOnly = false;
 	protected static Logger _log = Logger.getLogger("Minecraft");
 	
-	protected POIManager _poiManager;
-	public ActionHandler(POIManager poiManager) {
+	protected PoiManager _poiManager;
+	public ActionHandler(PoiManager poiManager) {
 		this._poiManager = poiManager;
 	}
 	
@@ -31,7 +31,7 @@ public abstract class ActionHandler {
 		return true;
 	}
 	
-	protected boolean _canOperateOnPOI(Player player, POI poi)
+	protected boolean _canOperateOnPOI(Player player, Poi poi)
 	{
 		// if ownership isn't required, or the player is an op
 		// then they can operate on the POI
@@ -52,14 +52,14 @@ public abstract class ActionHandler {
 			this._poiManager.selectPOI(id, player);
 			return true;
 		}
-		catch (POIException ex) {
+		catch (PoiException ex) {
 			System.out.println("Byahh!" + ex.getErrorCode());
 			
 			switch (ex.getErrorCode()) {
-				case POIException.NO_POI_AT_ID:
+				case PoiException.NO_POI_AT_ID:
 					player.sendMessage("No POI found with the specified id.");
 					break;
-				case POIException.POI_OUT_OF_WORLD:
+				case PoiException.POI_OUT_OF_WORLD:
 					player.sendMessage("Specified POI is in another world.");
 					break;
 				default:

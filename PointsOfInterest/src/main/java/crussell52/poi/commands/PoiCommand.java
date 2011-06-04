@@ -8,7 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.POIManager;
+import crussell52.poi.PoiManager;
 import crussell52.poi.actions.ActionHandler;
 import crussell52.poi.actions.AddAction;
 import crussell52.poi.actions.SearchAction;
@@ -22,7 +22,7 @@ import java.util.Map;
  * @author crussell
  *
  */
-public class POICommand implements CommandExecutor {
+public class PoiCommand implements CommandExecutor {
 	
 	// TODO: look into creating an enumeration for this.
 	public static final String ACTION_RENAME = "rename";
@@ -35,11 +35,11 @@ public class POICommand implements CommandExecutor {
 	public static final String ACTION_LAST = "last";
 	public static final String ACTION_LIST = "list";
 	
-	private POIManager _poiManager;
+	private PoiManager _poiManager;
 	
 	private final Map<String, ActionHandler> actionHandlers = new HashMap<String, ActionHandler>();
 
-    public POICommand(POIManager poiManager) {
+    public PoiCommand(PoiManager poiManager) {
     	this._poiManager = poiManager;
     	
     	actionHandlers.put(ACTION_ADD, new AddAction(this._poiManager));

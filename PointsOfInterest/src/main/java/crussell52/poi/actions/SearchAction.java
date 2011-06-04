@@ -6,16 +6,16 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.POIException;
-import crussell52.poi.POIManager;
+import crussell52.poi.PoiException;
+import crussell52.poi.PoiManager;
 import crussell52.poi.PagedPoiList;
-import crussell52.poi.commands.POICommand;
+import crussell52.poi.commands.PoiCommand;
 
 public class SearchAction extends ActionHandler {
 	
 	private static final int MAX_PER_PAGE = 3;
 	
-	public SearchAction(POIManager poiManager) {
+	public SearchAction(PoiManager poiManager) {
 		super(poiManager);
 		this._isOwnerOnly = false;
 	}
@@ -32,7 +32,7 @@ public class SearchAction extends ActionHandler {
 		Player player = (Player)sender;
 		
 		// handle the search action
-		if (action.equalsIgnoreCase(POICommand.ACTION_SEARCH)) {
+		if (action.equalsIgnoreCase(PoiCommand.ACTION_SEARCH)) {
 			Location playerLoc = (player.getLocation());
 			
 			// attempt to get a list of nearby POIs
@@ -44,12 +44,12 @@ public class SearchAction extends ActionHandler {
 					player.sendMessage(message);
 				}
 			}
-			catch (POIException poiEx) {
+			catch (PoiException poiEx) {
 				ActionHandler._log.severe(poiEx.toString());
 				sender.sendMessage("There was a system error while looking for nearby POIs");
 			}
 		}
-		else if (action.equalsIgnoreCase(POICommand.ACTION_LAST)) {
+		else if (action.equalsIgnoreCase(PoiCommand.ACTION_LAST)) {
 			// TODO: implement
 		}
 		else {

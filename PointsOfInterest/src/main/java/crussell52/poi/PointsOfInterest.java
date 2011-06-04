@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import crussell52.poi.commands.POICommand;
+import crussell52.poi.commands.PoiCommand;
 
 import java.util.logging.Logger;
 
@@ -25,7 +25,7 @@ public class PointsOfInterest extends JavaPlugin {
      */
     //private final ConfigParser _config = new ConfigParser();
 	
-	private final POIManager _poiManager = new POIManager();
+	private final PoiManager _poiManager = new PoiManager();
     
 	private Logger _log;
 	
@@ -42,7 +42,7 @@ public class PointsOfInterest extends JavaPlugin {
     	// TODO: handle failure case.
     	this._poiManager.initialize();
     	
-    	getCommand("poi").setExecutor(new POICommand(this._poiManager));
+    	getCommand("poi").setExecutor(new PoiCommand(this._poiManager));
     	
         // Identify that we have been loaded
         PluginDescriptionFile pdfFile = this.getDescription();
