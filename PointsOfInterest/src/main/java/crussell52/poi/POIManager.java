@@ -1,4 +1,4 @@
-package crussell52.PointsOfInterest;
+package crussell52.poi;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
@@ -17,6 +19,14 @@ import org.sqlite.Function;
 public class POIManager {
 	
 	private Logger _log;
+	
+	private final Map<Player, Map<String, PagedPoiList>> _recentResults = new HashMap<Player, Map<String, PagedPoiList>>();
+	
+	private Map<Player, POI> _selectedPOIs = new HashMap<Player, POI>(); 
+	
+	public static final int MAX_NAME_LENGTH = 24;
+	
+	private static final String SELECT_BASE = "SELECT id, name, world, owner, x, y, z ";
 	
 	public boolean initialize()
 	{
@@ -53,17 +63,43 @@ public class POIManager {
 		return null;
     }
 	
-	public void getPOIs(String owner) {
-		
+	public PagedPoiList getRecentResults(Player player)
+	{
+		try {
+			return this._recentResults.get(player).get(player.getWorld().getName());
+		}
+		catch (Exception ex) {
+			return null;
+		}
 	}
 	
-	public POI getPOI(int id, Player player, int distanceThreshold) throws POIException
+	public void setRecentResults(Player player, PagedPoiList results)
+	{
+		if (!this._recentResults.containsKey(player)) {
+			this._recentResults.put(player, new HashMap<String, PagedPoiList>());
+		}
+		
+		this._recentResults.get(player).put(player.getWorld().getName(), results);
+	}
+	
+		
+	public POI getSelectedPOI(Player player)
+	{
+		POI poi = this._selectedPOIs.get(player);
+		if (poi != null && poi.getWorld().equalsIgnoreCase(player.getWorld().getName())) {
+			return poi;
+		}
+		
+		return null;
+	}
+	
+	public void selectPOI(int id, Player player) throws POIException
 	{
 		Connection conn = _getDBConn();
 		
 		try {
 			PreparedStatement sql = conn.prepareStatement(
-				"SELECT id, name, world, owner, x, y, z " + 
+				SELECT_BASE + 
 				"FROM poi " +
 				"WHERE id = ?;");
 			
@@ -77,21 +113,17 @@ public class POIManager {
 			// id selection always returns exactly one POI.
 			POI poi = list.get(0);
 
-			// see if the player owns this POI
-			if (!player.getName().equalsIgnoreCase(poi.getOwner())) {
-				// player does not own this POI, it must be in their current world and withing the distance threshold.
-				if (player.getWorld().getName().equalsIgnoreCase(poi.getWorld())) {
-					// poi isn't even in the same world as the player.
-					throw new POIException(POIException.POI_OUT_OF_WORLD, "Player does not own POI, and it is outside of Player's current world.");
-				}
-				else if (player.getLocation().toVector().distance(poi.getVector()) > distanceThreshold) {
-					// poi isn't within the distance threshold.
-					throw new POIException(POIException.POI_OUT_OF_RANGE, "Player does not own POI, and it is outside of the distance threshold.");
-				}
+			// make sure the POI is in the Player's current world
+			if (!player.getWorld().getName().equalsIgnoreCase(poi.getWorld())) {
+				// poi isn't in the same world as the player.
+				throw new POIException(POIException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
 			}
 			
-			// if we made it this far, everything went okay, return the poi
-			return poi;
+			// if we made it this far, everything went okay, select the poi
+			this._selectedPOIs.put(player, poi);
+		}
+		catch (POIException ex) {
+			throw ex;
 		}
 		catch (Exception ex) {
 			throw new POIException(POIException.SYSTEM_ERROR, ex);
@@ -109,12 +141,8 @@ public class POIManager {
 
 		try {
 			ArrayList<POI> list = new ArrayList<POI>();
-			list = getPOIs(location, distanceThreshold, 1);
+			list = getNearby(location, distanceThreshold, 1);
 			if (list.size() > 0) {
-				Iterator<POI> it = list.iterator();
-				while (it.hasNext()) {
-					System.out.println(it.next());
-				}
 				throw new POIException(POIException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI threshold: " + distanceThreshold);
 			}
 			
@@ -184,14 +212,14 @@ public class POIManager {
 		}
 	}
 	
-	public ArrayList<POI> getPOIs(Location playerLoc, int maxDistance, int limit) throws POIException
+	public ArrayList<POI> getNearby(Location playerLoc, int maxDistance, int limit) throws POIException
     {
     	Connection conn = _getDBConn();
     	
 		try {
 			_createDistanceFunc(conn);
 			PreparedStatement sql = conn.prepareStatement(
-				"SELECT id, name, owner, world, x, y, z, distance(?, ?, ?, poi.x, poi.y, poi.z) AS distance " + 
+				SELECT_BASE + ", distance(?, ?, ?, poi.x, poi.y, poi.z) AS distance " + 
 				"FROM poi " +
 				"WHERE distance <= ? " +
 				"AND world = ? " +
@@ -260,5 +288,7 @@ public class POIManager {
 			_closeConn(conn);
 		}
     }
+    
+    
 	
 }

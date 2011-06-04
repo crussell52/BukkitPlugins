@@ -1,6 +1,6 @@
 name: PointsOfInterest
-main: crussell52.PointsOfInterest.PointsOfInterest
-version: 0.1
+main: crussell52.poi.PointsOfInterest
+version: 0.1.2
 commands:
     poi:
        description: Are you a good witch or a bad witch?

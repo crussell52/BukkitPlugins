@@ -1,11 +1,10 @@
-package crussell52.PointsOfInterest;
+package crussell52.poi;
 
 @SuppressWarnings("serial")
 public class POIException extends Exception {
 	public static final int SYSTEM_ERROR = 0;
 	public static final int TOO_CLOSE_TO_ANOTHER_POI = 1;
 	public static final int NO_POI_AT_ID = 2;
-	public static final int POI_OUT_OF_RANGE = 3;
 	public static final int POI_OUT_OF_WORLD = 4;
 	
 	private int _errorCode;

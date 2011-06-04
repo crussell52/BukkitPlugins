@@ -1,5 +1,8 @@
-package crussell52.PointsOfInterest;
+package crussell52.poi;
 
+import java.util.ArrayList;
+
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 public class POI {
@@ -85,6 +88,38 @@ public class POI {
 	public Vector getVector()
 	{
 		return new Vector(_x, _y, _z);
+	}
+	
+	public String getShortSummary(String colorCode)
+	{
+		return (colorCode + this.getName() + " (Owner: " + this.getOwner() + ", ID: " + this.getId() + ")");
+	}
+	
+	
+	public ArrayList<String> getSummary(Location location, int distanceThreshold, String colorCode)
+	{
+		ArrayList<String> summary = new ArrayList<String>();
+		summary.add(this.getShortSummary(colorCode));
+		
+		int distance = (int)location.toVector().distance(this.getVector());
+		String directions = colorCode + "    " + distance + " meters ";
+		if (distanceThreshold < 0 || distance <= distanceThreshold) {
+			int deltaX = (int)location.getX() - this.getX();
+			int deltaY = (int)location.getY() - this.getY();
+			int deltaZ = (int)location.getZ() - this.getZ();
+
+			directions += (deltaX > 0 ? "North:" : "South:") + (int)Math.abs(deltaX) + ", ";
+			directions += (deltaZ > 0 ? "East:" : "West:") + (int)Math.abs(deltaZ) + ", ";
+			directions += (deltaY > 0 ? "Down:" : "UP:") + (int)Math.abs(deltaY) + ")";
+
+		}
+		else {
+			directions += "(-- Out of Range --)";
+		}
+		
+		summary.add(directions);
+		
+		return summary;
 	}
 	
 	public String toString() {
