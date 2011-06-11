@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import crussell52.poi.PoiManager;
 import crussell52.poi.actions.ActionHandler;
 import crussell52.poi.actions.AddAction;
+import crussell52.poi.actions.HelpAction;
 import crussell52.poi.actions.PageReportAction;
 import crussell52.poi.actions.RemoveAction;
 import crussell52.poi.actions.SearchAction;
@@ -35,8 +36,9 @@ public class PoiCommand implements CommandExecutor {
 	public static final String ACTION_ADD = "add";
 	public static final String ACTION_SEARCH = "search";
 	public static final String ACTION_SELECT = "select";
-	public static final String ACTION_LAST = "last";
+	public static final String ACTION_PAGE = "page";
 	public static final String ACTION_LIST = "list";
+	public static final String ACTION_HELP = "help";
 	
 	private PoiManager _poiManager;
 	
@@ -48,9 +50,10 @@ public class PoiCommand implements CommandExecutor {
     	actionHandlers.put(ACTION_ADD, new AddAction(this._poiManager));
     	actionHandlers.put(ACTION_SEARCH, new SearchAction(this._poiManager));
     	actionHandlers.put(ACTION_SELECT, new SelectAction(this._poiManager));
-    	actionHandlers.put(ACTION_LAST, new PageReportAction(this._poiManager));
+    	actionHandlers.put(ACTION_PAGE, new PageReportAction(this._poiManager));
     	actionHandlers.put(ACTION_SUMMARY, new SummaryAction(this._poiManager));
     	actionHandlers.put(ACTION_REMOVE, new RemoveAction(this._poiManager));
+    	actionHandlers.put(ACTION_HELP, new HelpAction(this._poiManager));
     }
     
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -63,7 +66,7 @@ public class PoiCommand implements CommandExecutor {
 		String action = (args.length == 0 ?  ACTION_SUMMARY : args[0]);
 		String[] otherArgs = this._removeActionArg(args);
 		
-		ActionHandler actionHandler = actionHandlers.get(action);
+		ActionHandler actionHandler = actionHandlers.get(action.toLowerCase());
 		if (actionHandler == null) {
 			sender.sendMessage("Unrecognized action");
 			return false;

@@ -24,12 +24,12 @@ public class SummaryAction extends ActionHandler {
 				
 		if (args.length > 0) {
 			if (args.length != 1) {
-				sender.sendMessage(ChatColor.RED + "Too much information. Only ID is supported as an argument to this action.");
+				this._actionUsageError(sender, "Too much information. Only ID is supported as an argument to this action.", action);
 				return;
 			}
 		
 			// attempt to select with the provided id.
-			if (!this._selectPOI(args, 0, (Player)sender)) {
+			if (!this._selectPOI(args, 0, (Player)sender, action)) {
 				// failed to select, do not proceed.
 				return;
 			}

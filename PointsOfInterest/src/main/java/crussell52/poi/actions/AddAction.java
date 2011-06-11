@@ -21,19 +21,19 @@ public class AddAction extends ActionHandler {
 		
 		// we need a name to be specified.
 		if (args.length < 1) {
-			sender.sendMessage("A name must be provided."); 
+			this._actionUsageError(sender, "A name must be provided.", action); 
 			return;
 		}
 		
 		// name should be the last argument...
 		// it looks like they tried to include spaces.
 		if (args.length > 1) {
-			sender.sendMessage("POI name can not have spaces.");
+			this._actionUsageError(sender, "POI name can not have spaces.", action);
 		}
 		
 		// make sure the name doesn't exceed the max length.
 		if (args[0].length() > PoiManager.MAX_NAME_LENGTH) {
-			sender.sendMessage("Names can not be more that " + PoiManager.MAX_NAME_LENGTH + " characters long.");
+			this._actionUsageError(sender, "Names can not be more that " + PoiManager.MAX_NAME_LENGTH + " characters long.", action);
 			return;
 		}
 		

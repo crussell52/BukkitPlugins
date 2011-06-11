@@ -47,9 +47,4 @@ public class SearchAction extends ActionHandler {
 			sender.sendMessage("There was a system error while looking for nearby POIs");
 		}
 	}
-	
-	
-	
-	
-
 }

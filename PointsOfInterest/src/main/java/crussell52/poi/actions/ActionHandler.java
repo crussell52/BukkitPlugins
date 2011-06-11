@@ -1,7 +1,9 @@
 package crussell52.poi.actions;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -29,7 +31,21 @@ public abstract class ActionHandler {
 		return true;
 	}
 	
-	protected boolean _selectPOI(String[] args, int expectedIndex, Player player)
+	protected void _actionUsageError(CommandSender recipient, ArrayList<String> messages, String action) {
+		for (String message : messages) {
+			recipient.sendMessage(ChatColor.RED + message);
+		}
+		
+		recipient.sendMessage(ChatColor.RED + "Use " + ChatColor.DARK_RED + "\"/poi help\" for guidance."); 
+	}
+	
+	protected void _actionUsageError(CommandSender recipient, String message, String action) {
+		ArrayList<String> messages = new ArrayList<String>();
+		messages.add(message);
+		this._actionUsageError(recipient, messages, action);
+	}
+	
+	protected boolean _selectPOI(String[] args, int expectedIndex, Player player, String action)
 	{
 		try {
 			int	id = Integer.parseInt(args[0]);
@@ -54,11 +70,11 @@ public abstract class ActionHandler {
 			return false;
 		}
 		catch (IndexOutOfBoundsException ex) {
-			player.sendMessage("ID must be specified.");
+			this._actionUsageError(player, "ID must be specified.", action);
 			return false;
 		}
 		catch (NumberFormatException ex) {
-			player.sendMessage("ID must be a number.");
+			this._actionUsageError(player, "ID must be a number.", action);
 			return false;
 		}
 	}

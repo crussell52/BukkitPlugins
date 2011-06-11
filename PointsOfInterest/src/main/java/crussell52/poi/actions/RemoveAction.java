@@ -22,7 +22,8 @@ public class RemoveAction extends ActionHandler {
 		}
 		
 		if (args.length < 2) {
-			sender.sendMessage(ChatColor.RED + "You must specify the name and ID of the POI to remove.");
+			this._actionUsageError(sender, "You must specify the name and ID of the POI to remove.", action);
+			return;
 		}
 		
 		try {
@@ -64,7 +65,7 @@ public class RemoveAction extends ActionHandler {
 			sender.sendMessage(ChatColor.RED + error);
 		}
 		catch (NumberFormatException ex) {
-			sender.sendMessage(ChatColor.RED + "ID is expected to be a number instead of: " + args[0]);
+			this._actionUsageError(sender, "ID is expected to be a number instead of: " + args[0], action);
 		}
 		
 		

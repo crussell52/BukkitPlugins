@@ -23,16 +23,16 @@ public class PageReportAction extends ActionHandler {
 			return;
 		}
 		
+		// make sure we don't have extra arguments
+		if (args.length > 1) {
+			this._actionUsageError(sender, "Too much info! This action only accepts a page number.", action);
+			return;
+		}
+		
 		// make sure this player has a result set in the current world.
 		PagedPoiList results = this._poiManager.getRecentResults((Player)sender);
 		if (results == null) {
 			sender.sendMessage("You do not have any recent results in this World.");
-			return;
-		}
-		
-		// make sure we don't have extra arguments
-		if (args.length > 1) {
-			sender.sendMessage("Too much info! This action only accepts a page number.");
 			return;
 		}
 		

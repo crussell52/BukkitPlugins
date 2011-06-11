@@ -19,7 +19,7 @@ public class SelectAction extends ActionHandler {
 			return;
 		}
 		
-		if (this._selectPOI(args, 0, (Player)sender)) {
+		if (this._selectPOI(args, 0, (Player)sender, action)) {
 			Poi poi = this._poiManager.getSelectedPOI((Player)sender);
 			sender.sendMessage("POI selected:");
 			sender.sendMessage(poi.getShortSummary(""));
