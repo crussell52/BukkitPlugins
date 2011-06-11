@@ -1,5 +1,6 @@
 package crussell52.poi;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,12 +28,18 @@ public class PoiManager {
 	
 	private static final String SELECT_BASE = "SELECT id, name, world, owner, x, y, z ";
 	
-	public boolean initialize()
+	private String _dbPath;
+	
+	public boolean initialize(File pluginDataFolder)
 	{
 		_log = Logger.getLogger("Minecraft");
 		Connection conn = null;
 		Boolean success = false;
 		try {
+			File dbFolder = new File(pluginDataFolder, "db");
+			dbFolder.mkdir();
+			_dbPath = new File(dbFolder, "POI.db").getCanonicalPath();	
+			
 			conn = _getDBConn();
 			_setupDB(conn);
 			success = true;
@@ -50,9 +57,8 @@ public class PoiManager {
 	
 	private Connection _getDBConn(){
 		try {
-			String file = "./plugins/PointsOfInterest/POI.db";
 			Class.forName("org.sqlite.JDBC");
-			Connection conn = DriverManager.getConnection("jdbc:sqlite:" + file);
+			Connection conn = DriverManager.getConnection("jdbc:sqlite:" + _dbPath);
 			return conn;
 		}
 		catch (Exception ex) {
