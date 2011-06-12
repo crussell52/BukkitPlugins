@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.sqlite.Function;
 
@@ -283,11 +284,34 @@ public class PoiManager {
 		}
 	}
 	
+	public ArrayList<Poi> getOwnedBy(World currentWorld, String owner) throws PoiException
+	{
+		Connection conn = _getDBConn();
+		try {
+			PreparedStatement sql = conn.prepareStatement(
+				SELECT_BASE + 
+				"FROM poi " +
+				"WHERE owner like ? " +   // case insensitive search
+				"AND world = ? ");
+			
+			sql.setString(1, owner);
+			sql.setString(2, currentWorld.getName());
+			
+			return _getPOIs(sql, conn);
+		}
+		catch (SQLException sqlEx) {
+			throw new PoiException(PoiException.SYSTEM_ERROR, sqlEx);
+		}
+		finally {
+			_closeConn(conn);	
+		}
+	}
+	
 	public ArrayList<Poi> getNearby(Location playerLoc, int maxDistance, int limit) throws PoiException
     {
     	Connection conn = _getDBConn();
- _log.info("" + maxDistance + "|" + limit);   	
-		try {
+
+    	try {
 			_createDistanceFunc(conn);
 			PreparedStatement sql = conn.prepareStatement(
 				SELECT_BASE + ", distance(?, ?, ?, poi.x, poi.y, poi.z) AS distance " + 

@@ -2,6 +2,7 @@ package crussell52.poi;
 
 import java.util.ArrayList;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
 public class PagedPoiList {
@@ -110,12 +111,14 @@ public class PagedPoiList {
 		int numResults = this.getTotalCount();
 		
 		// start by producing the header.
-		report.add("\u00a72" + numResults + " POIs found. \u00a7e(Page " + this._currentPage + " of " + numPages + ")");
+		report.add(ChatColor.GREEN + (this._listType == TYPE_AREA_SEARCH ? "Area Search: " : "Owner List: ") +
+			ChatColor.DARK_GREEN + numResults + " POIs found. " + 
+			ChatColor.YELLOW + "(Page " + this._currentPage + " of " + numPages + ")");
 
 		int summaryIndex = 0;
 		String colorCode;
 		for (Poi poi : poiList) {
-			colorCode = (++summaryIndex % 2) == 0 ? "\u00a77" : "";
+			colorCode = (++summaryIndex % 2) == 0 ? ChatColor.GRAY.toString() : ChatColor.WHITE.toString();
 			if (useShortSummary) {
 				report.add(poi.getShortSummary(colorCode));
 			}

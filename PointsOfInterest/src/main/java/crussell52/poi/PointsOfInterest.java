@@ -27,8 +27,8 @@ public class PointsOfInterest extends JavaPlugin {
     public void onEnable() {
     	// get a handle to the Minecraft logger
     	this._log = Logger.getLogger("Minecraft");
-    	
-        // create files necessary for operation
+
+    	// create files necessary for operation
     	_createSupportingFiles();
     	
     	// TODO: handle failure case.
