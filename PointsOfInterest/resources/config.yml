@@ -11,7 +11,7 @@
 #  distanceThreshold:
 #
 #    Controls the maximum search radius and the maximum distance at which
-#    a player can get directions to a POI. Set to a value of -1 for "unlimited"
+#    a player can get directions to a POI.
 #
 #    Type: Whole Number
 #    Default: 2000

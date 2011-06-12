@@ -8,6 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import crussell52.poi.Config;
 import crussell52.poi.PoiManager;
 import crussell52.poi.actions.ActionHandler;
 import crussell52.poi.actions.AddAction;
@@ -57,9 +58,10 @@ public class PoiCommand implements CommandExecutor {
     }
     
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		// make sure it was a player that issued the command
-		if (!(sender instanceof Player)) {
-			sender.sendMessage("This must be a Player in the game to use this command.");
+
+		// see if the command came from a black listed world
+		if ((sender instanceof Player) && !Config.isWorldSupported(((Player)sender).getWorld().getName())) {
+			sender.sendMessage("PointsOfInterest is not supported in this world.");
 			return true;
 		}
 		

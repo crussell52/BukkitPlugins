@@ -1,6 +1,6 @@
 name: PointsOfInterest
 main: crussell52.poi.PointsOfInterest
-version: 0.1.3
+version: 0.1.4
 commands:
     poi:
        description: Show your friends what's interesting in the world!

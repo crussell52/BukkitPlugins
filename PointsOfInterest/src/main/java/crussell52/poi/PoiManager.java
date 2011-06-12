@@ -182,14 +182,9 @@ public class PoiManager {
 		catch (Exception ex) {
 			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
 		}
-		
-		// if any players have this POI currently selected, it should flagged as deleted.
-		
-		
-		// if any players have this POI in a result set, it should be flagged as deleted.
 	}
 	
-	public void addPOI(String name, Player player, int distanceThreshold) throws PoiException
+	public void add(String name, Player player, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
 	{
 		Connection conn = _getDBConn();
 		ResultSet rs = null;
@@ -197,12 +192,29 @@ public class PoiManager {
 
 		try {
 			ArrayList<Poi> list = new ArrayList<Poi>();
-			list = getNearby(location, distanceThreshold, 1);
+			list = getNearby(location, minPoiGap, 1);
 			if (list.size() > 0) {
-				throw new PoiException(PoiException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI threshold: " + distanceThreshold);
+				throw new PoiException(PoiException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI threshold: " + minPoiGap);
 			}
 			
-			PreparedStatement sql = conn.prepareStatement("insert into poi (x, y, z, name, owner, world) values (?, ?, ?, ?, ?, ?);");
+			// check to see if the Player has reached their limit for this world
+			PreparedStatement sql = conn.prepareStatement(
+				"SELECT count(id) AS count " +
+				"FROM poi " + 
+				"WHERE owner = ? " +
+				"AND world = ?;");
+			
+			sql.setString(1, player.getName());
+			sql.setString(2, location.getWorld().getName());
+			
+			rs = sql.executeQuery();
+			rs.next();
+			if (rs.getInt("count") >= maxPlayerPoiPerWorld) {
+				throw new PoiException(PoiException.MAX_PLAYER_POI_EXCEEDED);
+			}
+			_closeResultSet(rs);
+			
+			sql = conn.prepareStatement("insert into poi (x, y, z, name, owner, world) values (?, ?, ?, ?, ?, ?);");
 			sql.setInt(1, (int)location.getX());
 			sql.setInt(2, (int)location.getY());
 			sql.setInt(3, (int)location.getZ());
@@ -274,7 +286,7 @@ public class PoiManager {
 	public ArrayList<Poi> getNearby(Location playerLoc, int maxDistance, int limit) throws PoiException
     {
     	Connection conn = _getDBConn();
-    	
+ _log.info("" + maxDistance + "|" + limit);   	
 		try {
 			_createDistanceFunc(conn);
 			PreparedStatement sql = conn.prepareStatement(
@@ -284,7 +296,7 @@ public class PoiManager {
 				"AND world = ? " +
 				"ORDER BY distance ASC " +
 				"LIMIT ?;");
-
+			
 			sql.setInt(1, (int)playerLoc.getX());
 			sql.setInt(2, (int)playerLoc.getY());
 			sql.setInt(3, (int)playerLoc.getZ());

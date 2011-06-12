@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import crussell52.poi.Config;
 import crussell52.poi.Poi;
 import crussell52.poi.PoiManager;
 
@@ -37,11 +38,11 @@ public class SummaryAction extends ActionHandler {
 		
 		Poi poi = this._poiManager.getSelectedPOI((Player)sender);
 		if (poi == null) {
-			sender.sendMessage(ChatColor.RED + "You must have a POI selected or specify an ID.");
+			this._actionUsageError(sender, ChatColor.RED + "You must have a POI selected or specify an ID.", action);
 			return;
 		}
 		
-		ArrayList<String> summaryReport = (poi.getSummary(((Player)sender).getLocation(), 2000, ""));
+		ArrayList<String> summaryReport = (poi.getSummary(((Player)sender).getLocation(), Config.getDistanceThreshold(), ""));
 		
 		sender.sendMessage("");
 		sender.sendMessage(ChatColor.YELLOW + "---- POI Summary ----");

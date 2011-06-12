@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import crussell52.poi.Config;
 import crussell52.poi.PoiException;
 import crussell52.poi.PoiManager;
 import crussell52.poi.PagedPoiList;
@@ -34,9 +35,10 @@ public class SearchAction extends ActionHandler {
 		// attempt to get a list of nearby POIs
 		try {
 			PagedPoiList results = 
-				new PagedPoiList(MAX_PER_PAGE, this._poiManager.getNearby(playerLoc, 2000, 10), PagedPoiList.TYPE_AREA_SEARCH);
+				new PagedPoiList(MAX_PER_PAGE, this._poiManager.getNearby(playerLoc, Config.getDistanceThreshold(), Config.getMaxSearchResults()), PagedPoiList.TYPE_AREA_SEARCH);
+			
 			this._poiManager.setRecentResults(player, results);
-			ArrayList<String> messages = results.getPageReport(playerLoc, 2000);
+			ArrayList<String> messages = results.getPageReport(playerLoc, Config.getDistanceThreshold());
 			sender.sendMessage("");
 			for (String message : messages) {
 				player.sendMessage(message);
