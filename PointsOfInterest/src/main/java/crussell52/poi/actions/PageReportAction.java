@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 
+import crussell52.poi.Config;
 import crussell52.poi.PagedPoiList;
 import crussell52.poi.PoiManager;
 
@@ -80,7 +81,7 @@ public class PageReportAction extends ActionHandler {
 		// if we made it this far, we can show the report.
 		ArrayList<String> report;
 		if (results.getListType() == PagedPoiList.TYPE_AREA_SEARCH) {
-			report = results.getPageReport(((Player)sender).getLocation(), 2000);
+			report = results.getPageReport(((Player)sender).getLocation(), Config.getDistanceThreshold());
 		}
 		else {
 			report = results.getPageReport();
