@@ -2,8 +2,6 @@ package crussell52.poi;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -11,17 +9,38 @@ import java.util.logging.Logger;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-
+/**
+ * This class contains static methods for 
+ * getting configured values. 
+ * 
+ */
 public class Config {
 
+	/**
+	 * Dictates how far to search and maximum distance
+	 * a player can be from a POI and still get directions
+	 */
 	private static int _distanceThreshold = 2000;
 	
+	/**
+	 * Dictates minimum distance between POIs.  
+	 */
 	private static int _minPoiGap = 50;
 	
+	/**
+	 * Maximum number of search results when a player does
+	 * an area search.
+	 */
 	private static int _maxSearchResults = 10;
 	
+	/**
+	 * Maximum number of POIs a player can create in each world.
+	 */
 	private static int _maxPlayerPoiPerWorld = 10;
 	
+	/**
+	 * List of worlds in which POIs are not supported.
+	 */
 	private static ArrayList<String> _worldBlackList;
 	
 	/**
@@ -29,38 +48,59 @@ public class Config {
 	 */
 	private static final Yaml _yaml = new Yaml(new SafeConstructor());
 	
+	// hide default constructor -- everything should be accessed statically
+	private Config() {}
 	
-	private Config() {
-		// hide default constructor -- everything should be accessed statically
-	}
-	
+	/**
+	 * Dictates how far to search and maximum distance
+	 * a player can be from a POI and still get directions
+	 * 
+	 * @return 
+	 */
 	public static int getDistanceThreshold() {
 		return _distanceThreshold;
 	}
 	
+	/**
+	 * Dictates minimum distance between POIs.  
+	 * 
+	 * @return
+	 */
 	public static int getMinPoiGap() {
 		return _minPoiGap;
 	}
 	
+	/**
+	 * Maximum number of search results when a player does
+	 * an area search.
+	 * 
+	 * @return
+	 */
 	public static int getMaxSearchResults() {
 		return _maxSearchResults;
 	}
 	
+	/**
+	 * Maximum number of POIs a player can create in each world.
+	 * 
+	 * @return
+	 */
 	public static int getMaxPlayerPoiPerWorld() {
 		return _maxPlayerPoiPerWorld;
 	}
 	
+	/**
+	 * List of worlds in which POIs are not supported.
+	 */
 	public static boolean isWorldSupported(String world) {
 		return _worldBlackList == null || !_worldBlackList.contains(world.toLowerCase());
 	}
 	
 	/**
-	 * Loads config from under specified data folder.
+	 * Loads the configuration file located in the specified data folder.
 	 * 
-	 * @param dataFolder
-	 * @throws IOException
-	 * @throws ClassCastException
-	 * @throws FileNotFoundException
+	 * @param dataFolder Where to look for the config file
+	 * @param log Where to log problems - stack traces go to standard error out.
 	 */
 	@SuppressWarnings("unchecked")
 	public static void load(File dataFolder, Logger log) {
@@ -74,16 +114,17 @@ public class Config {
 			input.close();
 		}
 		catch (Exception ex) {
-			log.severe("PointsOfInterest: Failed to load config file - exception to follow.");
-			log.severe(ex.toString());
+			log.severe("PointsOfInterest: Failed to load config file - trace to follow.");
+			ex.printStackTrace();
 		}
 	}
 	
 	/**
 	 * Receives the entire configuration in as a map and populates
 	 * properties as appropriate.
-	 * 
-	 * @param map
+     *
+	 * @param map The configuration values parsed from the config file.
+	 * @param log Where to log problems - stack traces go to standard error out.
 	 */
 	private static void _processConfigMap(Map<String, Object> map, Logger log) {
 		// see if we have any data to process

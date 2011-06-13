@@ -11,15 +11,29 @@ import crussell52.poi.commands.PoiCommand;
 
 public class HelpAction extends ActionHandler {
 	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @param poiManager
+	 */
 	public HelpAction(PoiManager poiManager) {
 		super(poiManager);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
 		
+		// create a list to hold the messages that will be sent to the sender.
 		ArrayList<String> messages;
+		
+		// if there is no action specified, then just treat it as if the help action was specified.
+		// (which will output general help)
 		String targetAction = (args.length > 0) ? args[0] : PoiCommand.ACTION_HELP;
+		
+		// try to output help for a specific action.
 		if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_ADD)) {
 			messages = this._add(false);
 		}
@@ -33,27 +47,31 @@ public class HelpAction extends ActionHandler {
 			messages = this._remove(false);
 		}
 		else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_SEARCH)) {
-			// another pass
 			messages = this._search(false);
 		}
 		else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_SELECT)) {
-			// good
 			messages = this._select(false);
 		}
 		else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_SUMMARY)) {
-			// good
 			messages = this._summary(false);
 		}
 		else {
+			// specified action does not have specific help
+			// or is unrecognized, output general help.
 			messages = this._generalHelp();
 		}
 		
+		// output a blank line to improve readability and then output the messages.
 		sender.sendMessage("");
 		for (String message : messages) {
 			sender.sendMessage(message);
 		}
 	}
 		
+	/**
+	 * Returns a list of messages which form the general help.
+	 * @return
+	 */
 	private ArrayList<String> _generalHelp() {
 		ArrayList<String> messages = new ArrayList<String>();
 		
@@ -80,6 +98,12 @@ public class HelpAction extends ActionHandler {
 		return messages;
 	}
 	
+	/**
+	 * Returns help for the <code>PoiCommand.PAGE</code> action.
+	 * 
+	 * @param isShort
+	 * @return
+	 */
 	private ArrayList<String> _page(boolean isShort)	{
 		ArrayList<String> messages = new ArrayList<String>();
 		
@@ -109,6 +133,12 @@ public class HelpAction extends ActionHandler {
 		return messages;
 	}
 	
+	/**
+	 * Returns help for the <code>PoiCommand.LIST</code> action.
+	 * 
+	 * @param isShort
+	 * @return
+	 */
 	private ArrayList<String> _list(boolean isShort)	{
 		ArrayList<String> messages = new ArrayList<String>();
 		String basic = this._action(PoiCommand.ACTION_LIST) + this._optional("playerName");
@@ -129,6 +159,12 @@ public class HelpAction extends ActionHandler {
 		return messages;
 	}
 	
+	/**
+	 * Returns help for the <code>PoiCommand.SEARCH</code> action.
+	 * 
+	 * @param isShort
+	 * @return
+	 */
 	private ArrayList<String> _search(boolean isShort)	{
 		ArrayList<String> messages = new ArrayList<String>();
 		String basic = this._action(PoiCommand.ACTION_SEARCH);
@@ -156,6 +192,12 @@ public class HelpAction extends ActionHandler {
 		return messages;
 	}
 	
+	/**
+	 * Returns help for the <code>PoiCommand.REMOVE</code> action.
+	 * 
+	 * @param isShort
+	 * @return
+	 */
 	private ArrayList<String> _remove(boolean isShort)	{
 		ArrayList<String> messages = new ArrayList<String>();
 		String basic = this._action(PoiCommand.ACTION_REMOVE) + this._required("id") + this._required("name");
@@ -175,6 +217,12 @@ public class HelpAction extends ActionHandler {
 		return messages;
 	}
 	
+	/**
+	 * Returns help for the <code>PoiCommand.SUMMARY</code> action.
+	 * 
+	 * @param isShort
+	 * @return
+	 */
 	private ArrayList<String> _summary(boolean isShort)	{
 		ArrayList<String> messages = new ArrayList<String>();
 		String basic = this._action(null) + this._optional(PoiCommand.ACTION_SUMMARY) + this._optional("id");
@@ -194,6 +242,12 @@ public class HelpAction extends ActionHandler {
 		return messages;
 	}
 	
+	/**
+	 * Returns help for the <code>PoiCommand.ADD</code> action.
+	 * 
+	 * @param isShort
+	 * @return
+	 */
 	private ArrayList<String> _add(boolean isShort)	{
 		ArrayList<String> messages = new ArrayList<String>();
 		String basic = this._action(PoiCommand.ACTION_ADD) + this._required("name");
@@ -213,7 +267,13 @@ public class HelpAction extends ActionHandler {
 		
 		return messages;
 	}
-
+	
+	/**
+	 * Returns help for the <code>PoiCommand.SELECT</code> action.
+	 * 
+	 * @param isShort
+	 * @return
+	 */
 	private ArrayList<String> _select(boolean isShort)	{
 		ArrayList<String> messages = new ArrayList<String>();
 		String basic = this._action(PoiCommand.ACTION_SELECT) + this._required("id");
@@ -233,27 +293,63 @@ public class HelpAction extends ActionHandler {
 		return messages;
 	}
 	
+	/**
+	 * Formats an action for use as a cross-referenced action in help text.
+	 * 
+	 * @param action
+	 * @return
+	 */
 	private String _actionXRef(String action) {
 		return ChatColor.YELLOW + "\"" + ChatColor.GOLD + "/poi " + action + ChatColor.YELLOW + "\"";
 	}
 	
-	
+	/**
+	 * Formats a token for use as an action in usage example text.
+	 * @param token
+	 * @return
+	 */
 	private String _action(String token) {
 		return ChatColor.WHITE + "/poi" + (token != null ? " " + token : "");
 	}
 	
+	/**
+	 * Formats a token for use as short description of an action.
+	 * 
+	 * @param token
+	 * @return
+	 */
 	private String _shortDescription(String token) {
 		return ChatColor.GRAY + " (" + token + ")";
 	}
 	
+	/**
+	 * Formats a token for use as a required argument of an action.
+	 * 
+	 * @param token
+	 * @return
+	 */
 	private String _required(String token) {
 		return ChatColor.GOLD + " <" + ChatColor.WHITE + token + ChatColor.GOLD + ">";
 	}
 	
+	/**
+	 * Formats a token for use as an optional argument of an action.
+	 * 
+	 * @param token
+	 * @return
+	 */
 	private String _optional(String token) {
 		return ChatColor.GREEN + " [" + ChatColor.WHITE + token + ChatColor.GREEN + "]";
 	}
 	
+	/**
+	 * Formats a list of tokens as a list of available values for an optional or required
+	 * argument of an action.
+	 * 
+	 * @param tokens
+	 * @param isOptional
+	 * @return
+	 */
 	private String _alternation(ArrayList<String> tokens, boolean isOptional) {
 		String alternation = "";
 		int numTokens = tokens.size();

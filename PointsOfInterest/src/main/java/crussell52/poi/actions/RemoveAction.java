@@ -10,10 +10,18 @@ import crussell52.poi.PoiManager;
 
 public class RemoveAction extends ActionHandler {
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @param poiManager
+	 */
 	public RemoveAction(PoiManager poiManager) {
 		super(poiManager);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
 		// you have to a player (for now) to do this.
@@ -34,7 +42,7 @@ public class RemoveAction extends ActionHandler {
 			this._poiManager.removePOI(id, args[1], player.getName(), player.getWorld().getName());
 			
 			// if this was the player's selected POI, unselect it.
-			Poi selected = this._poiManager.getSelectedPOI(player);
+			Poi selected = this._poiManager.getSelectedPoi(player);
 			if (selected != null && selected.getId() == id) {
 				this._poiManager.unselectPoi(player);
 			}

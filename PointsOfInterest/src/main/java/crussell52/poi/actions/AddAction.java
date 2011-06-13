@@ -9,10 +9,18 @@ import crussell52.poi.PoiManager;
 
 public class AddAction extends ActionHandler {
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @param poiManager
+	 */
 	public AddAction(PoiManager poiManager) {
 		super(poiManager);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
 		// we need a player to perform this action

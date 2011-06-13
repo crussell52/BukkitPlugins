@@ -16,9 +16,17 @@ import java.util.logging.Logger;
  * @author crussell52
  */
 public class PointsOfInterest extends JavaPlugin {
-    	
+    
+	/**
+	 * Does the heavy lifting for POI interactions.
+	 */
 	private final PoiManager _poiManager = new PoiManager();
     
+	/**
+	 * Used to log as necessary.
+	 * 
+	 * The stacktraces of critical exceptions are still output to the standard error out.
+	 */
 	private Logger _log;
 	
     /**
@@ -59,6 +67,11 @@ public class PointsOfInterest extends JavaPlugin {
     	}
     }
     
+    /**
+     * Used to copy the packaged default config out to the disk.
+     * 
+     * @param target the location on disk where the default config will be copied to.
+     */
     private void _createDefaultConfig(File target) {
     	
     	// wipe out the old config if it exists

@@ -13,12 +13,23 @@ import crussell52.poi.PagedPoiList;
 
 public class SearchAction extends ActionHandler {
 	
+	/**
+	 * Maximum number of POIs per results page.
+	 */
 	private static final int MAX_PER_PAGE = 3;
 	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @param poiManager
+	 */
 	public SearchAction(PoiManager poiManager) {
 		super(poiManager);
 	}
-	
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
 		// we need a player in order to handle this action.

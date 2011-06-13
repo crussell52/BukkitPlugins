@@ -11,12 +11,23 @@ import crussell52.poi.PoiManager;
 
 public class OwnerListAction extends ActionHandler {
 
+	/**
+	 * Maximum number of items per page on the result list.
+	 */
 	private static final int MAX_PER_PAGE = 6;
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @param poiManager
+	 */
 	public OwnerListAction(PoiManager poiManager) {
 		super(poiManager);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
 		// need to be a player to use this command
@@ -48,9 +59,6 @@ public class OwnerListAction extends ActionHandler {
 			poiEx.printStackTrace();
 			sender.sendMessage("There was a system error while looking up POIs.");
 		}
-		
-		
-		
 	}
 
 }

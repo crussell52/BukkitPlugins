@@ -11,11 +11,18 @@ import crussell52.poi.PoiManager;
 
 public class PageReportAction extends ActionHandler {
 	
-	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @param poiManager
+	 */
 	public PageReportAction(PoiManager poiManager) {
 		super(poiManager);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
 		// need a player to take this action
