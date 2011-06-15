@@ -28,6 +28,12 @@ public class AddAction extends ActionHandler {
 			return;
 		}
 		
+		// see if this action is restricted to ops
+		if (!sender.isOp() && Config.isAddRestrictedToOps()) {
+			sender.sendMessage("Sorry, you do not have permissions to add a POI.");
+			return;
+		}
+		
 		// we need a name to be specified.
 		if (args.length < 1) {
 			this._actionUsageError(sender, "A name must be provided.", action); 
