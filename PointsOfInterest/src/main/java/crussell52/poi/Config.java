@@ -20,6 +20,11 @@ import org.yaml.snakeyaml.Yaml;
  * 
  */
 public class Config {
+	
+	/**
+	 * Indicates that only Ops can create POIs.
+	 */
+	private static boolean _restrictAddToOps = true;
 
 	/**
 	 * Dictates how far to search and maximum distance
@@ -50,6 +55,15 @@ public class Config {
 		
 	// hide default constructor -- everything should be accessed statically
 	private Config() {}
+	
+	/**
+	 * Indicates that only Ops can create POIs.
+	 *
+	 * @return
+	 */
+	public static boolean isAddRestrictedToOps() {
+		return _restrictAddToOps;
+	}
 	
 	/**
 	 * Dictates how far to search and maximum distance
@@ -172,10 +186,8 @@ public class Config {
 			  configMap.put("minPoiGap", Config._minPoiGap);
 			  configMap.put("maxSearchResults", Config._maxSearchResults);
 			  configMap.put("maxPlayerPoiPerWorld", Config._maxPlayerPoiPerWorld);
-			  
-			  System.out.println(Config._worldBlackList.size());
-			  
 			  configMap.put("worldBlacklist", Config._worldBlackList);
+			  configMap.put("restrictAddToOps", Config._restrictAddToOps);
 			  
 			  yaml.dump(configMap, writer);	
 		}
@@ -219,6 +231,17 @@ public class Config {
 		// if there any problems, we'll flip this flag but we want
 		// every key to get its opportunity to load.
 		boolean success = true;
+		
+		// see if ops-only is configured
+		if (map.containsKey("restrictAddToOps")) {
+			try {
+				_restrictAddToOps = (Boolean)map.get("restrictAddToOps");
+			}
+			catch (Exception ex) {
+				log.severe("PointsOfInterest: Bad configuration for isAddOpsOnly.");
+				success = false;
+			}
+		}
 
 		// see if a distance threshold is configured
 		if (map.containsKey("distanceThreshold")) {

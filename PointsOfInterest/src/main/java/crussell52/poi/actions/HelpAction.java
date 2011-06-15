@@ -58,7 +58,7 @@ public class HelpAction extends ActionHandler {
 		else {
 			// specified action does not have specific help
 			// or is unrecognized, output general help.
-			messages = this._generalHelp();
+			messages = this._generalHelp(sender.isOp());
 		}
 		
 		// output a blank line to improve readability and then output the messages.
@@ -72,7 +72,7 @@ public class HelpAction extends ActionHandler {
 	 * Returns a list of messages which form the general help.
 	 * @return
 	 */
-	private ArrayList<String> _generalHelp() {
+	private ArrayList<String> _generalHelp(boolean isOp) {
 		ArrayList<String> messages = new ArrayList<String>();
 		
 		// set up alternation options for the legend
@@ -88,7 +88,9 @@ public class HelpAction extends ActionHandler {
 		// provide short usage for every action.		
 		messages.add(this._select(true).get(0));
 		messages.add(this._summary(true).get(0));
-		messages.add(this._add(true).get(0));
+		if (isOp || !Config.isAddRestrictedToOps()) {
+			messages.add(this._add(true).get(0));
+		}
 		messages.add(this._remove(true).get(0));
 		messages.add(this._search(true).get(0));
 		messages.add(this._list(true).get(0));
