@@ -2,12 +2,17 @@ package crussell52.poi;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /**
  * This class contains static methods for 
@@ -42,12 +47,7 @@ public class Config {
 	 * List of worlds in which POIs are not supported.
 	 */
 	private static ArrayList<String> _worldBlackList;
-	
-	/**
-	 * Yaml instance for handling config data (.yml file)
-	 */
-	private static final Yaml _yaml = new Yaml(new SafeConstructor());
-	
+		
 	// hide default constructor -- everything should be accessed statically
 	private Config() {}
 	
@@ -101,22 +101,102 @@ public class Config {
 	 * 
 	 * @param dataFolder Where to look for the config file
 	 * @param log Where to log problems - stack traces go to standard error out.
+	 * 
+	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static void load(File dataFolder, Logger log) {
-		// keep a handle to the file so we don't need to re-instantiate every time it is used.
-		File dataFile = new File(dataFolder, "config.yml");
+	public static boolean load(File dataFolder, Logger log) {
 		
+		// setup a YAML instance for read/write of config file
+		DumperOptions options = new DumperOptions();
+		options.setDefaultFlowStyle(FlowStyle.BLOCK);
+		options.setDefaultScalarStyle(ScalarStyle.PLAIN);
+		Yaml yaml = new Yaml(options);
+		
+		// get a handle to the config file
+		File dataFile = new File(dataFolder, "config.yml");
+				
+		if (!dataFile.exists()) {
+			// try to create the file.
+			try {
+				dataFile.createNewFile();
+			}
+			catch (IOException e) {
+				log.severe("PointsOfInterest: Failed to create config file - trace to follow.");
+				e.printStackTrace();
+				return false;
+			}
+		}
+		else {
+			// we have a config file, try to read it.
+			FileInputStream input = null;
+			
+			try {
+				// parse the file as a map.
+				input = new FileInputStream(dataFile);
+				if (!_processConfigMap((Map<String, Object>)yaml.load(input), log)) {
+					// something was misconfigured.
+					return false;
+				}
+			}
+			catch (Exception e) {
+				log.severe("PointsOfInterest: Failed to load or parse config file. Defaut configuration being used. - trace to follow.");
+				e.printStackTrace();
+				
+				// problem opening or parsing the file.
+				return false;
+			}
+			finally {
+				// make sure we close the streams.
+				// handle failures quietly.
+				try { 
+					input.close();
+				}
+				catch (Exception ex) {}
+			}
+		}
+		
+		// try to re-write the config file.
+		// This will bring the file on disk up to date in the following ways:
+		//   - Obsolete or incorrect config keys will be removed
+		//   - Omitted keys (included ones introduced in an update) will 
+		//     be written to have default values.
+		FileWriter writer = null;
 		try {
-			// parse the file as a map.
-			FileInputStream input = new FileInputStream(dataFile);
-			_processConfigMap((Map<String, Object>)_yaml.load(input), log);
-			input.close();
+			// create a file writer in "overwrite" mode
+			// and use Yaml to dump the data into the file.
+			  writer = new FileWriter(dataFile, false);
+			  
+			  HashMap<String, Object> configMap = new HashMap<String, Object>();
+			  configMap.put("distanceThreshold", Config._distanceThreshold);
+			  configMap.put("minPoiGap", Config._minPoiGap);
+			  configMap.put("maxSearchResults", Config._maxSearchResults);
+			  configMap.put("maxPlayerPoiPerWorld", Config._maxPlayerPoiPerWorld);
+			  
+			  System.out.println(Config._worldBlackList.size());
+			  
+			  configMap.put("worldBlacklist", Config._worldBlackList);
+			  
+			  yaml.dump(configMap, writer);	
 		}
-		catch (Exception ex) {
-			log.severe("PointsOfInterest: Failed to load config file - trace to follow.");
-			ex.printStackTrace();
+		catch (Exception e) {
+			log.warning("PointsOfInterest: Failed to rewrite config file - trace to follow.");
+			e.printStackTrace();
+			
+			// this doesn't warrant a failure -- we read everyting in fine, just weren't able
+			// to tidy up the config file.
+		} 
+		finally {
+			// make sure the writer is closed
+			// handle failures to close quietly
+			try {
+				writer.close();
+			}
+			catch (Exception e) { }
 		}
+		
+		// didn't hit any of the early exits, so everything went fine.
+		return true;
 	}
 	
 	/**
@@ -125,13 +205,21 @@ public class Config {
      *
 	 * @param map The configuration values parsed from the config file.
 	 * @param log Where to log problems - stack traces go to standard error out.
+	 * 
+	 * @return
 	 */
-	private static void _processConfigMap(Map<String, Object> map, Logger log) {
+	private static boolean _processConfigMap(Map<String, Object> map, Logger log) {
 		// see if we have any data to process
 		if (map == null) {
-			return;
+			// no data, easy success
+			return true;
 		}
 		
+		// start off assuming success
+		// if there any problems, we'll flip this flag but we want
+		// every key to get its opportunity to load.
+		boolean success = true;
+
 		// see if a distance threshold is configured
 		if (map.containsKey("distanceThreshold")) {
 			try {
@@ -139,6 +227,7 @@ public class Config {
 			}
 			catch (Exception ex) {
 				log.severe("PointsOfInterest: Bad configuration for distanceThreshold.");
+				success = false;
 			}
 		}
 		
@@ -149,6 +238,7 @@ public class Config {
 			}
 			catch (Exception ex) {
 				log.severe("PointsOfInterest: Bad configuration for minPoiGap.");
+				success = false;
 			}
 		}
 		
@@ -159,6 +249,7 @@ public class Config {
 			}
 			catch (Exception ex) {
 				log.severe("PointsOfInterest: Bad configuration for maxSearchResults.");
+				success = false;
 			}
 		}
 		
@@ -169,9 +260,9 @@ public class Config {
 			}
 			catch (Exception ex) {
 				log.severe("PointsOfInterest: Bad configuration for maxPlayerPoiPerWorld.");
+				success = false;
 			}
 		}
-
 
 		_worldBlackList = new ArrayList<String>();
 		if (map.containsKey("worldBlacklist")) {
@@ -189,8 +280,12 @@ public class Config {
 			}
 			catch (Exception ex) {
 				log.severe("PointsOfInterest: Bad configuration for worldBlacklist.");
+				success = false;
 			}
-		}		
+		}
+		
+		// return success indicator
+		return success;
 	}
 	
 }

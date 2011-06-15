@@ -1,0 +1,96 @@
+This file contains all the information you need to accurately set up
+the PointsOfInterest plugin.
+
+You might wonder why this help is not contained within the config 
+file.  Simply put this makes upgrades easier.  By keeping the instructions
+separate, I can easily bring your config file up to date next time you start
+your server without losing your old settings.
+
+All configuration keys have a default value, and if you ever want to return
+to the default value, you can just remove the key entirely from your config
+file.  The next time you start the server, the default value will be used and
+the config file will be rewritten to include that value for you.  If you want
+all default values, you can delete the file entirely.  It will be recreated
+with default values the next time you start the server.
+
+Your config file is named "config.yml" and should be in the same folder as this
+file.  If this file has been moved, then you can find your "config.yml" under:
+
+	{your_bukkit_folder}/plugins/PointsOfInterest
+	
+
+Finally, all configuration keys must be typed exactly as you see here.  They are
+case sensitive.  Also, do not use tabs in the config file; only use spaces.  If 
+you use tabs, the plugin will be sad and you will get all default config values.
+An error will also show up in your server logs to let you know that there was a
+problem loading the config file.
+
+The remainder of this file contains the configuration details in the following format:
+
+-------------
+configKey: exampleValue
+-------------
+
+	Some information about what this controls.
+	
+	Type: What type of value to use
+	Default: The default value
+	
+	
+-------------
+distanceThreshold: 2000
+-------------
+
+	Controls the maximum search radius and the maximum distance at which
+	a player can get directions to a POI. Set to a value of -1 for "unlimited"
+
+	Type: Whole Number
+	Default: 2000
+
+------------
+minPoiGap: 50
+-------------
+
+	Controls the minimum distance between POIs.  A player will not be able to create
+    a POI within this distance of another POI.
+
+    Type: Whole Number, not negative
+    Default: 50
+    
+
+---------------
+maxSearchResults: 10
+---------------
+
+    Maximum number of results that will be returned when player 
+    searches for nearby POIs.
+
+    Type: Whole Number, larger than 0 (zero)
+    Default: 10
+    
+
+----------------
+maxPlayerPoiPerWorld: 10
+----------------
+
+    Maximum number of POIs each player can create in each world. If this value
+    is reduced and a player has already created more than the new max, the player
+    will NOT be forced to clean up the excess POIs.  It is recommended that this number
+    starts lower and is only increased.
+
+    Type: Whole Number, larger than 0 (zero)
+    Default: 10
+    
+
+----------------    
+worldBlacklist: [world1, world_nether, otherWorld]
+----------------
+
+    A list of worlds which do not allow POIs. If a world with existing POIs is added
+    to the black list, those POIs will NOT be automatically deleted; however, players 
+    (including POI owners) will not be able to see nor interact with the POIs within
+    that world.  If the world is removed from the blacklist, the POIs will become
+    available to the players again.
+
+    Type: Comma seperated list of world names, enclosed in square brackets [ ]
+    Default: none

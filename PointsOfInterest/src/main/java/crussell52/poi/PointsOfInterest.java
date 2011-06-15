@@ -33,21 +33,31 @@ public class PointsOfInterest extends JavaPlugin {
      * {@inheritDoc}
      */
     public void onEnable() {
+    	
+    	// get plugin description
+    	PluginDescriptionFile pdfFile = this.getDescription();
+    	
     	// get a handle to the Minecraft logger
     	this._log = Logger.getLogger("Minecraft");
 
     	// create files necessary for operation
     	_createSupportingFiles();
     	
+    	// attempt to load configuration
+    	if(!Config.load(this.getDataFolder(), this._log)) {
+    		// something went wrong reading in the config -- unsafe to run
+    		this._log.severe(pdfFile.getName() + ": encountered problem loading config - Unsure if it is safe to run. Disabled.");
+    		this.getServer().getPluginManager().disablePlugin(this);
+    		return;
+    	}
+    	
     	// TODO: handle failure case.
     	this._poiManager.initialize(this.getDataFolder());
     	
-    	Config.load(this.getDataFolder(), this._log);
-    	
+    	// handle the poi command
     	getCommand("poi").setExecutor(new PoiCommand(this._poiManager));
     	
         // Identify that we have been loaded
-        PluginDescriptionFile pdfFile = this.getDescription();
         this._log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );        
     }
     
@@ -57,28 +67,27 @@ public class PointsOfInterest extends JavaPlugin {
     protected void _createSupportingFiles() {
     	try {
 	    	this.getDataFolder().mkdir();
-	    	
-	    	File config = new File(this.getDataFolder(), "config.yml");
-	    	if (!config.exists()) {
-	    		this._createDefaultConfig(config);
-	    	}
+	    	this._createConfigHelp();
+
     	} catch (Exception ex) {
     		this._log.severe("PointsOfInterest failed to create supporting files with error:" + ex);
     	}
     }
     
     /**
-     * Used to copy the packaged default config out to the disk.
+     * Used to copy the packaged config help out to the disk.
      * 
      * @param target the location on disk where the default config will be copied to.
      */
-    private void _createDefaultConfig(File target) {
-    	
-    	// wipe out the old config if it exists
+    private void _createConfigHelp() {
+    	// wipe out the old config help if it exists
+    	File target = new File(this.getDataFolder(), "config_help.txt");
+
     	if (target.exists()) {
     		target.delete();
     	}
-    	InputStream input = this.getClass().getResourceAsStream("/resources/config.yml");
+    	
+    	InputStream input = this.getClass().getResourceAsStream("/resources/config_help.txt");
     	
     	// make sure we have a handle to the default config
         if (input != null) {
@@ -98,7 +107,7 @@ public class PointsOfInterest extends JavaPlugin {
 	        	// something went wrong during the copy
 	        	// Not the end of the world, we can use the coded defaults, but we should
 	        	// generate a warning.
-	            _log.warning("Failed to create default config file -- will use built in defaults. Exception to follow. ");
+	            _log.warning("Failed to create config help file -- stacktrace to follow. ");
 	            ex.printStackTrace();
 	        } 
 	        finally {
