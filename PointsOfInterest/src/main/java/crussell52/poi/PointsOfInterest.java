@@ -1,5 +1,7 @@
 package crussell52.poi;
 
+import org.bukkit.event.Event;
+import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -36,26 +38,43 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
 	 */
 	private Logger _log;
 	
+	/**
+	 * Used to keep track of who is listening
+	 */
 	private static final Map<PoiEvent.Type, ArrayList<IPoiListener>> _listeners = new HashMap<PoiEvent.Type, ArrayList<IPoiListener>>();
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	public void setPoiListener(PoiEvent.Type type, IPoiListener poiListener) {
+		// see if we have a container for this listener type
 		if (!_listeners.containsKey(type)) {
+			// we do not; create one.
 			_listeners.put(type, new ArrayList<IPoiListener>());
 		}
 		
+		// get the container for this type of listener
 		ArrayList<IPoiListener> listenerList = _listeners.get(type); 
+		
+		// don't register the listener if it is already registered for this event.
 		if (!listenerList.contains(poiListener)) {
+			this._log.warning("Same IPoiListener registered more than once for the same event!");
 			listenerList.add(poiListener);
 		}
 	}
 	
+	/**
+	 * Used to notify all listeners when a PoiEvent occurs.
+	 * 
+	 * @param event
+	 */
 	static void _notifyListeners(PoiEvent event) {
-
+		// nothing to do if we don't have listeners for this type of event.
 		if (!_listeners.containsKey(event.getType())) {
-			System.out.println("No listeners");
 			return;
 		}
 		
+		// call the onEvent method of every listener for this type.
 		for (IPoiListener listener : _listeners.get(event.getType())) {
 			listener.onEvent(event);
 		}
@@ -88,6 +107,8 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	
     	// handle the poi command
     	getCommand("poi").setExecutor(new PoiCommand(this._poiManager));
+    	
+    	getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, new PointsOfInterestPlayerListener(this._poiManager), Priority.Normal,this);
     	
         // Identify that we have been loaded
         this._log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );        
