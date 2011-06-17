@@ -3,20 +3,27 @@ package crussell52.poi;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import crussell52.poi.api.IPointsOfInterest;
+import crussell52.poi.api.PoiEvent;
+import crussell52.poi.api.IPoiListener;
 import crussell52.poi.commands.PoiCommand;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
  * PointsOfInterest for Bukkit
  *
  * @author crussell52
+ * @param <IPoiListener>
  */
-public class PointsOfInterest extends JavaPlugin {
-    
+public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest 
+{
 	/**
 	 * Does the heavy lifting for POI interactions.
 	 */
@@ -28,6 +35,31 @@ public class PointsOfInterest extends JavaPlugin {
 	 * The stacktraces of critical exceptions are still output to the standard error out.
 	 */
 	private Logger _log;
+	
+	private static final Map<PoiEvent.Type, ArrayList<IPoiListener>> _listeners = new HashMap<PoiEvent.Type, ArrayList<IPoiListener>>();
+	
+	public void setPoiListener(PoiEvent.Type type, IPoiListener poiListener) {
+		if (!_listeners.containsKey(type)) {
+			_listeners.put(type, new ArrayList<IPoiListener>());
+		}
+		
+		ArrayList<IPoiListener> listenerList = _listeners.get(type); 
+		if (!listenerList.contains(poiListener)) {
+			listenerList.add(poiListener);
+		}
+	}
+	
+	static void _notifyListeners(PoiEvent event) {
+
+		if (!_listeners.containsKey(event.getType())) {
+			System.out.println("No listeners");
+			return;
+		}
+		
+		for (IPoiListener listener : _listeners.get(event.getType())) {
+			listener.onEvent(event);
+		}
+	}
 	
     /**
      * {@inheritDoc}

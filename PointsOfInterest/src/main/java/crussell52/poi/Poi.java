@@ -6,10 +6,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
+import crussell52.poi.api.IPoi;
+
 /**
  * Represents a single Point of Interest
  */
-public class Poi {
+public class Poi implements IPoi {
 	
 	/**
 	 * X Coordinate of the POI
@@ -127,7 +129,7 @@ public class Poi {
 	}
 	
 	/**
-	 * Name of the player who owns the POI.
+	 * Player-defined name for the POI.
 	 */
 	public String getName()
 	{
@@ -135,7 +137,7 @@ public class Poi {
 	}
 	
 	/**
-	 * Name of the player who owns the POI.
+	 * Player-defined name for the POI.
 	 */
 	public void setName(String name)
 	{
@@ -143,7 +145,7 @@ public class Poi {
 	}
 	
 	/**
-	 * Name of the world the POI exists in.
+	 * Name of the player who owns the POI.
 	 */
 	public String getOwner()
 	{
@@ -151,7 +153,7 @@ public class Poi {
 	}
 	
 	/**
-	 * Name of the world the POI exists in.
+	 * Name of the player who owns the POI.
 	 */
 	public void setOwner(String owner)
 	{

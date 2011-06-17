@@ -17,6 +17,8 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.sqlite.Function;
 
+import crussell52.poi.api.PoiEvent;
+
 public class PoiManager {
 	
 	/**
@@ -158,6 +160,9 @@ public class PoiManager {
 	public void unselectPoi(Player player)
 	{
 		this._selectedPOIs.remove(player);
+		
+		// tell the plugin to notify listeners of the unselect.
+		PointsOfInterest._notifyListeners(PoiEvent.unselectEvent(player));
 	}
 	
 	/**
@@ -245,6 +250,9 @@ public class PoiManager {
 		
 		// if we made it this far, everything went okay, select the poi
 		this._selectedPOIs.put(player, poi);
+		
+		// tell the plugin to notify listeners of the select.
+		PointsOfInterest._notifyListeners(PoiEvent.selectEvent(player, poi, Config.getDistanceThreshold()));
 	}
 	
 	/**
