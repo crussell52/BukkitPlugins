@@ -2,9 +2,10 @@
 <project default="export" name="Create Jar for Project PointsOfInterest">
 	
 	<property name="jar.name" value="PointsOfInterest.jar"/>
-	<property name="jar.dest" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/build/${jar.name}"/>
-	<property name="classes.dir" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/target/classes/" />
-	<property name="api.jar" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/lib/PointsOfInterestAPI.jar"/>
+	<property name="proj.dir" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/"/>
+	<property name="jar.dest" value="${proj.dir}build/${jar.name}"/>
+	<property name="classes.dir" value="${proj.dir}target/classes/" />
+	<property name="api.jar" value="D:/Development/bukkit/PointsOfInterestAPI.jar"/>
 	<property name="export.dir" value="D:/minecraft/bukkit/plugins/"/>
 	
 	<target name="jar">
@@ -14,12 +15,12 @@
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="${classes.dir}"/>
+        	<file file="${proj.dir}plugin.yml"/>
             <zipfileset excludes="META-INF/*.SF" src="${api.jar}"/>
         </jar>
     </target>
 	
 	<target name="export" depends="jar">
-	    <delete file="${export.dest}{${jar.name}"/>
-		<copy file="${jar.dest}" todir="${export.dir}" />		   
+	    <copy file="${jar.dest}" todir="${export.dir}" />		   
 	</target>
 </project>

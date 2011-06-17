@@ -32,24 +32,15 @@ public class PoiEvent {
 		return event;
 	}
 	
-	public static PoiEvent inRangeEvent(Player player, IPoi poi) {
+	public static PoiEvent rangeEvent(Player player, IPoi poi, boolean inRange) {
 		PoiEvent event = new PoiEvent();
 		event._player = player;
 		event._poi = poi;
 		event._type = PoiEvent.Type.IN_RANGE_CHANGE;
-		event._inRange = true;
+		event._inRange = inRange;
 		return event;
 	}
-	
-	public static PoiEvent outOfRangeEvent(Player player, IPoi poi) {
-		PoiEvent event = new PoiEvent();
-		event._player = player;
-		event._poi = poi;
-		event._type = PoiEvent.Type.IN_RANGE_CHANGE;
-		event._inRange = false;
-		return event;
-	}
-	
+		
 	/**
 	 * Get a handle to the player which is related to this POI event.
 	 * 

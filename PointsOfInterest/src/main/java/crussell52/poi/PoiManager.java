@@ -546,7 +546,4 @@ public class PoiManager {
 			_closeConn(conn);
 		}
     }
-    
-    
-	
 }
