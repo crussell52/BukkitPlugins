@@ -46,7 +46,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setPoiListener(PoiEvent.Type type, IPoiListener poiListener) {
+	public void registerPoiListener(PoiEvent.Type type, IPoiListener poiListener) {
 		// see if we have a container for this listener type
 		if (!_listeners.containsKey(type)) {
 			// we do not; create one.
