@@ -35,7 +35,10 @@
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="${classes.dir}"/>
-        	<file file="${proj.dir}plugin.yml"/>
+        	<fileset dir="${proj.dir}">
+        	    <include name="plugin.yml"/>
+                <include name="resources/**" />
+            </fileset>
             <zipfileset excludes="META-INF/*.SF" src="${api.dir}PointsOfInterestAPI.jar"/>
         </jar>
     </target>

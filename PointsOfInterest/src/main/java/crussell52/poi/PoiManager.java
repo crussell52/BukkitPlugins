@@ -552,8 +552,8 @@ public class PoiManager {
 	    	// see if the poi table exists
 	    	rs = sql.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='poi';");
 	    	if (!rs.next()) {
-	    		this._currentDBVersion = rs.getInt(1);
-
+	    		// we don't have a poi table.
+	    		
 	    		// start a transaction
 	    		conn.setAutoCommit(false);
 	    		
