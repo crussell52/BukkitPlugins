@@ -9,9 +9,9 @@
     <property name="jar.name" value="PointsOfInterest.jar"/>
     <property name="proj.dir" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/" />
     <property name="test.jar.dest" value="D:/minecraft/bukkit/plugins/${jar.name}"/>
-	<property name="build.jar.dir" value="${proj.dir}build/"/>
     <property name="classes.dir" value="${proj.dir}target/classes/" />
     <property name="api.dir" value="D:/Development/bukkit/"/>
+    <property name="release.jar.dir" value="${proj.dir}build/"/>
 
 	<target name="test-build">
         <delete file="${test.jar.dest}" />
@@ -29,6 +29,7 @@
     </target>
 	
 	<target name="release-build" depends="test-build">
-		<copy file="${test.jar.dest}" todir="${build.jar.dir}" />
+		<copy file="${test.jar.dest}" todir="${release.jar.dir}" />
 	</target>
+	
 </project>

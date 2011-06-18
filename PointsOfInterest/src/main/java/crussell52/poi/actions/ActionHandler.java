@@ -73,25 +73,9 @@ public abstract class ActionHandler {
 	 * @param messages
 	 * @param action
 	 */
-	protected void _actionUsageError(CommandSender recipient, ArrayList<String> messages, String action) {
-		for (String message : messages) {
-			recipient.sendMessage(ChatColor.RED + message);
-		}
-		
-		recipient.sendMessage(ChatColor.RED + "Use " + ChatColor.YELLOW + "\"/poi help\" for guidance."); 
-	}
-	
-	/**
-	 * Sends the recipient a multi-line message letting them know that they have used the action
-	 * incorrectly and provides them with instructions on getting help.
-	 * 
-	 * @param recipient
-	 * @param messages
-	 * @param action
-	 */
 	protected void _actionUsageError(CommandSender recipient, String message, String action) {
 		recipient.sendMessage(ChatColor.RED + message);
-		recipient.sendMessage(ChatColor.RED + "Use " + ChatColor.YELLOW + "\"/poi help\" for guidance."); 
+		recipient.sendMessage(ChatColor.RED + "Use " + ChatColor.YELLOW + "\"/poi help\" " + ChatColor.RED + "for guidance."); 
 	}
 	
 	/**

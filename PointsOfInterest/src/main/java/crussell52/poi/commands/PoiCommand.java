@@ -12,6 +12,7 @@ import crussell52.poi.Config;
 import crussell52.poi.PoiManager;
 import crussell52.poi.actions.ActionHandler;
 import crussell52.poi.actions.AddAction;
+import crussell52.poi.actions.ConfigReload;
 import crussell52.poi.actions.HelpAction;
 import crussell52.poi.actions.OwnerListAction;
 import crussell52.poi.actions.PageReportAction;
@@ -40,6 +41,7 @@ public class PoiCommand implements CommandExecutor {
 	public static final String ACTION_PAGE = "page";
 	public static final String ACTION_LIST = "list";
 	public static final String ACTION_HELP = "help";
+	public static final String ACTION_RELOAD_CONFIG = "config";
 	
 	/**
 	 * Performs the heavy lifting of POI interactions.
@@ -69,6 +71,7 @@ public class PoiCommand implements CommandExecutor {
     	actionHandlers.put(ACTION_REMOVE, new RemoveAction(this._poiManager));
     	actionHandlers.put(ACTION_HELP, new HelpAction(this._poiManager));
     	actionHandlers.put(ACTION_LIST, new OwnerListAction(this._poiManager));
+    	actionHandlers.put(ACTION_RELOAD_CONFIG, new ConfigReload());
     }
     
     /**

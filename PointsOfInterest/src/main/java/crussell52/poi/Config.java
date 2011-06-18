@@ -52,7 +52,17 @@ public class Config {
 	 * List of worlds in which POIs are not supported.
 	 */
 	private static ArrayList<String> _worldBlackList;
-		
+	
+	/**
+	 * keep a handle to the last data folder used for loading.
+	 */
+	private static File _dataFolder;
+	
+	/**
+	 * Keep a handle to the last log file used.
+	 */
+	private static Logger _log;
+	
 	// hide default constructor -- everything should be accessed statically
 	private Config() {}
 	
@@ -111,6 +121,22 @@ public class Config {
 	}
 	
 	/**
+	 * Reloads the config from the file.
+	 * 
+	 * @return
+	 */
+	public static boolean reload() {
+		try {
+			return Config.load(Config._dataFolder, Config._log);
+		}
+		catch (Exception ex) {
+			System.out.println("Error when reloading config from file -- Was it ever loaded?.");
+			ex.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
 	 * Loads the configuration file located in the specified data folder.
 	 * 
 	 * @param dataFolder Where to look for the config file
@@ -144,7 +170,6 @@ public class Config {
 		else {
 			// we have a config file, try to read it.
 			FileInputStream input = null;
-			
 			try {
 				// parse the file as a map.
 				input = new FileInputStream(dataFile);
@@ -207,6 +232,10 @@ public class Config {
 			catch (Exception e) { }
 		}
 		
+		// record the datafolder and logger for future use.
+		Config._dataFolder = dataFolder;
+		Config._log = log;
+		
 		// didn't hit any of the early exits, so everything went fine.
 		return true;
 	}
@@ -234,6 +263,7 @@ public class Config {
 		
 		// see if ops-only is configured
 		if (map.containsKey("restrictAddToOps")) {
+
 			try {
 				_restrictAddToOps = (Boolean)map.get("restrictAddToOps");
 			}
