@@ -102,8 +102,12 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     		return;
     	}
     	
-    	// TODO: handle failure case.
-    	this._poiManager.initialize(this.getDataFolder());
+    	// attempt to initialize the the poi manager.
+    	if (!this._poiManager.initialize(this.getDataFolder())) {
+    		this._log.severe(pdfFile.getName() + ": encountered problem preparing poi manager - Unsure if it is safe to run. Disabled.");
+    		this.getServer().getPluginManager().disablePlugin(this);
+    		return;
+    	}
     	
     	// handle the poi command
     	getCommand("poi").setExecutor(new PoiCommand(this._poiManager));

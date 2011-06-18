@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="test-build" name="Create Jar for Project PointsOfInterest">
+	
+	<!-- To Those Forking my code.  You will need to include the classes from PointsOfInterestAPI
+	     In your jar file for testing.  This ant serves as a template for accomplishing that.
+	     Please do not modify this file.  Copy it, and use it to create your own ant script which
+	     is relevant to your project. Thanks! :)
+	-->
+	
+	<!-- This should not change -->
+	<property name="jar.name" value="PointsOfInterest.jar"/>
+		
+	<!-- This should point to the project folder in Eclipse -->
+	<property name="proj.dir" value="D:/wherever/your/project/lives/" />
+	
+	<!-- This is where the full path for your test jar.  I point this towards my
+	     test server. -->
+	<property name="test.jar.dest" value="D:/yourBukkit/plugins/${jar.name}"/>
+	
+	<!-- This is the output folder for your Eclipse project -->
+	<property name="classes.dir" value="${proj.dir}target/classes/" />
+	
+	<!-- This points to the location the api jar.  The class files from this jar will
+	     be rolled into the plugin's jar file. -->
+	<property name="api.dir" value="D:/wherever/your/libraries/live/"/>
+	
+	<!-- this is what runs when you execute the script -->
+	<target name="test-build">
+	    <!-- As far as I can tell, old jar must be removed for new jar to be created properly -->
+	    <delete file="${test.jar.dest}" />
+		
+		<!-- This is the action to put together the jar file. -->
+        <jar destfile="${test.jar.dest}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${classes.dir}"/>
+        	<file file="${proj.dir}plugin.yml"/>
+            <zipfileset excludes="META-INF/*.SF" src="${api.dir}PointsOfInterestAPI.jar"/>
+        </jar>
+    </target>
+</project>

@@ -1,26 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="export" name="Create Jar for Project PointsOfInterest">
-	
-	<property name="jar.name" value="PointsOfInterest.jar"/>
-	<property name="proj.dir" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/"/>
-	<property name="jar.dest" value="${proj.dir}build/${jar.name}"/>
-	<property name="classes.dir" value="${proj.dir}target/classes/" />
-	<property name="api.jar" value="D:/Development/bukkit/PointsOfInterestAPI.jar"/>
-	<property name="export.dir" value="D:/minecraft/bukkit/plugins/"/>
-	
-	<target name="jar">
-		<delete file="${jar.dest}"/>
-        <jar destfile="${jar.dest}" filesetmanifest="mergewithoutmain">
+<project default="test-build" name="Create Jar for Project PointsOfInterest">
+    
+    <!-- To Those Forking my code.  This has been committed for my own purposes.
+         Please do not modify this file.  You can create your own ant script using
+         ant-template.xml (same folder as this file). Thanks! :)
+    -->
+    
+    <property name="jar.name" value="PointsOfInterest.jar"/>
+    <property name="proj.dir" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/" />
+    <property name="test.jar.dest" value="D:/minecraft/bukkit/plugins/${jar.name}"/>
+	<property name="build.jar.dir" value="${proj.dir}build/"/>
+    <property name="classes.dir" value="${proj.dir}target/classes/" />
+    <property name="api.dir" value="D:/Development/bukkit/"/>
+
+	<target name="test-build">
+        <delete file="${test.jar.dest}" />
+        <jar destfile="${test.jar.dest}" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="${classes.dir}"/>
-        	<file file="${proj.dir}plugin.yml"/>
-            <zipfileset excludes="META-INF/*.SF" src="${api.jar}"/>
+            <file file="${proj.dir}plugin.yml"/>
+            <zipfileset excludes="META-INF/*.SF" src="${api.dir}PointsOfInterestAPI.jar"/>
         </jar>
     </target>
 	
-	<target name="export" depends="jar">
-	    <copy file="${jar.dest}" todir="${export.dir}" />		   
+	<target name="release-build" depends="test-build">
+		<copy file="${test.jar.dest}" todir="${build.jar.dir}" />
 	</target>
 </project>

@@ -54,6 +54,21 @@ public class PoiManager {
 	private String _dbPath;
 	
 	/**
+	 * The most recent database version -- this is the version of the database
+	 * which is compatible with this version of the plugin.
+	 */
+	private final int LATEST_DB_VERSION = 1;
+	
+	/**
+	 * This is the current version of the database according to
+	 * PRAGMA user_version.
+	 * 
+	 * This is used to detect whether database alterations are necessary
+	 * or database incompatibilities.
+	 */
+	private int _currentDBVersion;
+	
+	/**
 	 * Attempts to make necessary preperations for reading/writing POIs and returns a 
 	 * boolean indicator of success.
 	 * 
@@ -80,10 +95,7 @@ public class PoiManager {
 			conn = _getDBConn();
 			
 			// perform setup operations on the database
-			_setupDB(conn);
-			
-			// everything went okay, set our return status to true.
-			success = true;
+			success =_setupDB(conn);
 		}
 		catch (Exception ex) {
 			// something went wrong, output the exception stacktrace.
@@ -524,26 +536,71 @@ public class PoiManager {
      * Performs database setup as needed.
      * 
      * @param conn
+     * @return
      */
-    private void _setupDB(Connection conn) {
-		try {  	
+    private boolean _setupDB(Connection conn) {
+    	ResultSet rs; 
+    		
+    	try {  	
 	    	Statement sql = conn.createStatement();
-	        sql.executeUpdate("CREATE TABLE IF NOT EXISTS `poi` " +
-	        		"(`id` INTEGER PRIMARY KEY , " +
-	        		"`x` INTEGER NOT NULL ," +
-	        		"`y` INTEGER NOT NULL ," +
-	        		"`z` INTEGER NOT NULL ," + 
-	        		"`owner` STRING(16) NOT NULL, " +
-	        		"`world` STRING NOT NULL, " + 
-	        		"`name` STRING(24) NOT NULL);"
-	        		);
+	    	
+	    	// get the current database version
+	    	rs = sql.executeQuery("PRAGMA user_version;");
+	    	rs.next();
+	    	this._currentDBVersion = rs.getInt(1);
+	    
+	    	// see if the poi table exists
+	    	rs = sql.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='poi';");
+	    	if (!rs.next()) {
+	    		this._currentDBVersion = rs.getInt(1);
+
+	    		// start a transaction
+	    		conn.setAutoCommit(false);
+	    		
+	    		// set to the latest db version
+	    		sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
+	    		
+	    		// the poi table doesn't exist... we need to create it.
+		        sql.executeUpdate("CREATE TABLE `poi` " +
+		        		"(`id` INTEGER PRIMARY KEY , " +
+		        		"`x` INTEGER NOT NULL ," +
+		        		"`y` INTEGER NOT NULL ," +
+		        		"`z` INTEGER NOT NULL ," + 
+		        		"`owner` STRING(16) NOT NULL, " +
+		        		"`world` STRING NOT NULL, " + 
+		        		"`name` STRING(24) NOT NULL);"
+		        		);
+		        
+ 		        conn.commit();
+ 		        
+ 		        // no reason to query for the db version... we just set it.
+ 		        this._currentDBVersion = LATEST_DB_VERSION;
+	    	}
+	    	else {
+	    		// the poi table exists -- see if we need to do any migration work.
+	    		if (this._currentDBVersion > LATEST_DB_VERSION) {
+	    			_log.severe("PointsOfInterest: Database is a later version than expected! " +
+	    				"Can not safely modify database. Update plugin, restore database backup or " +
+	    				"delete the database file (all POIs will be lost)."
+	    				);
+	    			return false;
+	    		}
+	    		else if (this._currentDBVersion < LATEST_DB_VERSION) {
+	    			// no real migration yet... except to set the version number.
+	    			_log.info("PointsOfInterest:Database out of date -- updating from version " + this._currentDBVersion + " to " + LATEST_DB_VERSION + "...");
+	    			sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
+	    		}
+	    	}
 		}
 		catch (SQLException sqlEx) {
 			_log.severe("Failed to setup POI database");
 			sqlEx.printStackTrace();
+			return false;
 		}
 		finally {
 			_closeConn(conn);
 		}
+		
+		return true;
     }
 }
