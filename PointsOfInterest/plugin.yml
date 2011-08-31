@@ -6,11 +6,11 @@ permissions:
     poi.action.*:
         description: Gives access to all actions under the poi command
         children:
-            poi.actions.add: true
-            poi.actions.config.reload: true
-            poi.actions.remove: true
-            poi.actions.remove.others: true
-            poi.actions.view: true
+            poi.action.add: true
+            poi.action.config.reload: true
+            poi.action.remove: true
+            poi.action.remove.others: true
+            poi.action.view: true
     poi.action.add:
         description: Allows you to add POIs
         default: op
