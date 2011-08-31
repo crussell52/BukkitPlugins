@@ -1,6 +1,36 @@
 name: PointsOfInterest
 main: crussell52.poi.PointsOfInterest
 version: 0.5.4
+
+permissions:
+    poi.action.*:
+        description: Gives access to all actions under the poi command
+        children:
+            poi.actions.add: true
+            poi.actions.config.reload: true
+            poi.actions.remove: true
+            poi.actions.remove.others: true
+            poi.actions.view: true
+    poi.action.add:
+        description: Allows you to add POIs
+        default: op
+    poi.action.config.reload:
+        description: Allows you to reload the configuration from the file
+        default: op
+    poi.action.remove:
+        description: Allows you to remove POIs
+        default: op
+        children: 
+            poi.action.view: true
+    poi.action.remove.others:
+        description: Allows you to remove POIs that belong to other players as well as your own.
+        default: op
+        children:
+            poi.action.remove: true
+    poi.action.view:
+        description: Allows you to search for and view POIs.
+        default: true
+
 commands:
     poi:
        description: Show your friends what's interesting in the world!

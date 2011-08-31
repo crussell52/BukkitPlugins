@@ -19,6 +19,8 @@ public class SummaryAction extends ActionHandler {
 	 */
 	public SummaryAction(PoiManager poiManager) {
 		super(poiManager);
+		
+		this._relatedPermission = "poi.action.view";
 	}
 
 	/**
@@ -26,8 +28,7 @@ public class SummaryAction extends ActionHandler {
 	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
-		// you have to a player (for now) to do this.
-		if (!this._playerCheck(sender)) {
+		if (!this._canExecute(sender)){
 			return;
 		}
 		

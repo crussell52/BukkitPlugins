@@ -25,6 +25,9 @@ public class HelpAction extends ActionHandler {
 	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
+		if (!this._canExecute(sender)){
+			return;
+		}
 		
 		// create a list to hold the messages that will be sent to the sender.
 		ArrayList<String> messages;

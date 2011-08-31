@@ -17,6 +17,8 @@ public class RemoveAction extends ActionHandler {
 	 */
 	public RemoveAction(PoiManager poiManager) {
 		super(poiManager);
+		
+		this._relatedPermission = "poi.action.remove";
 	}
 
 	/**
@@ -24,8 +26,7 @@ public class RemoveAction extends ActionHandler {
 	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
-		// you have to a player (for now) to do this.
-		if (!this._playerCheck(sender)) {
+		if (!this._canExecute(sender)){
 			return;
 		}
 		
@@ -39,7 +40,17 @@ public class RemoveAction extends ActionHandler {
 			// if anything goes wrong, an Exception will be thrown and caught.
 			Player player = (Player)sender;
 			int id = Integer.parseInt(args[0]);
-			this._poiManager.removePOI(id, args[1], player.getName(), player.getWorld().getName());
+			
+			// see if player is allowed to remove others' POIs
+			if (player.hasPermission("poi.action.remove.others")) {
+				// can remove others, so don't qualify with player name or world.
+				this._poiManager.removePOI(id, args[1]);
+			}
+			else {
+				// can only remove their own, so qualify with name and world
+				// TODO: should they really be required to be in the same world as the POI?
+				this._poiManager.removePOI(id, args[1], player.getName(), player.getWorld().getName());
+			}
 			
 			// if this was the player's selected POI, unselect it.
 			Poi selected = this._poiManager.getSelectedPoi(player);

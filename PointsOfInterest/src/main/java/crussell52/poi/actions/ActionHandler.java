@@ -1,6 +1,5 @@
 package crussell52.poi.actions;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -14,7 +13,7 @@ import crussell52.poi.PoiManager;
  * Subclasses are responsible for handling specific actions.
  */
 public abstract class ActionHandler {
-	
+		
 	/**
 	 * Used for logging as necessary throughout this class.
 	 * 
@@ -26,6 +25,27 @@ public abstract class ActionHandler {
 	 * Handles all of the "heavy lifting" for POI interactions.
 	 */
 	protected PoiManager _poiManager;
+	
+	/**
+	 * Indicates whether the action can be executed from the
+	 * console.
+	 */
+	protected boolean _fromConsole = false;
+	
+	/**
+	 * Indicates whether the action can be executed from
+	 * an in-game player.
+	 */
+	protected boolean _fromInGame  = true;
+	
+	/**
+	 * Indicates the required permission to execute the action.
+	 * 
+	 * A value of <code>null</code> indicates no permission needed.
+	 * 
+	 * Does not factor into execution of actions from the console.
+	 */
+	protected String _relatedPermission = null;
 	
 	/**
 	 * Creates a new instance.
@@ -46,22 +66,32 @@ public abstract class ActionHandler {
 	public abstract void handleAction(CommandSender sender, String action, String[] args);
 	
 	/**
-	 * Used for actions that can only be performed by in-game players, this 
-	 * verifies that the sender is a player.
-	 * 
-	 * If the sender is not a player, a message is sent to the sender letting them know
-	 * why they can't execute the action.
+	 * Ensures that the sender can actually execute the action
+	 * based on where it was invoked from and the related permission
 	 * 
 	 * @param sender
 	 * @return
 	 */
-	protected boolean _playerCheck(CommandSender sender)
+	protected boolean _canExecute(CommandSender sender)
 	{
-		if (!(sender instanceof Player)) {
-			sender.sendMessage("This action can only be performed by an in-game Player.");
+		if (sender instanceof Player) {
+			if (!this._fromInGame) {
+				sender.sendMessage("This action can not be performed from in game.");
+				return false;
+			}
+	
+			if (this._relatedPermission != null && !((Player)sender).hasPermission(this._relatedPermission)) {
+				sender.sendMessage("You do not have permission to perform this action.");
+				return false;
+			}
+		}
+		else if (!this._fromConsole) {
+			sender.sendMessage("This action can not be performed from the console.");
 			return false;
 		}
 		
+		
+		// all checks passed... okay to execute
 		return true;
 	}
 	

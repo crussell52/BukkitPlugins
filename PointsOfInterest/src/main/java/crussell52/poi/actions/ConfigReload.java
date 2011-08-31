@@ -2,7 +2,6 @@ package crussell52.poi.actions;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import crussell52.poi.Config;
 
@@ -15,13 +14,15 @@ public class ConfigReload extends ActionHandler {
 	 */
 	public ConfigReload() {
 		super(null);
+		
+		this._relatedPermission = "poi.action.config.reload";
+		this._fromConsole = true;
+		this._fromInGame  = true;
 	}
 
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
-		// this can only be performed by the server
-		if (sender instanceof Player) {
-			sender.sendMessage(ChatColor.RED + "That can only be performed from the console.");
+		if (!this._canExecute(sender)){
 			return;
 		}
 

@@ -16,21 +16,16 @@ public class AddAction extends ActionHandler {
 	 */
 	public AddAction(PoiManager poiManager) {
 		super(poiManager);
+		
+		this._relatedPermission = "poi.action.add";
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
-		// we need a player to perform this action
-		if (!this._playerCheck(sender)) {
-			return;
-		}
-		
-		// see if this action is restricted to ops
-		if (!sender.isOp() && Config.isAddRestrictedToOps()) {
-			sender.sendMessage("Sorry, you do not have permissions to add a POI.");
+		// make this command can be executed by the sender
+		if (!this._canExecute(sender)) {
 			return;
 		}
 		

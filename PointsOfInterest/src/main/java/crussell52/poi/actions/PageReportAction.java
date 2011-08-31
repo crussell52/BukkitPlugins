@@ -19,6 +19,8 @@ public class PageReportAction extends ActionHandler {
 	 */
 	public PageReportAction(PoiManager poiManager) {
 		super(poiManager);
+		
+		this._relatedPermission = "poi.action.view";
 	}
 
 	/**
@@ -26,8 +28,7 @@ public class PageReportAction extends ActionHandler {
 	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
-		// need a player to take this action
-		if (!this._playerCheck(sender)) {
+		if (!this._canExecute(sender)){
 			return;
 		}
 		

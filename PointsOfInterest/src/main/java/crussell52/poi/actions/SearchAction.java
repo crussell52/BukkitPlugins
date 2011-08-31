@@ -25,6 +25,8 @@ public class SearchAction extends ActionHandler {
 	 */
 	public SearchAction(PoiManager poiManager) {
 		super(poiManager);
+		
+		this._relatedPermission = "poi.action.view";
 	}
 
 	/**
@@ -32,8 +34,7 @@ public class SearchAction extends ActionHandler {
 	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
-		// we need a player in order to handle this action.
-		if (!this._playerCheck(sender)) {
+		if (!this._canExecute(sender)){
 			return;
 		}
 		

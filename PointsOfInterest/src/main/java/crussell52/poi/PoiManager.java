@@ -268,6 +268,52 @@ public class PoiManager {
 	}
 	
 	/**
+	 * Deletes a POI from the database by id.
+	 * 
+	 * @param id
+	 * @param conn
+	 * @throws PoiException
+	 */
+	private void _deletePOI(int id, Connection conn) throws PoiException
+	{
+		// attempt to perform the delete against the given connection
+		try {
+			PreparedStatement sql = conn.prepareStatement("DELETE FROM poi WHERE id = ?;");
+			sql.setInt(1, id);
+			sql.executeUpdate();
+		}
+		catch (Exception ex) {
+			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
+		}
+	}
+	
+	/**
+	 * Remove the POI which has the given id, and name.
+	 * 
+	 * @param id
+	 * @param name
+	 * @throws PoiException
+	 */
+	public void removePOI(int id, String name) throws PoiException
+	{
+		Connection conn = null;
+		try {
+			conn = _getDBConn();
+			Poi poi = this._getPoi(id, conn);
+			
+			if (!name.equalsIgnoreCase(poi.getName())) {
+				throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
+			}
+		
+			this._deletePOI(id, conn);
+		}
+		finally {
+			// no matter what, close the connection after we execute.
+			this._closeConn(conn);
+		}			
+	}
+	
+	/**
 	 * Remove the POI which has the given id, name, owner, and world.
 	 * 
 	 * @param id
@@ -278,31 +324,31 @@ public class PoiManager {
 	 */
 	public void removePOI(int id, String name, String owner, String world) throws PoiException
 	{
-		Connection conn = _getDBConn();
-		Poi poi = this._getPoi(id, conn);
-		
-		// verify that the poi is in the expected world
-		if (!world.equals(poi.getWorld())) {
-			throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
-		}
-		
-		if (!owner.equals(poi.getOwner())) {
-			throw new PoiException(PoiException.POI_BELONGS_TO_SOMEONE_ELSE, "POI belongs to someone else.");
-		}
-		
-		if (!name.equalsIgnoreCase(poi.getName())) {
-			throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
-		}
-		
+		Connection conn = null;
+	
 		try {
-			// we made it here, we can perform the DELETE on the database.
-			PreparedStatement sql = conn.prepareStatement("DELETE FROM poi WHERE id = ?;");
-			sql.setInt(1, id);
-			sql.executeUpdate();
+			conn = _getDBConn();
+			Poi poi = this._getPoi(id, conn);
+			
+			// verify that the poi is in the expected world
+			if (!world.equals(poi.getWorld())) {
+				throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
+			}
+			
+			if (!owner.equals(poi.getOwner())) {
+				throw new PoiException(PoiException.POI_BELONGS_TO_SOMEONE_ELSE, "POI belongs to someone else.");
+			}
+			
+			if (!name.equalsIgnoreCase(poi.getName())) {
+				throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
+			}
+			
+			this._deletePOI(id, conn);
 		}
-		catch (Exception ex) {
-			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
-		}
+		finally {
+			// no matter what, close the connection after we execute.
+			this._closeConn(conn);
+		}			
 	}
 	
 	/**

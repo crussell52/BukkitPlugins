@@ -16,6 +16,8 @@ public class SelectAction extends ActionHandler {
 	 */
 	public SelectAction(PoiManager poiManager) {
 		super(poiManager);
+		
+		this._relatedPermission = "poi.action.view";
 	}
 	
 	/**
@@ -23,8 +25,7 @@ public class SelectAction extends ActionHandler {
 	 */
 	@Override
 	public void handleAction(CommandSender sender, String action, String[] args) {
-		// only players can select POIs
-		if (!this._playerCheck(sender)) {
+		if (!this._canExecute(sender)){
 			return;
 		}
 		
