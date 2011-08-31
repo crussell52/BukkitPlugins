@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="release-build" name="Create Jar for Project PointsOfInterest">
+    
+    <!-- To Those Forking my code.  This has been committed for my own purposes.
+         Please do not modify this file.  You can create your own ant script using
+         ant-template.xml (same folder as this file). Thanks! :)
+    -->
+    
+    <property name="jar.name" value="PointsOfInterestAPI.jar"/>
+    <property name="proj.dir" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterestAPI/" />
+    <property name="classes.dir" value="${proj.dir}target/classes/" />
+    <property name="release.jar.dir" value="${proj.dir}build/"/>
+	<property name="release.libjar.dir" value="D:/Development/bukkit/" />
+
+	<target name="release-build">
+        <delete file="${release.jar.dir}${jar.name}" />
+        <jar destfile="${release.jar.dir}${jar.name}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${classes.dir}"/>
+        	<fileset dir="${proj.dir}">
+        	    <include name="version.txt"/>
+        	</fileset>
+        </jar>
+        <copy file="${release.jar.dir}${jar.name}" todir="${release.libjar.dir}" />
+    </target>
+	
+</project>
