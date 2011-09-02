@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="test-build" name="Create Jar for Project PointsOfInterest">
+<project default="test-build" name="Create Jar for MyPlugin that uses PointsOfInterestAPI">
 	
 	<!-- To Those Forking my code.  You will need to include the classes from PointsOfInterestAPI
 	     In your jar file for testing.  This ant serves as a template for accomplishing that.
 	     Please do not modify this file.  Copy it, and use it to create your own ant script which
 	     is relevant to your project. Thanks! :)
+	     
+	     (NOTE: This is not the only way to get the PointsOfInterestAPI class files into your jar,
+	     this is just the approach I have chosen to use for my project.)
 	-->
 	
-	<!-- This should not change -->
-	<property name="jar.name" value="PointsOfInterest.jar"/>
+	<!-- Your plugin's jar file name -->
+	<property name="jar.name" value="MyPlugin.jar"/>
 		
 	<!-- This should point to the project folder in Eclipse -->
 	<property name="proj.dir" value="D:/wherever/your/project/lives/" />
