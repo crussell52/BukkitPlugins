@@ -10,9 +10,6 @@ import crussell52.poi.api.PoiEvent;
 import crussell52.poi.api.IPoiListener;
 import crussell52.poi.commands.PoiCommand;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -124,69 +121,10 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     protected void _createSupportingFiles() {
     	try {
 	    	this.getDataFolder().mkdir();
-	    	this._createConfigHelp();
 
     	} catch (Exception ex) {
     		this._log.severe("PointsOfInterest failed to create supporting files with error:" + ex);
     	}
-    }
-    
-    /**
-     * Used to copy the packaged config help out to the disk.
-     * 
-     * @param target the location on disk where the default config will be copied to.
-     */
-    private void _createConfigHelp() {
-    	// wipe out the old config help if it exists
-    	File target = new File(this.getDataFolder(), "config_help.txt");
-
-    	if (target.exists()) {
-    		target.delete();
-    	}
-    	
-    	InputStream input = this.getClass().getResourceAsStream("/resources/config_help.txt");
-    	
-    	// make sure we have a handle to the default config
-        if (input != null) {
-        	// set up a var for the output stream
-        	FileOutputStream output = null;
-        	
-	        try {
-	        	// attempt to make the copy
-	        	output = new FileOutputStream(target);
-	            byte[] buf = new byte[1024];
-	            int chunkLength = 0;
-	            while ((chunkLength = input.read(buf)) > 0) {
-	                output.write(buf, 0, chunkLength);
-	            }
-	        } 
-	        catch (Exception ex) {
-	        	// something went wrong during the copy
-	        	// Not the end of the world, we can use the coded defaults, but we should
-	        	// generate a warning.
-	            _log.warning("Failed to create config help file -- stacktrace to follow. ");
-	            ex.printStackTrace();
-	        } 
-	        finally {
-	        	// success or fail, make sure our input/output streams are closed
-	        	
-	        	// first the input stream...
-	        	try {
-	        		input.close();
-	            } 
-	        	catch (Exception e) {
-	        		// do nothing.
-	        	}
-	        	
-	        	// then the output stream.
-	        	try {
-	        		output.close();
-	            } 
-	        	catch (Exception e) {
-	        		// do nothing.
-	        	}
-	        }
-        }
     }
 
     /**

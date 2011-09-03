@@ -1,0 +1,102 @@
+# This file contains all the information you need to accurately set up
+# the PointsOfInterest plugin.
+# 
+# All configuration keys have a default value, and if you ever want to return
+# to the default value, you can just remove the key entirely from your config
+# file.  The next time you start the server or reload the config, the default 
+# value will be used and the config file will be rewritten to include that value 
+# for you.  If you want all default values, you can delete the file entirely.  
+# It will be recreated#with default values the next time you start the server or 
+# reload the config.    
+# 
+# Finally, all configuration keys must be typed exactly as you see here.  They are
+# case sensitive.  Also, do not use tabs in the config file; only use spaces.  If 
+# you use tabs, the plugin will be unhappy and you will get all default config values.
+# 
+# If there is any error reading the config file during startup, the plugin will be
+# disabled to protect your POI data.
+# 
+# The remainder of this file contains the configuration details in the following format:
+#
+#    #####
+#    #   Some information about what this controls.
+#    #
+#    #####
+#    configKey: currentValue
+#
+#####
+    
+#####
+#   Controls the maximum search radius and the maximum distance at which
+#   a player can get directions to a POI.
+#
+#   Any negative number indicates "no maximium".
+#
+#   The default value is 2000.
+#
+#####    
+#{distanceThreshold}#
+
+
+#####
+#   Controls the minimum distance between POIs.  A player will not be able to create
+#   a POI within this distance of another POI.
+#
+#   The value should never be negative.
+#
+#   The default value is 50.
+#
+#####
+#{minPoiGap}#
+
+
+#####
+#    Maximum number of results that will be returned when player 
+#    searches for nearby POIs.
+#
+#    The value should never be negative.
+#
+#    The default value is 10
+#
+#####
+#{maxSearchResults}#
+
+#####
+#    Maximum number of POIs for players with the poi.action.add permission.
+#
+#    Each label under this configuration represents a custom permission. 
+#    Any value can be used, and any number of them can be created.  To apply a 
+#    custom maximum to a player, simply assign the fully qualified permission 
+#    to that player, like any other permission (example: poi.action.add.max.custom1).
+#
+#    Any player who has the poi.action.add permission without a custom max
+#    permission will be limited by the value listed under the "default" label.
+#    If no default is specified, then a value of 10 is used for the maximum.
+#
+#    All maximums are applied per world (so, by default, a maximum of 10 POIs in
+#    each world). 
+#
+#    Setting a negative indicates "no maximum".  Setting a value
+#    to 0 has the same effect as removing the poi.action.add permission.
+#
+#    For example...
+#
+#    poi.action.add.max:
+#        default: 10
+#        custom1: 30
+#        custom2: -1
+#        custom3: 50
+#####    
+#{poi.action.add.max}# 
+
+#####
+#    A list of worlds which do not allow POIs. If a world with existing POIs is added
+#    to the black list, those POIs will NOT be automatically deleted; however, players 
+#    (including POI owners) will not be able to see nor interact with the POIs within
+#    that world.  If the world is removed from the blacklist, the POIs will become
+#    available to the players again.
+#
+#    World names should be a comma separated list of world names, enclosed in
+#    square brackets. (example: [world1, world2_nether, otherWorld])
+#####    
+#{worldBlacklist}#
