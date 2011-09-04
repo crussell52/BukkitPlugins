@@ -91,9 +91,7 @@ public class HelpAction extends ActionHandler {
 		// provide short usage for every action.		
 		messages.add(this._select(true).get(0));
 		messages.add(this._summary(true).get(0));
-		if (isOp || !Config.isAddRestrictedToOps()) {
-			messages.add(this._add(true).get(0));
-		}
+		messages.add(this._add(true).get(0));
 		messages.add(this._remove(true).get(0));
 		messages.add(this._search(true).get(0));
 		messages.add(this._list(true).get(0));
