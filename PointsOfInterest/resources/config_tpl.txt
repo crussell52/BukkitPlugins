@@ -62,6 +62,20 @@
 #{maxSearchResults}#
 
 #####
+# 
+#    Maximum number of POIs, per world players are allowed to have.
+#
+#    poi.action.add.max (see below) can be used to override this value
+#    for one or more players.
+#
+#    A negative value indicates "no maximum" (not recommended).
+#
+#    The default value is 10.
+#
+#####
+#{maxPlayerPoiPerWorld}#
+
+#####
 #    Maximum number of POIs for players with the poi.action.add permission.
 #
 #    Each label under this configuration represents a custom permission. 
@@ -73,21 +87,19 @@
 #    permission will be limited by the value listed under the "default" label.
 #    If no default is specified, then a value of 10 is used for the maximum.
 #
-#    All maximums are applied per world (so, by default, a maximum of 10 POIs in
-#    each world). 
+#    All maximums are applied per world (so, a value of 10 would allow
+#    player(s) to set up to 10 POIs in each world).
 #
-#    Setting a negative indicates "no maximum".  Setting a value
-#    to 0 has the same effect as removing the poi.action.add permission.
+#    Setting a negative indicates "no maximum".
 #
 #    For example...
 #
 #    poi.action.add.max:
-#        default: 10
-#        custom1: 30
-#        custom2: -1
-#        custom3: 50
+#      custom1: 30
+#      custom2: -1
+#      custom3: 50
 #####    
-#{poi.action.add.max}# 
+#{poi.action.add.max}#
 
 #####
 #    A list of worlds which do not allow POIs. If a world with existing POIs is added
@@ -96,7 +108,11 @@
 #    that world.  If the world is removed from the blacklist, the POIs will become
 #    available to the players again.
 #
-#    World names should be a comma separated list of world names, enclosed in
-#    square brackets. (example: [world1, world2_nether, otherWorld])
+#    World names are NOT case sensitive and should follow the follow format...
+#
+#   worldBlacklist:
+#   - world1
+#   - world2_nether
+#   - world2
 #####    
 #{worldBlacklist}#

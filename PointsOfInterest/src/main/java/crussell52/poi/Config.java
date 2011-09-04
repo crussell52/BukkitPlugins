@@ -22,8 +22,8 @@ import org.yaml.snakeyaml.Yaml;
  * 
  */
 public class Config {
-	
-	private static Config _instance;
+    
+    private static Config _instance;
     
     /**
      * Dictates how far to search and maximum distance
@@ -43,9 +43,16 @@ public class Config {
     private int _maxSearchResults = 10;
     
     /**
-     * Maximum number of POIs a player can create in each world.
+     * Map of permission keys and the maximum POIs associated
+     * with each.
      */
-    private int _maxPlayerPoiPerWorld = 10;
+    private Map<String, Integer> _maxPoiMap;
+    
+    /**
+     * Maximum number of POIs a player can create in each world
+     * if not specified by _maxPoiMap.
+     */
+    private Integer _maxPlayerPoiPerWorld = 10;
     
     /**
      * List of worlds in which POIs are not supported.
@@ -63,7 +70,10 @@ public class Config {
     private static Logger _log;
     
     // hide default constructor -- everything should be accessed statically
-    private Config() {}
+    private Config() 
+    {
+        _maxPoiMap = new HashMap<String, Integer>();
+    }
     
     /**
      * Dictates how far to search and maximum distance
@@ -117,19 +127,19 @@ public class Config {
      */
     public static boolean reload() {
         
-    	if (_instance == null) {
-    		_log.severe("Tried to reload config before it had been loaded.");
-    		return false;
-    	}
-    	
-    	Config previous = _instance;
-    	if (!_load(_dataFolder, _log)) {
-    		_log.severe("Rolling back to last known configuration.");
-    		_instance = previous;
-    		return false;
-    	}
-    	
-    	return true;
+        if (_instance == null) {
+            _log.severe("Tried to reload config before it had been loaded.");
+            return false;
+        }
+        
+        Config previous = _instance;
+        if (!_load(_dataFolder, _log)) {
+            _log.severe("Rolling back to last known configuration.");
+            _instance = previous;
+            return false;
+        }
+        
+        return true;
     }
     
     /**
@@ -141,13 +151,13 @@ public class Config {
      * @return
      */
     public static boolean load(File dataFolder, Logger log) {
-    	
-    	if (!_load(dataFolder, log)) {
-    		_instance = new Config();
-    		return false;
-    	}
-    	
-    	return true;
+        
+        if (!_load(dataFolder, log)) {
+            _instance = new Config();
+            return false;
+        }
+        
+        return true;
     }
     
     /**
@@ -160,11 +170,11 @@ public class Config {
      */
     @SuppressWarnings("unchecked")
     private static boolean _load(File dataFolder, Logger log) {
-    	
+        
         // always start with a new instance.
-    	_instance = new Config();
-    	
-    	// setup a YAML instance for read/write of config file
+        _instance = new Config();
+        
+        // setup a YAML instance for read/write of config file
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(FlowStyle.BLOCK);
         options.setDefaultScalarStyle(ScalarStyle.PLAIN);
@@ -228,11 +238,11 @@ public class Config {
             Integer read = 0;
             StringBuilder stringBuilder = new StringBuilder();
             do {
-        	  read = reader.read(buffer, 0, buffer.length);
-        	  if (read>0) {
-        		  stringBuilder.append(buffer, 0, read);
-        	  }
-        	} while (read >= 0);
+              read = reader.read(buffer, 0, buffer.length);
+              if (read>0) {
+                  stringBuilder.append(buffer, 0, read);
+              }
+            } while (read >= 0);
             
             // create a hash map... 
             // we will feed the config keys into it (one at a time) and use
@@ -253,6 +263,10 @@ public class Config {
             configMap.clear();
             configMap.put("maxPlayerPoiPerWorld", _instance._maxPlayerPoiPerWorld);
             output = output.replace("#{maxPlayerPoiPerWorld}#", yaml.dump(configMap));
+            
+            configMap.clear();
+            configMap.put("poi.action.add.max", _instance._maxPoiMap);
+            output = output.replace("#{poi.action.add.max}#", yaml.dump(configMap));
             
             configMap.clear();
             configMap.put("worldBlacklist", _instance._worldBlackList);
@@ -326,7 +340,7 @@ public class Config {
         // see if a minimum distance between POIs is configured
         if (map.containsKey("minPoiGap")) {
             try {
-            	_instance._minPoiGap = (Integer)map.get("minPoiGap");
+                _instance._minPoiGap = (Integer)map.get("minPoiGap");
             }
             catch (Exception ex) {
                 log.severe("PointsOfInterest: Bad configuration for minPoiGap.");
@@ -337,7 +351,7 @@ public class Config {
         // see if a maximum number of search results
         if (map.containsKey("maxSearchResults")) {
             try {
-            	_instance._maxSearchResults = (Integer)map.get("maxSearchResults");
+                _instance._maxSearchResults = (Integer)map.get("maxSearchResults");
             }
             catch (Exception ex) {
                 log.severe("PointsOfInterest: Bad configuration for maxSearchResults.");
@@ -348,10 +362,35 @@ public class Config {
         // see if per-world maximum number of POIs for each player is configured
         if (map.containsKey("maxPlayerPoiPerWorld")) {
             try {
-            	_instance._maxPlayerPoiPerWorld = (Integer)map.get("maxPlayerPoiPerWorld");
+                _instance._maxPlayerPoiPerWorld = (Integer)map.get("maxPlayerPoiPerWorld");
             }
             catch (Exception ex) {
                 log.severe("PointsOfInterest: Bad configuration for maxPlayerPoiPerWorld.");
+                success = false;
+            }
+        }
+        
+        if (map.containsKey("poi.action.add.max")) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Integer> maxMap = (Map<String, Integer>)map.get("poi.action.add.max");
+                
+                // null is a reasonable value...
+                if (maxMap != null) {
+                    _instance._maxPoiMap = maxMap;
+                
+                    // loop to make sure everything is what we expect it to be.
+                    for (Map.Entry<String, Integer> entry : maxMap.entrySet()) {
+                        if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof Integer)) {
+                          log.severe("PointsOfInterest: Bad configuration for poi.action.add.max");
+                          success = false;
+                          break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) {
+                log.severe("PointsOfInterest: Bad configuration for poi.action.add.max");
                 success = false;
             }
         }
@@ -366,7 +405,7 @@ public class Config {
                 if (tmp != null) {
                     // convert each blacklisted world to lower-case before recording it
                     for (String world : tmp) {
-                    	_instance._worldBlackList.add(world.toLowerCase());
+                        _instance._worldBlackList.add(world.toLowerCase());
                     }
                 }
             }
