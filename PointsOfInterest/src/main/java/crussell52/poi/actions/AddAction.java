@@ -50,7 +50,7 @@ public class AddAction extends ActionHandler {
 		
 		try {
 			// TODO: config - POIGap
-			this._poiManager.add(args[0], (Player)sender, Config.getMinPoiGap(), Config.getMaxPlayerPoiPerWorld());
+			this._poiManager.add(args[0], (Player)sender, Config.getMinPoiGap(), Config.getMaxPoiPerWorld((Player)sender));
 			sender.sendMessage("POI " + args[0] + " Created!");
 		}
 		catch (PoiException poiEx) {

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.bukkit.entity.Player;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
@@ -105,12 +106,32 @@ public class Config {
     }
     
     /**
-     * Maximum number of POIs a player can create in each world.
+     * returns the maximum number of POIs a given player is allowed.
      * 
+     * @param player
      * @return
      */
-    public static int getMaxPlayerPoiPerWorld() {
-        return _instance._maxPlayerPoiPerWorld;
+    public static int getMaxPoiPerWorld(Player player)
+    {
+        // start with no lowest
+        Integer lowestMax = null;
+        
+        // loop over available maximums
+        for (Map.Entry<String, Integer> entry : _instance._maxPoiMap.entrySet()) {
+            // see if the player has the permission associated with this max
+            if (player.hasPermission("poi.action.add.max." + entry.getKey())) {
+                // player has the related permission, but we want the most restrictive
+                // value... see if it is the lowest so far.  Note, -1 is a special case because
+                // it is LEAST restrictive.
+                if (lowestMax == null || (entry.getValue() < lowestMax && entry.getValue() != -1)) {
+                    // lowest maximum so far.
+                    lowestMax = entry.getValue();
+                }
+            }
+        }
+        
+        // return the lowest max or the default if no explicit maximums were found. 
+        return lowestMax == null ? _instance._maxPlayerPoiPerWorld : lowestMax;
     }
     
     /**
