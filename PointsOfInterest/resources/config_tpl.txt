@@ -1,17 +1,17 @@
 # This file contains all the information you need to accurately set up
 # the PointsOfInterest plugin.
 # 
-# All configuration keys have a default value, and if you ever want to return
+# All configuration keys have a default value If you ever want to return
 # to the default value, you can just remove the key entirely from your config
 # file.  The next time you start the server or reload the config, the default 
 # value will be used and the config file will be rewritten to include that value 
 # for you.  If you want all default values, you can delete the file entirely.  
-# It will be recreated#with default values the next time you start the server or 
+# It will be recreated with default values the next time you start the server or 
 # reload the config.    
 # 
 # Finally, all configuration keys must be typed exactly as you see here.  They are
 # case sensitive.  Also, do not use tabs in the config file; only use spaces.  If 
-# you use tabs, the plugin will be unhappy and you will get all default config values.
+# you use tabs, an error will occur.
 # 
 # If there is any error reading the config file during startup, the plugin will be
 # disabled to protect your POI data.
@@ -88,7 +88,9 @@
 #    If no default is specified, then a value of 10 is used for the maximum.
 #
 #    All maximums are applied per world (so, a value of 10 would allow
-#    player(s) to set up to 10 POIs in each world).
+#    player(s) to set up to 10 POIs in each world).  Some permission plugins
+#    allow for world-specific permissions, which would allow you to set a
+#    unique maximum per world.
 #
 #    Setting a negative indicates "no maximum".
 #
