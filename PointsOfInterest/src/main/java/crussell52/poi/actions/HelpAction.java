@@ -18,6 +18,7 @@ public class HelpAction extends ActionHandler {
 	 */
 	public HelpAction(PoiManager poiManager) {
 		super(poiManager);
+		this._lockdownOverride = true;
 	}
 
 	/**

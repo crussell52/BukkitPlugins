@@ -23,8 +23,26 @@ import org.yaml.snakeyaml.Yaml;
  * 
  */
 public class Config {
+
+    /**
+     * Current config id -- Only updated if the current plugin
+     * version introduces a "high risk" change to the configuration
+     * options. 
+     * 
+     * A mismatch between this value and the configId in the config file
+     * will trigger an automatic lock down.
+     */
+    private static final Integer CURRENT_ID = 1;
     
+    /**
+     * Contains the singleton instance for this class
+     */
     private static Config _instance;
+    
+    /**
+     * If true, the plugin is operating in "lock down" mode.
+     */
+    private boolean _isLocked = true;
     
     /**
      * Dictates how far to search and maximum distance
@@ -74,6 +92,15 @@ public class Config {
     private Config() 
     {
         _maxPoiMap = new HashMap<String, Integer>();
+    }
+    
+    /**
+     * Indicates whether or not the plugin is in lockdown mode.
+     * 
+     * @return If the plugin is locked then all game commands will be blocked.
+     */
+    public static boolean isLocked() {
+        return _instance._isLocked;
     }
     
     /**
@@ -205,6 +232,9 @@ public class Config {
         File dataFile = new File(dataFolder, "config.yml");
                 
         if (!dataFile.exists()) {
+            // log a warning about the lack of config file.
+            log.warning("PointsOfInterest: No configuration file found -- assuming initial plugin install.");
+            
             // try to create the file.
             try {
                 dataFile.createNewFile();
@@ -214,6 +244,10 @@ public class Config {
                 e.printStackTrace();
                 return false;
             }
+            
+            // we will be defaulting to lockdown mode -- log a warning
+            log.warning("PointsOfInterest: The plugin has been forced into lockdown mode to give you");
+            log.warning("PointsOfInterest: a chance to adjust your configuration settings.  ");
         }
         else {
             // we have a config file, try to read it.
@@ -241,6 +275,13 @@ public class Config {
                 }
                 catch (Exception ex) {}
             }
+        }
+        
+        // see if we are in lockdown (either forced or manual)
+        if (_instance._isLocked) {
+            // Make appropriate log entries
+            log.warning("PointsOfInterest: Operating in \"lock down\" mode. To release the lock, please update the related");
+            log.warning("PointsOfInterest: configuration option and run the command to reload the config OR restart the server.");
         }
         
         // try to re-write the config file.
@@ -272,6 +313,14 @@ public class Config {
             
             configMap.put("distanceThreshold", _instance._distanceThreshold);
             output = stringBuilder.toString().replace("#{distanceThreshold}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("configId", Config.CURRENT_ID); // always current
+            output = output.replace("#{configId}#", yaml.dump(configMap));
+            
+            configMap.clear();
+            configMap.put("lockDown", _instance._isLocked);
+            output = output.replace("#{lockDown}#", yaml.dump(configMap));
             
             configMap.clear();
             configMap.put("minPoiGap", _instance._minPoiGap);
@@ -346,7 +395,40 @@ public class Config {
         // if there any problems, we'll flip this flag but we want
         // every key to get its opportunity to load.
         boolean success = true;
-
+        
+        // see if lockDown is configured
+        if (map.containsKey("lockDown")) {
+            try {
+                _instance._isLocked = (Boolean)map.get("lockDown");
+            }
+            catch (Exception ex) {
+                log.warning("PointsOfInterest: Bad configuration for lockDown -- assuming true.");
+            }
+        }
+        
+        // see if config version is configured
+        Integer configId = 0;
+        if (map.containsKey("configId")) {
+            try {
+                configId = (Integer)map.get("configId"); 
+            }
+            catch (Exception ex) {
+                log.severe("PointsOfInterest: Bad configuration for configId.");
+                success = false;
+            }
+        }
+        
+        // if there is a version mismatch, then the version is not confirmed
+        if (configId != Config.CURRENT_ID) {
+            // go into lockdown.
+            _instance._isLocked = true;
+            
+            // log the reason for the lock down
+            log.warning("PointsOfInterest: The plugin has been forced into \"lock down\" mode!");
+            log.warning("PointsOfInterest: Either the configuration id is not recognized or a recent update to the");
+            log.warning("PointsOfInterest: plugin has introduced a new configuration version which requires review.");
+        }
+                           
         // see if a distance threshold is configured
         if (map.containsKey("distanceThreshold")) {
             try {

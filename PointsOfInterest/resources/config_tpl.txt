@@ -1,17 +1,25 @@
+#####
+# 
+# DO NOT MODIFY!
+#
+# This is used by the system to determine the current configuration
+# version.  Changing this value may put the plugin into "lock down"
+# unnecessarily.
+#
+#####
+#{configId}#
+
 # This file contains all the information you need to accurately set up
 # the PointsOfInterest plugin.
 # 
-# All configuration keys have a default value If you ever want to return
-# to the default value, you can just remove the key entirely from your config
-# file.  The next time you start the server or reload the config, the default 
-# value will be used and the config file will be rewritten to include that value 
-# for you.  If you want all default values, you can delete the file entirely.  
-# It will be recreated with default values the next time you start the server or 
-# reload the config.    
+# All configuration keys have a default value, and if you ever want to return
+# to the default value, you can manually set it or just remove the key entirely 
+# from your config file.  The next time you start the server or reload the config, 
+# the default value will be used and the config file will be updated to reflect it.
 # 
 # Finally, all configuration keys must be typed exactly as you see here.  They are
 # case sensitive.  Also, do not use tabs in the config file; only use spaces.  If 
-# you use tabs, an error will occur.
+# you use tabs, the configuration will fail to load and the plugin will be sad.
 # 
 # If there is any error reading the config file during startup, the plugin will be
 # disabled to protect your POI data.
@@ -23,9 +31,33 @@
 #    #
 #    #####
 #    configKey: currentValue
+
+
+#####
+# If set to true, then all POI-related game actions will
+# be blocked from execution, except for the ability
+# to reload the config from this file and the in-game help.
+#
+# By default, this will be set to true to give you a chance to
+# set your options before players can use the plugin. Once you are
+# comfortable with your configuration, you can set this value to false
+# and reload your config through the plugin command or by restarting 
+# your server.
+#
+# The lock down does not apply to any commands run from the console.
+# It is also possible to allow a user to operate normally during a lock down
+# through related permission(s).
+#
+# Future releases MAY force this value back to true if it introduces
+# a new "high risk" configuration option.  If this happens, it will 
+# be noted in the change log.
+#
+# The default value is true.
 #
 #####
+#{lockDown}#
     
+
 #####
 #   Controls the maximum search radius and the maximum distance at which
 #   a player can get directions to a POI.
@@ -88,9 +120,7 @@
 #    If no default is specified, then a value of 10 is used for the maximum.
 #
 #    All maximums are applied per world (so, a value of 10 would allow
-#    player(s) to set up to 10 POIs in each world).  Some permission plugins
-#    allow for world-specific permissions, which would allow you to set a
-#    unique maximum per world.
+#    player(s) to set up to 10 POIs in each world).
 #
 #    Setting a negative indicates "no maximum".
 #

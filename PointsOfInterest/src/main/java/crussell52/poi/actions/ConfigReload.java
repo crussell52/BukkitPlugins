@@ -1,5 +1,6 @@
 package crussell52.poi.actions;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -18,6 +19,7 @@ public class ConfigReload extends ActionHandler {
 		this._relatedPermission = "poi.action.config.reload";
 		this._fromConsole = true;
 		this._fromInGame  = true;
+		this._lockdownOverride = true;
 	}
 
 	@Override
@@ -25,10 +27,19 @@ public class ConfigReload extends ActionHandler {
 		if (!this._canExecute(sender)){
 			return;
 		}
+		
+		// make a record of whether lockdown is active before the reload.
+		boolean lockDownActive = Config.isLocked();
 
 		// attempt to reload.
 		if (Config.reload()) {
 			sender.sendMessage(ChatColor.GREEN + "Config successfully reloaded.");
+			
+			// see if a lock was just released
+			if (lockDownActive && !Config.isLocked()) {
+			    // announce that the the lock down has been released
+			    Bukkit.getServer().broadcastMessage(ChatColor.YELLOW + "Points Of Interest is no longer in lock-down! Have Fun!");
+			}
 		}
 		else {
 			sender.sendMessage(ChatColor.RED + "Error reloading config - details in Log");

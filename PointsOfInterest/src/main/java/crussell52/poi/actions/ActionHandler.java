@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import crussell52.poi.Config;
 import crussell52.poi.PoiException;
 import crussell52.poi.PoiManager;
 
@@ -39,6 +40,11 @@ public abstract class ActionHandler {
 	protected boolean _fromInGame  = true;
 	
 	/**
+	 * Indicates whether the action can be executed while in lockdown.
+	 */
+	protected boolean _lockdownOverride = false;
+	
+	/**
 	 * Indicates the required permission to execute the action.
 	 * 
 	 * A value of <code>null</code> indicates no permission needed.
@@ -65,6 +71,7 @@ public abstract class ActionHandler {
 	 */
 	public abstract void handleAction(CommandSender sender, String action, String[] args);
 	
+	
 	/**
 	 * Ensures that the sender can actually execute the action
 	 * based on where it was invoked from and the related permission
@@ -79,8 +86,28 @@ public abstract class ActionHandler {
 				sender.sendMessage("This action can not be performed from in game.");
 				return false;
 			}
-	
-			if (this._relatedPermission != null && !((Player)sender).hasPermission(this._relatedPermission)) {
+			
+			// cast sender as a player for permission checks.
+			Player player = (Player)sender;
+			
+			// handle lockdown mode
+			if (!this._lockdownOverride && Config.isLocked()) {
+				// we are in lockdown mode, and this action can not override it.
+				// see if the player has rights to override lockdown
+				if (player.hasPermission("poi.lockdown.override")) {
+					// player can override -- let them know they are doing so.
+					sender.sendMessage(ChatColor.YELLOW + "WARNING: POI lock-down is in effect!");
+				}
+				else {
+					// can not override -- access denied!
+					sender.sendMessage(ChatColor.RED + "Points of Interest is currently in lock-down while the");
+					sender.sendMessage(ChatColor.RED + "configuration is reviewed by the admin.");
+					return false;
+				}
+			}
+		
+			// make sure player has necessary permission
+			if (this._relatedPermission != null && !player.hasPermission(this._relatedPermission)) {
 				sender.sendMessage("You do not have permission to perform this action.");
 				return false;
 			}
@@ -89,7 +116,6 @@ public abstract class ActionHandler {
 			sender.sendMessage("This action can not be performed from the console.");
 			return false;
 		}
-		
 		
 		// all checks passed... okay to execute
 		return true;
