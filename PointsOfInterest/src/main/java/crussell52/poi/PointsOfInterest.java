@@ -1,8 +1,7 @@
 package crussell52.poi;
 
-import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import crussell52.poi.api.IPointsOfInterest;
@@ -109,8 +108,9 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	// handle the poi command
     	getCommand("poi").setExecutor(new PoiCommand(this._poiManager));
     	
-    	getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, new PointsOfInterestPlayerListener(this._poiManager), Priority.Normal,this);
-    	
+    	final PluginManager pm = getServer().getPluginManager();
+    	pm.registerEvents(new PointsOfInterestPlayerListener(this._poiManager), this);
+    	    	
         // Identify that we have been loaded
         this._log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );        
     }

@@ -1,6 +1,6 @@
 name: PointsOfInterest
 main: crussell52.poi.PointsOfInterest
-version: 0.6.5
+version: 0.6.6
 
 permissions:
     poi.action.*:

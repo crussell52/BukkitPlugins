@@ -3,7 +3,7 @@ package crussell52.poi;
 import java.util.HashMap;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import crussell52.poi.api.PoiEvent;
@@ -13,7 +13,7 @@ import crussell52.poi.api.PoiEvent;
  * 
  * class to listen for and handle player events
  */
-public class PointsOfInterestPlayerListener extends PlayerListener {
+public class PointsOfInterestPlayerListener implements Listener {
 
 	/**
 	 * Used for all poi interactions
