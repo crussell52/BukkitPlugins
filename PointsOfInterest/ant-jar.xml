@@ -8,7 +8,7 @@
     
     <property name="jar.name" value="PointsOfInterest.jar"/>
     <property name="proj.dir" value="D:/Development/bukkit/BukkitPlugins/PointsOfInterest/" />
-    <property name="test.jar.dest" value="D:/minecraft/bukkit/plugins/${jar.name}"/>
+    <property name="test.jar.dest" value="D:/minecraft/bukkit_svr/plugins/${jar.name}"/>
     <property name="classes.dir" value="${proj.dir}target/classes/" />
     <property name="api.dir" value="D:/Development/bukkit/"/>
     <property name="release.jar.dir" value="${proj.dir}build/"/>

@@ -1,0 +1,4 @@
+server: http://my.database.com
+username: username
+password: password
+database: mydb
