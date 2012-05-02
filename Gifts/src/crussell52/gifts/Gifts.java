@@ -3,6 +3,8 @@ package crussell52.gifts;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import crussell52.gifts.commands.GiftsCommand;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,8 +48,8 @@ public class Gifts extends JavaPlugin
             return;
         }
     	
-    	// handle the poi command
-    	//getCommand("gifts").setExecutor(new GiftCommand(this._giftManager));
+    	// handle the gifts command
+    	getCommand("gifts").setExecutor(new GiftsCommand(this._giftManager));
     	    	
         // Identify that we have been loaded
         this.log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );        

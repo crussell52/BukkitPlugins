@@ -1,3 +1,9 @@
 name: Gifts
 main: crussell52.gifts.Gifts
-version: 0.0.1
+version: 1.0.0
+
+commands:
+    gifts:
+       description: Free Stuff!
+       usage: |
+           Use "/gifts help" for guidance.
