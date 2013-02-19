@@ -1,0 +1,11 @@
+name: Escape
+main: crussell52.bukkit.escape.Escape
+version: 0.1
+
+commands:
+  escape:
+    description: Escape back to the world's spawn location. Return here with /goback.
+    usage: "Usage: '/escape'"
+  goback:
+    description: Go back to the last place you escaped from.
+    usage: "Usage: '/goback'"
