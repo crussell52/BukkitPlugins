@@ -8,23 +8,17 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
 
-/**
- * Created with IntelliJ IDEA.
- * User: crussell
- * Date: 2/15/13
- * Time: 3:20 PM
- * To change this template use File | Settings | File Templates.
- */
+
 public class TeleportUtil
 {
     /**
      * List of unsafe materials.
-     *
      */
-    private final ArrayList<Material> _unsafeFooting = new ArrayList<Material>();
+    private static final ArrayList<Material> _unsafeFooting = new ArrayList<Material>();
 
-    public TeleportUtil()
+    static
     {
+        // Build out the list of unsafe materials to be standing on.
         _unsafeFooting.add(Material.AIR);
         _unsafeFooting.add(Material.CACTUS);
         _unsafeFooting.add(Material.WOOD_PLATE);
@@ -32,7 +26,6 @@ public class TeleportUtil
         _unsafeFooting.add(Material.LAVA);
         _unsafeFooting.add(Material.FIRE);
     }
-
 
     /**
      * Helper function which analyzes a given location and returns
