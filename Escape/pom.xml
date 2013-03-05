@@ -6,7 +6,7 @@
 
     <groupId>crussell52.bukkit</groupId>
     <artifactId>Escape</artifactId>
-    <version>0.1</version>
+    <version>0.1.5</version>
     <packaging>jar</packaging>
 
     <dependencies>

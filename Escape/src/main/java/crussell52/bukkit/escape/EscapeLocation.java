@@ -11,61 +11,101 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
- * User: crussell
- * Date: 2/16/13
- * Time: 11:37 AM
- * To change this template use File | Settings | File Templates.
+ * Represents information about an available escape location.
  */
-
-@SerializableAs("escape")
+@SerializableAs("escapeLocation")
 public class EscapeLocation extends Vector implements ConfigurationSerializable
 {
-
+    /**
+     * The name of the world from which the user escaped.
+     */
     private String _worldName = null;
-    private Long _escapedFromAt = null;
 
+    /**
+     * The name of the world associated with this location.
+     */
     public String getWorldName()
     {
         return _worldName;
     }
 
-    public Long getEscapedFromAt()
-    {
-        return _escapedFromAt;
-    }
-
-    public EscapeLocation(String worldName, double x, double y, double z, Long escapedFromAt)
-    {
-        super(x, y, z);
-        _worldName = worldName;
-        _escapedFromAt = escapedFromAt;
-    }
-
+    /**
+     * Construct a new instance by passing all necessary data as discreet values.
+     *
+     * @param worldName The name of the world in which this location exists.
+     * @param x The x coordinate of this location.
+     * @param y The y coordinate of this location.
+     * @param z The z coordinate of this location.
+     */
     public EscapeLocation(String worldName, double x, double y, double z)
     {
         super(x, y, z);
         _worldName = worldName;
     }
 
-    public EscapeLocation(Location location, Long escapedFromAt)
+    /**
+     * Construct a new instance by passing a Map containing all the data necessary.
+     *
+     * This fulfills the deseralization needs of the ConfigurationSerializable interface and should
+     * not need to be called directly.
+     *
+     * @param args The Map containing all data necessary for construction.
+     * @throws Exception
+     */
+    public EscapeLocation(Map<String, Object> args) throws Exception
     {
-        super(location.getX(), location.getY(), location.getZ());
-        _worldName = location.getWorld().getName();
-        _escapedFromAt = escapedFromAt;
+        // Do a sanity check on the data.
+        if (args.containsKey("x") && args.containsKey("y") &&
+                args.containsKey("z") && args.containsKey("worldName"))
+        {
+            {
+                _worldName = (String) args.get("worldName");
+                x = (Double) args.get("x");
+                y = (Double) args.get("y");
+                z = (Double) args.get("z");
+            }
+        }
+        else
+        {
+            // Some of the data is missing. Can not construct.
+            throw new Exception("Can not construct from Map - incomplete data.");
+        }
     }
 
-    public Location toLocation(Server server) throws EscapeException {
+    /**
+     * Converts this instance to an org.bukkit.Location with the help of an org.bukkit.Server.
+     *
+     * @param server The server that the plugin is running on.
+     *
+     * @return An org.bukkit.Location with the same coordinates and world as this instance.
+     *
+     * @throws EscapeException
+     */
+    public Location toLocation(Server server) throws EscapeException
+    {
+        // Attempt to get the actual world instance from the server.
         World targetWorld = server.getWorld(getWorldName());
         if (targetWorld == null)
         {
+            // Unable to get a world instance. Throw an EscapeException.
             throw new EscapeException("Could not find world '" + getWorldName() + "' on server.");
         }
 
+        // Construct the Location and return it.
         return new Location(targetWorld, getX(), getY(), getZ());
     }
 
 
+    /**
+     * Converts this instance into a Map of data.
+     *
+     * This facilitates the serialization requirement of the ConfigurationSerializable interface
+     * and should not need to be called directly.
+     *
+     * @see #EscapeLocation(java.util.Map)
+     *
+     * @return A Map containing all the data necessary to construct an instance.
+     */
     @Override
     public Map<String, Object> serialize()
     {
@@ -76,32 +116,6 @@ public class EscapeLocation extends Vector implements ConfigurationSerializable
         result.put("z", getZ());
         result.put("worldName", _worldName);
 
-        if (_escapedFromAt != null)
-        {
-            result.put("escapedFromAt", _escapedFromAt);
-        }
-
         return result;
-    }
-
-    public static EscapeLocation deserialize(Map<String, Object> args)
-    {
-        if (args.containsKey("x") && args.containsKey("y") &&
-            args.containsKey("z") && args.containsKey("worldName"))
-        {
-            {
-                String worldName = (String) args.get("worldName");
-                double x = (Double) args.get("x");
-                double y = (Double) args.get("y");
-                double z = (Double) args.get("z");
-                if (args.containsKey("escapedFromAt"))
-                {
-                    return new EscapeLocation(worldName, x, y, z, (Long) args.get("escapedFromAt"));
-                }
-                return new EscapeLocation(worldName, x, y, z);
-            }
-        }
-
-        return null;
     }
 }

@@ -1,6 +1,6 @@
 name: Escape
 main: crussell52.bukkit.escape.Escape
-version: 0.1
+version: 0.1.5
 
 commands:
   escape:
