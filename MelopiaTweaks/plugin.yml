@@ -1,0 +1,12 @@
+name: MelopiaTweaks
+main: crussell52.bukkit.melopiaTweaks.MelopiaTweaks
+version: 0.1
+
+commands:
+  wtime:
+    description: "Set the current world's time."
+
+  permissions:
+    crussell52.commands.wtime:
+      description: "Allows you to control the time of day in a given world."
+      default: op
