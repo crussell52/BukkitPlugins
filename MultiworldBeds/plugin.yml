@@ -1,0 +1,7 @@
+name: MultiworldBeds
+main: crussell52.bukkit.multiworldBeds.MultiworldBeds
+version: 0.1
+
+commands:
+  wtime:
+    description: Set the current world's time.
