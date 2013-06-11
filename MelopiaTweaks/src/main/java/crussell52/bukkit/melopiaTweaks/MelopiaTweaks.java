@@ -80,10 +80,17 @@ public final class MelopiaTweaks extends JavaPlugin implements Listener
     @Override
     public void onEnable()
     {
+        // Death XP
         this.getServer().getPluginManager().registerEvents(new DeathXPListener(), this);
 
+        // Status
+        StatusManager statusManager = new StatusManager(this);
+
         // 20 ticks per second, run every 15 seconds.
-        new StatusManager(this).runTaskTimer(this, 0, 15 * 20);
+        statusManager.runTaskTimer(this, 0, 15 * 20);
+
+        // Also a listener
+        this.getServer().getPluginManager().registerEvents(statusManager, this);
     }
 
 

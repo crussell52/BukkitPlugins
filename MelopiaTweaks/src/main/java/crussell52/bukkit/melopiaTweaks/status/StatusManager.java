@@ -29,7 +29,7 @@ public class StatusManager extends BukkitRunnable implements Listener {
         Map<String, Object> playerData;
 
         for (OfflinePlayer offlinePlayer : offlinePlayers) {
-            _recordPlayer(offlinePlayer, false);
+            _recordPlayer(offlinePlayer, offlinePlayer.isOnline(), false);
         }
 
         _data.saveConfig();
@@ -45,18 +45,18 @@ public class StatusManager extends BukkitRunnable implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerLogin(PlayerLoginEvent event) {
-        _recordPlayer(event.getPlayer(), true);
+        _recordPlayer(event.getPlayer(), true, true);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        _recordPlayer(event.getPlayer(), true);
+        _recordPlayer(event.getPlayer(), false, true);
     }
 
-    private void _recordPlayer(OfflinePlayer offlinePlayer, boolean doSave) {
+    private void _recordPlayer(OfflinePlayer offlinePlayer, boolean onlineState, boolean doSave) {
         HashMap<String, Object> playerData = new HashMap<String, Object>();
         playerData.put("lastPlayed", offlinePlayer.getLastPlayed() / 1000L);
-        playerData.put("isOnline", offlinePlayer.isOnline());
+        playerData.put("isOnline", onlineState);
         playerData.put("name", offlinePlayer.getName());
         playerData.put("world", offlinePlayer.isOnline() ? offlinePlayer.getPlayer().getWorld().getName() : null);
         _data.getConfig().getConfigurationSection("players").set(offlinePlayer.getName(), playerData);
