@@ -10,7 +10,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
@@ -81,10 +80,10 @@ public class PoiManager {
 	 *
 	 * @param pluginDataFolder the main data folder of the plugin
 	 */
-	public boolean initialize(File pluginDataFolder)
+	public boolean initialize(File pluginDataFolder, Logger logger)
 	{
-		// get a handle to the general minecraft logger
-		_log = Logger.getLogger("Minecraft");
+		// Capture the logger
+        _log = logger;
 
 		// attempt to get the database ready
 		Connection conn = null;
@@ -530,18 +529,13 @@ public class PoiManager {
         if (this._areaSearchCache.containsKey(player)) {
             // Only use the cached value if it isn't too old has a similar enough center point.
             results = this._areaSearchCache.get(player);
-            _log.log(Level.INFO, "Age: " + (System.currentTimeMillis() - results.getCreated()));
-            _log.log(Level.INFO, "Distance Delta: " + results.getSearchCenter().distance(player.getLocation()));
             if ((System.currentTimeMillis() - results.getCreated()) <= 10000 /*&&
                     results.getSearchCenter().distance(player.getLocation()) <= 5*/) {
                 // Cache is valid, return it.
-                _log.log(Level.INFO, "from cache");
                 return results;
             }
         }
 
-
-        _log.log(Level.INFO, "not from cache");
         // If we're here, then there was no cache.
         results = getNearby(player.getLocation(), Config.getDistanceThreshold(), Config.getMaxSearchResults());
         this._areaSearchCache.put(player, results);

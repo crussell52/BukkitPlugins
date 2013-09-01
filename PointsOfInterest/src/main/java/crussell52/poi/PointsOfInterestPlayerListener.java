@@ -2,9 +2,9 @@ package crussell52.poi;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 import crussell52.poi.actions.SummaryAction;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,7 +12,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import crussell52.poi.api.PoiEvent;
@@ -108,10 +110,31 @@ public class PointsOfInterestPlayerListener implements Listener {
     }
 
     /**
-     * EventHandler for right-clicking a compass.
+     * EventHandler for player putting a compass in their hand.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEquipCompass(PlayerItemHeldEvent event) {
+        try {
+            Player player = event.getPlayer();
+            if (player.getInventory().getItem(event.getNewSlot()).getType().equals(Material.COMPASS)) {
+                player.sendMessage("");
+                player.sendMessage(ChatColor.YELLOW + "-- Double-click \"attack\" button to change compass target. --");
+                player.sendMessage(ChatColor.YELLOW + "-- Click \"attack\" button to see current details. --");
+            }
+        }
+        catch (Exception ignore) {}
+    }
+
+    /**
+     * EventHandler for left-clicking a compass.
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCompassUse(PlayerInteractEvent event) {
+        Action action = event.getAction();
+        if (!action.equals(Action.LEFT_CLICK_AIR) && !action.equals(Action.LEFT_CLICK_BLOCK)) {
+            return;
+        }
+
         if (event.hasItem() && event.getItem().getType() == Material.COMPASS) {
 
             // See if the player double-clicked.
@@ -132,46 +155,72 @@ public class PointsOfInterestPlayerListener implements Listener {
                 if (poi == null) {
                     // Unselect currently selected POI.
                     _poiManager.unselectPoi(player);
-
-                    // Point compass back to spawn location.
-                    Location compassLoc;
-                    compassLoc = player.getBedSpawnLocation();
-                    if (compassLoc == null) {
-                        compassLoc = player.getWorld().getSpawnLocation();
-                    }
-
-                    player.setCompassTarget(compassLoc);
-                    player.sendMessage("Spawn location selected.");
-                    return;
+                }
+                else {
+                    // We have a POI to select.
+                    _poiManager.selectPOI(poi, player);
                 }
 
-                // We have a POI to select.
-                _poiManager.selectPOI(poi, player);
-
-                // Set compass target to this POI's location.
-                player.setCompassTarget(new Location(player.getServer().getWorld(poi.getWorld()),
-                        poi.getX(), poi.getY(), poi.getZ()));
-
-                // Notify the user and give them a summary of what was selected.
-                player.sendMessage("Next point of interest selected.");
-                SummaryAction.sendSummary(player, poi);
+                this._setCompass(player);
             }
             else {
                 // There was no pending summary yet, so queue one up.
-                _plugin.getLogger().log(Level.INFO, "scheduling task");
                 _pendingSummaries.put(
                         player, player.getServer().getScheduler().runTaskLater(
                             _plugin, new Runnable() {
                                 @Override
                                 public void run() {
                                     Poi summaryPoi = _poiManager.getSelectedPoi(player);
-                                    if (summaryPoi != null) {
+                                    if (summaryPoi == null && player.getCompassTarget() != null) {
+                                        player.sendMessage("");
+                                        player.sendMessage(ChatColor.YELLOW + "---- Spawn Location ----");
+                                        player.sendMessage(PointsOfInterest.getDirections(
+                                                player.getLocation().toVector(),
+                                                player.getCompassTarget().toVector(),
+                                                -1, ChatColor.WHITE));
+                                    }
+                                    else {
+                                        // send a summary report to the user with a nice header.
+                                        player.sendMessage("");
+                                        player.sendMessage(ChatColor.YELLOW + "---- POI ----");
                                         SummaryAction.sendSummary(player, summaryPoi);
                                     }
                                     _pendingSummaries.remove(player);
                                 }
                             }, 10));
             }
+        }
+    }
+
+    private void _setCompass(Player player)
+    {
+        Poi poi = _poiManager.getSelectedPoi(player);
+        if (poi == null) {
+            // Point compass back to spawn location.
+            Location compassLoc;
+            compassLoc = player.getBedSpawnLocation();
+            if (compassLoc == null) {
+                compassLoc = player.getWorld().getSpawnLocation();
+            }
+
+            player.setCompassTarget(compassLoc);
+            player.sendMessage("");
+            player.sendMessage(ChatColor.YELLOW + "-- Compass changed to Spawn ----");
+            player.sendMessage(PointsOfInterest.getDirections(
+                    player.getLocation().toVector(),
+                    compassLoc.toVector(),
+                    -1, ChatColor.WHITE));
+        }
+        else {
+
+            // Set compass target to this POI's location.
+            player.setCompassTarget(new Location(player.getServer().getWorld(poi.getWorld()),
+                    poi.getX(), poi.getY(), poi.getZ()));
+
+            // Notify the user and give them a summary of what was selected.
+            player.sendMessage("");
+            player.sendMessage(ChatColor.YELLOW + "---- Compass changed to POI ----");
+            SummaryAction.sendSummary(player, poi);
         }
     }
 

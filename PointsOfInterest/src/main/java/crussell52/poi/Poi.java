@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 import crussell52.poi.api.IPoi;
@@ -190,26 +192,19 @@ public class Poi implements IPoi {
 	{
 		ArrayList<String> summary = new ArrayList<String>();
 		summary.add(this.getShortSummary(colorCode));
-
-		int distance = (int)location.toVector().distance(this.getVector());
-		String directions = colorCode + "    " + distance + " meters ";
-		if (distanceThreshold < 0 || distance <= distanceThreshold) {
-			int deltaX = (int)location.getX() - this.getX();
-			int deltaY = (int)location.getY() - this.getY();
-			int deltaZ = (int)location.getZ() - this.getZ();
-
-			directions += (deltaX > 0 ? "West: " : "East: ") + Math.abs(deltaX) + ", ";
-			directions += (deltaZ > 0 ? "North: " : "South: ") + Math.abs(deltaZ) + ", ";
-			directions += (deltaY > 0 ? "Down: " : "Up: ") + Math.abs(deltaY) + ")";
-		}
-		else {
-			directions += "(-- Out of Range --)";
-		}
-
-		summary.add(directions);
-
+		summary.add(PointsOfInterest.getDirections(location.toVector(), this.getVector(), distanceThreshold, colorCode));
 		return summary;
 	}
+
+    public Location toLocation(Server server)
+    {
+        World world = server.getWorld(this.getWorld());
+        if (world == null) {
+            return new Location(world, this.getX(), this.getY(), this.getZ());
+        }
+
+        return null;
+    }
 
 	/**
 	 * {@inheritDoc}

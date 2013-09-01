@@ -54,16 +54,16 @@ public class SummaryAction extends ActionHandler {
 			return;
 		}
 
-        sendSummary((Player)sender, poi);
+        // send a summary report to the user with a nice header.
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.YELLOW + "---- POI Summary ----");
+        sendSummary((Player) sender, poi);
 	}
 
     public static void sendSummary(Player recipient, Poi poi)
     {
-        // get a summary report and send it to the user with a nice header.
         ArrayList<String> summaryReport =
                 poi.getSummary(recipient.getLocation(), Config.getDistanceThreshold(), ChatColor.WHITE);
-        recipient.sendMessage("");
-        recipient.sendMessage(ChatColor.YELLOW + "---- POI Summary ----");
         for (String message : summaryReport) {
             recipient.sendMessage(message);
         }

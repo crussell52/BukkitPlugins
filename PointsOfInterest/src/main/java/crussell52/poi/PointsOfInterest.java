@@ -1,5 +1,6 @@
 package crussell52.poi;
 
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -8,6 +9,7 @@ import crussell52.poi.api.IPointsOfInterest;
 import crussell52.poi.api.PoiEvent;
 import crussell52.poi.api.IPoiListener;
 import crussell52.poi.commands.PoiCommand;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +100,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	}
 
     	// attempt to initialize the the poi manager.
-    	if (!this._poiManager.initialize(this.getDataFolder())) {
+    	if (!this._poiManager.initialize(this.getDataFolder(), this.getLogger())) {
     		this._log.severe(pdfFile.getName() + ": encountered problem preparing poi manager - Unsure if it is safe to run. Disabled.");
     		this.getServer().getPluginManager().disablePlugin(this);
     		return;
@@ -126,6 +128,26 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	} catch (Exception ex) {
     		this._log.severe("PointsOfInterest failed to create supporting files with error:" + ex);
     	}
+    }
+
+    public static String getDirections(Vector source, Vector target, int distanceThreshold, ChatColor colorCode)
+    {
+        int distance = (int)source.distance(target);
+        String directions = colorCode + "    " + distance + " meters (";
+        if (distanceThreshold < 0 || distance <= distanceThreshold) {
+            int deltaX = (int)(source.getX() - target.getX());
+            int deltaY = (int)(source.getY() - target.getY());
+            int deltaZ = (int)(source.getZ() - target.getZ());
+
+            directions += (deltaX > 0 ? "West: " : "East: ") + Math.abs(deltaX) + ", ";
+            directions += (deltaZ > 0 ? "North: " : "South: ") + Math.abs(deltaZ) + ", ";
+            directions += (deltaY > 0 ? "Down: " : "Up: ") + Math.abs(deltaY) + ")";
+        }
+        else {
+            directions += "(-- Out of Range --)";
+        }
+
+        return directions;
     }
 }
 
