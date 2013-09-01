@@ -30,4 +30,23 @@ public class PoiResults extends ArrayList<Poi> {
         _created = System.currentTimeMillis();
         _searchCenter = searchCenter;
     }
+
+    public int indexOf(Poi poi)
+    {
+        if (poi == null) {
+            for (int i = 0; i < this.size(); i++) {
+                if (this.get(i) == null) {
+                    return i;
+                }
+            }
+        } else {
+            for (int i = 0; i < this.size(); i++) {
+                if (this.get(i).getId() == poi.getId()) {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
+    }
 }

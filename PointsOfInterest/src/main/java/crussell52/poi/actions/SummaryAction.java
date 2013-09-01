@@ -14,12 +14,12 @@ public class SummaryAction extends ActionHandler {
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @param poiManager
 	 */
 	public SummaryAction(PoiManager poiManager) {
 		super(poiManager);
-		
+
 		this._relatedPermission = "poi.action.view";
 	}
 
@@ -31,7 +31,7 @@ public class SummaryAction extends ActionHandler {
 		if (!this._canExecute(sender)){
 			return;
 		}
-		
+
 		// see if we have any arguments
 		if (args.length > 0) {
 			// we should only have one argument
@@ -39,29 +39,34 @@ public class SummaryAction extends ActionHandler {
 				this._actionUsageError(sender, "Too much information. Only ID is supported as an argument to this action.", action);
 				return;
 			}
-		
+
 			// attempt to select with the provided id.
 			if (!this._selectPOI(args, 0, (Player)sender, action)) {
 				// failed to select, do not proceed.
 				return;
 			}
 		}
-		
+
 		// attempt to get the player's selected poi
 		Poi poi = this._poiManager.getSelectedPoi((Player)sender);
 		if (poi == null) {
 			this._actionUsageError(sender, ChatColor.RED + "You must have a POI selected or specify an ID.", action);
 			return;
 		}
-		
-		// get a summary report and send it to the user with a nice header.
-		ArrayList<String> summaryReport = 
-			poi.getSummary(((Player)sender).getLocation(), Config.getDistanceThreshold(), ChatColor.WHITE);
-		sender.sendMessage("");
-		sender.sendMessage(ChatColor.YELLOW + "---- POI Summary ----");
-		for (String message : summaryReport) {
-			sender.sendMessage(message);
-		}
+
+        sendSummary((Player)sender, poi);
 	}
+
+    public static void sendSummary(Player recipient, Poi poi)
+    {
+        // get a summary report and send it to the user with a nice header.
+        ArrayList<String> summaryReport =
+                poi.getSummary(recipient.getLocation(), Config.getDistanceThreshold(), ChatColor.WHITE);
+        recipient.sendMessage("");
+        recipient.sendMessage(ChatColor.YELLOW + "---- POI Summary ----");
+        for (String message : summaryReport) {
+            recipient.sendMessage(message);
+        }
+    }
 
 }

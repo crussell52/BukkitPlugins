@@ -214,6 +214,7 @@ public class Poi implements IPoi {
 	/**
 	 * {@inheritDoc}
 	 */
+    @Override
 	public String toString() {
 		return getVector() + "|" + _name + "|" + _owner + "|" + _id;
 	}

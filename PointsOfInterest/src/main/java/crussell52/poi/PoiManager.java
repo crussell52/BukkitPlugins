@@ -261,17 +261,23 @@ public class PoiManager {
 		Poi poi = this._getPoi(id, null);
 
 		// make sure the POI is in the Player's current world
-		if (!player.getWorld().getName().equals(poi.getWorld())) {
+        World poiWorld = player.getServer().getWorld(poi.getWorld());
+		if (poiWorld == null || poiWorld != player.getWorld()) {
 			// poi isn't in the same world as the player.
 			throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
 		}
 
-		// if we made it this far, everything went okay, select the poi
-		this._selectedPOIs.put(player, poi);
-
-		// tell the plugin to notify listeners of the select.
-		PointsOfInterest._notifyListeners(PoiEvent.selectEvent(player, poi, Config.getDistanceThreshold()));
+        selectPOI(poi, player);
 	}
+
+    public void selectPOI(Poi poi, Player player)
+    {
+        // if we made it this far, everything went okay, select the poi
+        this._selectedPOIs.put(player, poi);
+
+        // tell the plugin to notify listeners of the select.
+        PointsOfInterest._notifyListeners(PoiEvent.selectEvent(player, poi, Config.getDistanceThreshold()));
+    }
 
 	/**
 	 * Deletes a POI from the database by id.
@@ -515,12 +521,10 @@ public class PoiManager {
      * Results from this method are cached.
      *
      * @param player Player which distance is calculated against
-     * @param maxDistance maximum distance to look
-     * @param limit maximum number of POIs to find - closest will be returned
      *
      * @throws PoiException
      */
-    public PoiResults getNearby(Player player, int maxDistance, int limit) throws PoiException
+    public PoiResults getNearby(Player player) throws PoiException
     {
         PoiResults results;
         if (this._areaSearchCache.containsKey(player)) {
@@ -539,7 +543,7 @@ public class PoiManager {
 
         _log.log(Level.INFO, "not from cache");
         // If we're here, then there was no cache.
-        results = getNearby(player.getLocation(), maxDistance, limit);
+        results = getNearby(player.getLocation(), Config.getDistanceThreshold(), Config.getMaxSearchResults());
         this._areaSearchCache.put(player, results);
         return results;
     }

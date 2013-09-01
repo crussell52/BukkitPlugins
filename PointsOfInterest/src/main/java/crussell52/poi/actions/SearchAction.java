@@ -38,7 +38,7 @@ public class SearchAction extends ActionHandler {
 
 		// attempt to get a list of nearby POIs
 		try {
-            PoiResults results = this._poiManager.getNearby(player, Config.getDistanceThreshold(), Config.getMaxSearchResults());
+            PoiResults results = this._poiManager.getNearby(player);
             PagedPoiList pagedResults = new PagedPoiList(MAX_PER_PAGE, results, PagedPoiList.TYPE_AREA_SEARCH);
 
             this._poiManager.setPagedResults(player, pagedResults);
