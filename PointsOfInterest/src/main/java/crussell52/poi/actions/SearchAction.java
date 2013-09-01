@@ -2,30 +2,25 @@ package crussell52.poi.actions;
 
 import java.util.ArrayList;
 
-import org.bukkit.Location;
+import crussell52.poi.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.Config;
-import crussell52.poi.PoiException;
-import crussell52.poi.PoiManager;
-import crussell52.poi.PagedPoiList;
-
 public class SearchAction extends ActionHandler {
-	
+
 	/**
 	 * Maximum number of POIs per results page.
 	 */
 	private static final int MAX_PER_PAGE = 3;
-	
+
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @param poiManager
 	 */
 	public SearchAction(PoiManager poiManager) {
 		super(poiManager);
-		
+
 		this._relatedPermission = "poi.action.view";
 	}
 
@@ -37,20 +32,18 @@ public class SearchAction extends ActionHandler {
 		if (!this._canExecute(sender)){
 			return;
 		}
-		
+
 		// now that we know we have a player, we can safely cast
 		Player player = (Player)sender;
-		
-		// handle the search action
-		Location playerLoc = (player.getLocation());
-		
+
 		// attempt to get a list of nearby POIs
 		try {
-			PagedPoiList results = 
-				new PagedPoiList(MAX_PER_PAGE, this._poiManager.getNearby(playerLoc, Config.getDistanceThreshold(), Config.getMaxSearchResults()), PagedPoiList.TYPE_AREA_SEARCH);
-			
-			this._poiManager.setRecentResults(player, results);
-			ArrayList<String> messages = results.getPageReport(playerLoc, Config.getDistanceThreshold());
+            PoiResults results = this._poiManager.getNearby(player, Config.getDistanceThreshold(), Config.getMaxSearchResults());
+            PagedPoiList pagedResults = new PagedPoiList(MAX_PER_PAGE, results, PagedPoiList.TYPE_AREA_SEARCH);
+
+            this._poiManager.setPagedResults(player, pagedResults);
+
+            ArrayList<String> messages = pagedResults.getPageReport(player.getLocation(), Config.getDistanceThreshold());
 			sender.sendMessage("");
 			for (String message : messages) {
 				player.sendMessage(message);

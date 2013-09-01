@@ -18,7 +18,7 @@ public class OwnerListAction extends ActionHandler {
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @param poiManager
 	 */
 	public OwnerListAction(PoiManager poiManager) {
@@ -34,20 +34,21 @@ public class OwnerListAction extends ActionHandler {
 		if (!this._canExecute(sender)){
 			return;
 		}
-		
+
 		if (args.length > 1) {
 			this._actionUsageError(sender, "This action only expects one argument (for player name).", action);
 		}
-		
-		String owner = (args.length == 0) ? ((Player)sender).getName() : args[0];
+
+		String owner = (args.length == 0) ? sender.getName() : args[0];
 		Player player = (Player)sender;
-		
+
 		// attempt to get a list of nearby POIs
 		try {
-			PagedPoiList results = 
+			PagedPoiList results =
 				new PagedPoiList(MAX_PER_PAGE, this._poiManager.getOwnedBy(player.getWorld(), owner), PagedPoiList.TYPE_OWNER_LIST);
-			
-			this._poiManager.setRecentResults(player, results);
+
+			this._poiManager.setPagedResults(player, results);
+
 			ArrayList<String> messages = results.getPageReport();
 			sender.sendMessage("");
 			for (String message : messages) {

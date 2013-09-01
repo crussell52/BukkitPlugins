@@ -1,5 +1,5 @@
 #####
-# 
+#
 # DO NOT MODIFY!
 #
 # This is used by the system to determine the current configuration
@@ -11,19 +11,19 @@
 
 # This file contains all the information you need to accurately set up
 # the PointsOfInterest plugin.
-# 
+#
 # All configuration keys have a default value, and if you ever want to return
-# to the default value, you can manually set it or just remove the key entirely 
-# from your config file.  The next time you start the server or reload the config, 
+# to the default value, you can manually set it or just remove the key entirely
+# from your config file.  The next time you start the server or reload the config,
 # the default value will be used and the config file will be updated to reflect it.
-# 
+#
 # Finally, all configuration keys must be typed exactly as you see here.  They are
-# case sensitive.  Also, do not use tabs in the config file; only use spaces.  If 
+# case sensitive.  Also, do not use tabs in the config file; only use spaces.  If
 # you use tabs, the configuration will fail to load and the plugin will be sad.
-# 
+#
 # If there is any error reading the config file during startup, the plugin will be
 # disabled to protect your POI data.
-# 
+#
 # The remainder of this file contains the configuration details in the following format:
 #
 #    #####
@@ -41,7 +41,7 @@
 # By default, this will be set to true to give you a chance to
 # set your options before players can use the plugin. Once you are
 # comfortable with your configuration, you can set this value to false
-# and reload your config through the plugin command or by restarting 
+# and reload your config through the plugin command or by restarting
 # your server.
 #
 # The lock down does not apply to any commands run from the console.
@@ -49,14 +49,14 @@
 # through related permission(s).
 #
 # Future releases MAY force this value back to true if it introduces
-# a new "high risk" configuration option.  If this happens, it will 
+# a new "high risk" configuration option.  If this happens, it will
 # be noted in the change log.
 #
 # The default value is true.
 #
 #####
 #{lockDown}#
-    
+
 
 #####
 #   Controls the maximum search radius and the maximum distance at which
@@ -66,7 +66,7 @@
 #
 #   The default value is 2000.
 #
-#####    
+#####
 #{distanceThreshold}#
 
 
@@ -83,7 +83,7 @@
 
 
 #####
-#    Maximum number of results that will be returned when player 
+#    Maximum number of results that will be returned when player
 #    searches for nearby POIs.
 #
 #    The value should never be negative.
@@ -94,7 +94,7 @@
 #{maxSearchResults}#
 
 #####
-# 
+#
 #    Maximum number of POIs, per world players are allowed to have.
 #
 #    poi.action.add.max (see below) can be used to override this value
@@ -110,10 +110,10 @@
 #####
 #    Maximum number of POIs for players with the poi.action.add permission.
 #
-#    Each label under this configuration represents a custom permission. 
-#    Any value can be used, and any number of them can be created.  To apply a 
-#    custom maximum to a player, simply assign the fully qualified permission 
-#    to that player, like any other permission (example: poi.action.add.max.custom1).
+#    Each label under this configuration represents a custom permission.
+#    Any value can be used, and any number of them can be created.  To apply a
+#    custom maximum to a player, simply assign the fully qualified permission
+#    to that player, like any other permission (example: poi.action.add.max.elder).
 #
 #    Any player who has the poi.action.add permission without a custom max
 #    permission will be limited by the value listed under the "default" label.
@@ -127,15 +127,15 @@
 #    For example...
 #
 #    poi.action.add.max:
-#      custom1: 30
-#      custom2: -1
-#      custom3: 50
-#####    
+#      commoner: 30
+#      elder: 50
+#      chief: -1
+#####
 #{poi.action.add.max}#
 
 #####
 #    A list of worlds which do not allow POIs. If a world with existing POIs is added
-#    to the black list, those POIs will NOT be automatically deleted; however, players 
+#    to the black list, those POIs will NOT be automatically deleted; however, players
 #    (including POI owners) will not be able to see nor interact with the POIs within
 #    that world.  If the world is removed from the blacklist, the POIs will become
 #    available to the players again.
@@ -146,5 +146,5 @@
 #   - world1
 #   - world2_nether
 #   - world2
-#####    
+#####
 #{worldBlacklist}#

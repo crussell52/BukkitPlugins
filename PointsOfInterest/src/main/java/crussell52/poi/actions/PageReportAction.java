@@ -11,15 +11,15 @@ import crussell52.poi.PagedPoiList;
 import crussell52.poi.PoiManager;
 
 public class PageReportAction extends ActionHandler {
-	
+
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @param poiManager
 	 */
 	public PageReportAction(PoiManager poiManager) {
 		super(poiManager);
-		
+
 		this._relatedPermission = "poi.action.view";
 	}
 
@@ -31,24 +31,24 @@ public class PageReportAction extends ActionHandler {
 		if (!this._canExecute(sender)){
 			return;
 		}
-		
+
 		// make sure we don't have extra arguments
 		if (args.length > 1) {
 			this._actionUsageError(sender, "Too much info! This action only accepts a page number.", action);
 			return;
 		}
-		
+
 		// make sure this player has a result set in the current world.
-		PagedPoiList results = this._poiManager.getRecentResults((Player)sender);
+		PagedPoiList results = this._poiManager.getPagedResults((Player)sender);
 		if (results == null) {
 			sender.sendMessage("You do not have any recent results in this World.");
 			return;
 		}
-		
+
 		// try to handle the first argument as a page number
 		try {
 			int pageNum = Integer.parseInt(args[0]);
-			
+
 			// set the new page
 			if (!results.setPage(pageNum)) {
 				sender.sendMessage("\u00a74Can't display page \u00a7e" + pageNum + "\u00a74...");
@@ -78,7 +78,7 @@ public class PageReportAction extends ActionHandler {
 				return;
 			}
 		}
-		
+
 		// if we made it this far, we can show the report.
 		ArrayList<String> report;
 		if (results.getListType() == PagedPoiList.TYPE_AREA_SEARCH) {
@@ -87,7 +87,7 @@ public class PageReportAction extends ActionHandler {
 		else {
 			report = results.getPageReport();
 		}
-		
+
 		// send the report to the command sender
 		sender.sendMessage("");
 		for (String message : report) {
