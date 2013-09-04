@@ -1,8 +1,9 @@
-package crussell52.poi;
+package crussell52.poi.listeners;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import crussell52.poi.*;
 import crussell52.poi.actions.SummaryAction;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -26,7 +27,7 @@ import org.bukkit.scheduler.BukkitTask;
  *
  * class to listen for and handle player events
  */
-public class PointsOfInterestPlayerListener implements Listener {
+public class PlayerListener implements Listener {
 
 	/**
 	 * Used for all poi interactions
@@ -54,7 +55,7 @@ public class PointsOfInterestPlayerListener implements Listener {
 	/**
 	 * Creates a new instance with a PoiManager to use forvPOI interactions.
 	 */
-	public PointsOfInterestPlayerListener(PoiManager poiManager, Plugin plugin) {
+	public PlayerListener(PoiManager poiManager, Plugin plugin) {
 		this._poiManager = poiManager;
         this._plugin = plugin;
 	}
@@ -243,7 +244,7 @@ public class PointsOfInterestPlayerListener implements Listener {
 		// see if their current range status represents a change from their last known status.
 		if (!this._playerRangeStatus.containsKey(player) || this._playerRangeStatus.get(player) != inRange) {
 			this._playerRangeStatus.put(player, inRange);
-			PointsOfInterest._notifyListeners(PoiEvent.rangeEvent(player, selectedPoi, inRange));
+			PointsOfInterest.notifyListeners(PoiEvent.rangeEvent(player, selectedPoi, inRange));
 		}
 	}
 }

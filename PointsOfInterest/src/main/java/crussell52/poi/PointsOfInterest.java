@@ -1,5 +1,7 @@
 package crussell52.poi;
 
+import crussell52.poi.listeners.PlayerListener;
+import crussell52.poi.listeners.SignListener;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -14,7 +16,6 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * PointsOfInterest for Bukkit
@@ -27,13 +28,6 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
 	 * Does the heavy lifting for POI interactions.
 	 */
 	private final PoiManager _poiManager = new PoiManager();
-
-	/**
-	 * Used to log as necessary.
-	 *
-	 * The stacktraces of critical exceptions are still output to the standard error out.
-	 */
-	private Logger _log;
 
 	/**
 	 * Used to keep track of who is listening
@@ -55,7 +49,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
 
 		// don't register the listener if it is already registered for this event.
 		if (!listenerList.contains(poiListener)) {
-			this._log.warning("Same IPoiListener registered more than once for the same event!");
+			this.getLogger().warning("Same IPoiListener registered more than once for the same event!");
 			listenerList.add(poiListener);
 		}
 	}
@@ -65,7 +59,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
 	 *
 	 * @param event
 	 */
-	static void _notifyListeners(PoiEvent event) {
+	public static void notifyListeners(PoiEvent event) {
 		// nothing to do if we don't have listeners for this type of event.
 		if (!_listeners.containsKey(event.getType())) {
 			return;
@@ -85,23 +79,20 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	// get plugin description
     	PluginDescriptionFile pdfFile = this.getDescription();
 
-    	// get a handle to the Minecraft logger
-    	this._log = Logger.getLogger("Minecraft");
-
     	// create files necessary for operation
     	_createSupportingFiles();
 
     	// attempt to load configuration
-    	if(!Config.load(this.getDataFolder(), this._log)) {
+    	if(!Config.load(this.getDataFolder(), this.getLogger())) {
     		// something went wrong reading in the config -- unsafe to run
-    		this._log.severe(pdfFile.getName() + ": encountered problem loading config - Unsure if it is safe to run. Disabled.");
+    		this.getLogger().severe(pdfFile.getName() + ": encountered problem loading config - Unsure if it is safe to run. Disabled.");
     		this.getServer().getPluginManager().disablePlugin(this);
     		return;
     	}
 
     	// attempt to initialize the the poi manager.
     	if (!this._poiManager.initialize(this.getDataFolder(), this.getLogger())) {
-    		this._log.severe(pdfFile.getName() + ": encountered problem preparing poi manager - Unsure if it is safe to run. Disabled.");
+    		this.getLogger().severe(pdfFile.getName() + ": encountered problem preparing poi manager - Unsure if it is safe to run. Disabled.");
     		this.getServer().getPluginManager().disablePlugin(this);
     		return;
     	}
@@ -110,10 +101,11 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	getCommand("poi").setExecutor(new PoiCommand(this._poiManager));
 
     	final PluginManager pm = getServer().getPluginManager();
-    	pm.registerEvents(new PointsOfInterestPlayerListener(this._poiManager, this ), this);
+    	pm.registerEvents(new PlayerListener(this._poiManager, this), this);
+    	pm.registerEvents(new SignListener(this._poiManager, this), this);
 
         // Identify that we have been loaded
-        this._log.info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
+        this.getLogger().info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
     }
 
     /**
@@ -126,7 +118,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
             }
 
     	} catch (Exception ex) {
-    		this._log.severe("PointsOfInterest failed to create supporting files with error:" + ex);
+    		this.getLogger().severe("PointsOfInterest failed to create supporting files with error:" + ex);
     	}
     }
 

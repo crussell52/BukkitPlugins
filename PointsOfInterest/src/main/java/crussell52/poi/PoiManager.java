@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -47,7 +49,7 @@ public class PoiManager {
 	/**
 	 * Maximum number of characters allowed for a POI name
 	 */
-	public static final int MAX_NAME_LENGTH = 24;
+	public static final int MAX_NAME_LENGTH = 31;
 
 	/**
 	 * SQL SELECT statement fragment used as a basis for all SELECT statements.
@@ -63,7 +65,7 @@ public class PoiManager {
 	 * The most recent database version -- this is the version of the database
 	 * which is compatible with this version of the plugin.
 	 */
-	private final int LATEST_DB_VERSION = 1;
+	private final int LATEST_DB_VERSION = 2;
 
 	/**
 	 * This is the current version of the database according to
@@ -177,7 +179,7 @@ public class PoiManager {
 		this._selectedPOIs.remove(player);
 
 		// tell the plugin to notify listeners of the unselect.
-		PointsOfInterest._notifyListeners(PoiEvent.unselectEvent(player));
+		PointsOfInterest.notifyListeners(PoiEvent.unselectEvent(player));
 	}
 
 	/**
@@ -275,7 +277,7 @@ public class PoiManager {
         this._selectedPOIs.put(player, poi);
 
         // tell the plugin to notify listeners of the select.
-        PointsOfInterest._notifyListeners(PoiEvent.selectEvent(player, poi, Config.getDistanceThreshold()));
+        PointsOfInterest.notifyListeners(PoiEvent.selectEvent(player, poi, Config.getDistanceThreshold()));
     }
 
 	/**
@@ -362,6 +364,60 @@ public class PoiManager {
 		}
 	}
 
+    public int add(String name, String playerName, Location location, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
+    {
+        Connection conn = _getDBConn();
+        ResultSet rs = null;
+        ResultSet keys = null;
+
+        try {
+            ArrayList<Poi> list = getNearby(location, minPoiGap, 1);
+            if (list.size() > 0) {
+                throw new PoiException(PoiException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI threshold: " + minPoiGap);
+            }
+
+            // check to see if the Player has reached their limit for this world
+            PreparedStatement sql = conn.prepareStatement(
+                    "SELECT count(id) AS count " +
+                            "FROM poi " +
+                            "WHERE owner = ? " +
+                            "AND world = ?;");
+
+            sql.setString(1, playerName);
+            sql.setString(2, location.getWorld().getName());
+
+            rs = sql.executeQuery();
+            rs.next();
+            if (rs.getInt("count") >= maxPlayerPoiPerWorld) {
+                throw new PoiException(PoiException.MAX_PLAYER_POI_EXCEEDED);
+            }
+            _closeResultSet(rs);
+
+            sql = conn.prepareStatement("insert into poi (x, y, z, name, owner, world) values (?, ?, ?, ?, ?, ?);");
+            sql.setInt(1, (int)location.getX());
+            sql.setInt(2, (int)location.getY());
+            sql.setInt(3, (int)location.getZ());
+            sql.setString(4, name);
+            sql.setString(5, playerName);
+            sql.setString(6, location.getWorld().getName());
+            sql.executeUpdate();
+            keys = sql.getGeneratedKeys();
+            keys.next();
+            return keys.getInt(1);
+        }
+        catch (PoiException ex) {
+            throw ex;
+        }
+        catch (Exception ex) {
+            throw new PoiException(PoiException.SYSTEM_ERROR, ex);
+        }
+        finally {
+            _closeConn(conn);
+            _closeResultSet(rs);
+            _closeResultSet(keys);
+        }
+    }
+
 	/**
 	 * Adds a new POI for the specified player.
 	 *
@@ -372,54 +428,9 @@ public class PoiManager {
      *
 	 * @throws PoiException
 	 */
-	public void add(String name, Player player, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
+	public int add(String name, Player player, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
 	{
-		Connection conn = _getDBConn();
-		ResultSet rs = null;
-		Location location = player.getLocation();
-
-		try {
-            ArrayList<Poi> list = getNearby(location, minPoiGap, 1);
-			if (list.size() > 0) {
-				throw new PoiException(PoiException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI threshold: " + minPoiGap);
-			}
-
-			// check to see if the Player has reached their limit for this world
-			PreparedStatement sql = conn.prepareStatement(
-				"SELECT count(id) AS count " +
-				"FROM poi " +
-				"WHERE owner = ? " +
-				"AND world = ?;");
-
-			sql.setString(1, player.getName());
-			sql.setString(2, location.getWorld().getName());
-
-			rs = sql.executeQuery();
-			rs.next();
-			if (rs.getInt("count") >= maxPlayerPoiPerWorld) {
-				throw new PoiException(PoiException.MAX_PLAYER_POI_EXCEEDED);
-			}
-			_closeResultSet(rs);
-
-			sql = conn.prepareStatement("insert into poi (x, y, z, name, owner, world) values (?, ?, ?, ?, ?, ?);");
-			sql.setInt(1, (int)location.getX());
-			sql.setInt(2, (int)location.getY());
-			sql.setInt(3, (int)location.getZ());
-			sql.setString(4, name);
-			sql.setString(5, player.getName());
-			sql.setString(6, location.getWorld().getName());
-			sql.executeUpdate();
-		}
-		catch (PoiException ex) {
-			throw ex;
-		}
-		catch (Exception ex) {
-			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
-		}
-		finally {
-			_closeConn(conn);
-			_closeResultSet(rs);
-		}
+        return add(name, player.getName(), player.getLocation(), minPoiGap, maxPlayerPoiPerWorld);
 	}
 
 	/**
@@ -481,6 +492,14 @@ public class PoiManager {
 		}
 	}
 
+    public static void setSignText(String[] text, String title1, String title2, String ownerName, int poiID)
+    {
+        text[0] = title1;
+        text[1] = title2;
+        text[2] = ChatColor.DARK_GRAY + "POI[" + poiID + "] by:";
+        text[3] = ChatColor.DARK_GRAY + StringUtils.abbreviateMiddle(ownerName, "...", 15);
+    }
+
 	/**
 	 * Return a list of POIs belonging to a specific owner within a given world.
 	 *
@@ -529,8 +548,8 @@ public class PoiManager {
         if (this._areaSearchCache.containsKey(player)) {
             // Only use the cached value if it isn't too old has a similar enough center point.
             results = this._areaSearchCache.get(player);
-            if ((System.currentTimeMillis() - results.getCreated()) <= 10000 /*&&
-                    results.getSearchCenter().distance(player.getLocation()) <= 5*/) {
+            if ((System.currentTimeMillis() - results.getCreated()) <= 10000 &&
+                    results.getSearchCenter().distance(player.getLocation()) <= 5) {
                 // Cache is valid, return it.
                 return results;
             }
@@ -640,29 +659,24 @@ public class PoiManager {
 	    	if (!rs.next()) {
 	    		// we don't have a poi table.
 
-	    		// start a transaction
+	    		// clean up and start a transaction
+                _closeResultSet(rs);
 	    		conn.setAutoCommit(false);
 
 	    		// set to the latest db version
 	    		sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
 
-	    		// the poi table doesn't exist... we need to create it.
-		        sql.executeUpdate("CREATE TABLE `poi` " +
-		        		"(`id` INTEGER PRIMARY KEY , " +
-		        		"`x` INTEGER NOT NULL ," +
-		        		"`y` INTEGER NOT NULL ," +
-		        		"`z` INTEGER NOT NULL ," +
-		        		"`owner` STRING(16) NOT NULL, " +
-		        		"`world` STRING NOT NULL, " +
-		        		"`name` STRING(24) NOT NULL);"
-		        		);
+                _createTable(conn);
 
- 		        conn.commit();
+ 		        conn.setAutoCommit(true);
 
  		        // no reason to query for the db version... we just set it.
  		        this._currentDBVersion = LATEST_DB_VERSION;
 	    	}
 	    	else {
+                // Clean up previous result set.
+                _closeResultSet(rs);
+
 	    		// the poi table exists -- see if we need to do any migration work.
 	    		if (this._currentDBVersion > LATEST_DB_VERSION) {
 	    			_log.severe("PointsOfInterest: Database is a later version than expected! " +
@@ -672,9 +686,8 @@ public class PoiManager {
 	    			return false;
 	    		}
 	    		else if (this._currentDBVersion < LATEST_DB_VERSION) {
-	    			// no real migration yet... except to set the version number.
-	    			_log.info("PointsOfInterest:Database out of date -- updating from version " + this._currentDBVersion + " to " + LATEST_DB_VERSION + "...");
-	    			sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
+	    	        // Everything can be directly migrated to version 2.
+                    _migrateToV2DB(conn);
 	    		}
 	    	}
 		}
@@ -688,5 +701,48 @@ public class PoiManager {
 		}
 
 		return true;
+    }
+
+    private void _migrateToV2DB(Connection conn) throws SQLException {
+        _log.info("Migrating database from version " + _currentDBVersion + " to version 2.");
+
+        try {
+            conn.setAutoCommit(false);
+            Statement sql = conn.createStatement();
+            sql.executeUpdate("DROP TABLE IF EXISTS `poi-old`");
+            sql.executeUpdate("CREATE TABLE `poi-old` as select * from `poi`;");
+            _log.info("Dropping old.");
+            sql.executeUpdate("DROP TABLE `poi`");
+            _createTable(conn);
+            _log.info("Copying data into new.");
+            sql.executeUpdate("INSERT INTO `poi` SELECT * FROM `poi-old`;");
+            _log.info("Updating DB version.");
+            sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
+            conn.commit();
+            conn.setAutoCommit(true);
+        }
+        catch (SQLException ex) {
+            _log.severe("Database migration failed! Exception to follow.");
+            _log.severe(ex.toString());
+            conn.rollback();
+            throw ex;
+        }
+
+        _log.info("Database Migration complete.");
+    }
+
+    private void _createTable(Connection conn) throws SQLException {
+        Statement sql = conn.createStatement();
+        _log.info("Creating new table.");
+        // the poi table doesn't exist... we need to create it.
+        sql.executeUpdate("CREATE TABLE `poi` " +
+                "(`id` INTEGER PRIMARY KEY , " +
+                "`x` INTEGER NOT NULL ," +
+                "`y` INTEGER NOT NULL ," +
+                "`z` INTEGER NOT NULL ," +
+                "`owner` STRING(16) NOT NULL, " +
+                "`world` STRING NOT NULL, " +
+                "`name` STRING(" + PoiManager.MAX_NAME_LENGTH +") NOT NULL);"
+        );
     }
 }
