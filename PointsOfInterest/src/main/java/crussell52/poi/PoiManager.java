@@ -9,13 +9,18 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import crussell52.poi.api.IPoi;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.sqlite.Function;
 
@@ -201,6 +206,46 @@ public class PoiManager {
 
 		return null;
 	}
+
+    public List<Poi> getChunkPoi(Chunk chunk) throws PoiException {
+        Connection conn = _getDBConn();
+        ResultSet rs = null;
+        List<Poi> results = new ArrayList<Poi>();
+
+        try {
+            PreparedStatement sql = conn.prepareStatement(SELECT_BASE +
+                    "FROM poi " +
+                    "WHERE x >= ? AND x <= ? " +
+                    "AND z >= ? AND z <= ?;"
+                    );
+
+            int minX = chunk.getX() << 4;
+            int minZ = chunk.getZ() << 4;
+
+            sql.setInt(1, minX);
+            sql.setInt(2, minX + 15);
+            sql.setInt(3, minZ);
+            sql.setInt(4, minZ + 15);
+
+            _getPOIs(sql, results);
+
+            if (results.size() > 0)
+                _log.info("found " + results.size() + " pois.");
+
+            for (Poi poi : results) {
+                _log.info(poi.toString());
+            }
+
+            return results;
+        }
+        catch (Exception ex) {
+            throw new PoiException(PoiException.SYSTEM_ERROR, ex);
+        }
+        finally {
+            _closeConn(conn);
+            _closeResultSet(rs);
+        }
+    }
 
 	/**
 	 * Internal helper method for getting a POI by id.
@@ -468,7 +513,7 @@ public class PoiManager {
      *
 	 * @throws SQLException
 	 */
-	private void _getPOIs(PreparedStatement sql, ArrayList<Poi> results) throws SQLException
+	private void _getPOIs(PreparedStatement sql, List<Poi> results) throws SQLException
 	{
 		ResultSet rs = null;
 		Poi poi;
@@ -491,14 +536,6 @@ public class PoiManager {
 			_closeResultSet(rs);
 		}
 	}
-
-    public static void setSignText(String[] text, String title1, String title2, String ownerName, int poiID)
-    {
-        text[0] = title1;
-        text[1] = title2;
-        text[2] = ChatColor.DARK_GRAY + "POI[" + poiID + "] by:";
-        text[3] = ChatColor.DARK_GRAY + StringUtils.abbreviateMiddle(ownerName, "...", 15);
-    }
 
 	/**
 	 * Return a list of POIs belonging to a specific owner within a given world.
@@ -744,5 +781,17 @@ public class PoiManager {
                 "`world` STRING NOT NULL, " +
                 "`name` STRING(" + PoiManager.MAX_NAME_LENGTH +") NOT NULL);"
         );
+    }
+
+    public Poi getPoiAt(Location location) {
+        try {
+            PoiResults results = getNearby(location, 0, 1);
+            if (results.size() > 0) {
+                return results.get(0);
+            }
+        }
+        catch (Exception ignored) {}
+
+        return null;
     }
 }

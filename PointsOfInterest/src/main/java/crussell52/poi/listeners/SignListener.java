@@ -3,6 +3,7 @@ package crussell52.poi.listeners;
 import crussell52.poi.*;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -13,9 +14,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.plugin.Plugin;
+import sun.misc.Regexp;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SignListener implements Listener {
 
@@ -50,7 +56,7 @@ public class SignListener implements Listener {
         // It is a poi sign. See if the player doing the breaking owns it.
         if (poi.getOwner().equals(event.getPlayer().getName())) {
             try {
-                _poiManager.removePOI(poi.getId(), poi.getName());
+                _poiManager.removePOI(poi.getId(), "socks");
                 event.getPlayer().sendMessage("POI removed!");
             } catch (PoiException e) {
                 event.getPlayer().sendMessage(ChatColor.RED + "An error occurred while removing POI.");
@@ -61,6 +67,45 @@ public class SignListener implements Listener {
             event.setCancelled(true);
         }
     }
+
+
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onChunkLoad(ChunkLoadEvent event) {
+        final Chunk chunk = event.getChunk();
+        try {
+            final List<Poi> results = _poiManager.getChunkPoi(chunk);
+            if (results.size() > 0) {
+                _plugin.getServer().getScheduler().runTaskLater(_plugin, new Runnable() {
+                    @Override
+                    public void run() {
+                        for (Poi poi : results) {
+                            Block block = chunk.getWorld().getBlockAt(poi.getX(), poi.getY(), poi.getZ());
+                            if (!_resemblesPoiSign(block)) {
+                                block.setType(Material.SIGN_POST);
+                            }
+
+                            Sign sign = (Sign) block.getState();
+                            String[] lines = new String[] {"", "", "", ""};
+                            _setSignText(lines, poi);
+                            for (int i = 0; i < lines.length; i++) {
+                                _plugin.getLogger().info(lines[i]);
+                                sign.setLine(i, lines[i]);
+                            }
+                            sign.update();
+                        }
+                    }
+                }, 20);
+
+            }
+
+
+        } catch (PoiException e) {
+            _plugin.getLogger().info("ERROR!" + e.toString());
+        }
+    }
+
+
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignChange(SignChangeEvent event) {
@@ -87,7 +132,7 @@ public class SignListener implements Listener {
             String name = StringUtils.trim(lines[1] + " " + lines[2]);
             try {
                 int id = this._poiManager.add(name, player.getName(), event.getBlock().getLocation(), Config.getMinPoiGap(), Config.getMaxPoiPerWorld(player));
-                PoiManager.setSignText(lines, lines[1], lines[2], player.getName(), id);
+                _setSignText(lines, lines[1], lines[2], player.getName(), id);
                 player.sendMessage("POI " + name + " Created!");
             }
             catch (PoiException poiEx) {
@@ -139,46 +184,31 @@ public class SignListener implements Listener {
         }
     }
 
-    private Poi _isPoiSign(Sign sign)
-    {
-        // Perform a simple check to see if the 3rd line looks like a POI sign.
-        // e.g. "[POI:15]"
-        if (sign.getLine(2).replaceAll("(?i)\u00A7[0-F]", "").matches("^POI\\[[0-9]+] by:$")) {
-            try {
-                PoiResults results = _poiManager.getNearby(sign.getLocation(), 0, 1);
-                if (results.size() > 0) {
-                    return results.get(0);
-                }
-            }
-            catch (Exception ignored) {}
+    private Poi _isPoiSign(Block block) {
+        if (_resemblesPoiSign(block)) {
+            return _poiManager.getPoiAt(block.getLocation());
         }
-
-        _plugin.getLogger().info(sign.getLine(2) + "|" + sign.getLine(2).length());
 
         return null;
     }
 
-    private Poi _isPoiSign(Block block)
+    private boolean _resemblesPoiSign(Block block)
     {
-        if (block.getState() instanceof Sign) {
-            return _isPoiSign((Sign)block.getState());
-        }
-
-        // This block isn't a sign at all.
-        return null;
+        return block != null && (block.getState() instanceof Sign) &&
+                ((Sign) block.getState()).getLine(2).replaceAll("(?i)\u00A7[0-F]", "").matches("^POI\\[[0-9]+] by:$");
     }
 
     private boolean _hasAttachedPoiSign(Block subject, BlockFace relative)
     {
         subject = subject.getRelative(relative);
         if (relative == BlockFace.UP) {
-            return subject.getType() == Material.SIGN_POST && _isPoiSign((Sign) subject.getState()) != null;
+            return subject.getType() == Material.SIGN_POST &&
+                    _isPoiSign(subject) != null;
         }
 
         return subject.getType() == Material.WALL_SIGN &&
                 ((org.bukkit.material.Sign) subject.getState().getData()).getFacing() == relative &&
-                _isPoiSign((Sign) subject.getState()) != null;
-
+                _isPoiSign(subject) != null;
     }
 
     private BlockFace _hasAttachedPoiSign(Block block) {
@@ -206,4 +236,20 @@ public class SignListener implements Listener {
         return null;
     }
 
+    private void _setSignText(String[] text, Poi poi)
+    {
+        Pattern pattern = Pattern.compile("^(.{0,15})((?: .*$|$))");
+        Matcher matcher = pattern.matcher(poi.getName());
+        matcher.matches();
+
+        _setSignText(text, matcher.group(1), matcher.group(2), poi.getOwner(), poi.getId());
+    }
+
+    private void _setSignText(String[] text, String title1, String title2, String ownerName, int poiID)
+    {
+        text[0] = title1;
+        text[1] = title2;
+        text[2] = ChatColor.DARK_GRAY + "POI[" + poiID + "] by:";
+        text[3] = ChatColor.DARK_GRAY + org.apache.commons.lang3.StringUtils.abbreviateMiddle(ownerName, "..", 15);
+    }
 }
