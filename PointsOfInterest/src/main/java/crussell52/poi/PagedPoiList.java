@@ -157,12 +157,11 @@ public class PagedPoiList {
 	 * Get a report on the current page which includes distance and directions.
 	 *
 	 * @param location Location against which distance is calculated
-	 * @param distanceThreshold Maximum distance at which directions are available.
 	 */
-	public ArrayList<String> getPageReport(Location location, int distanceThreshold)
+	public ArrayList<String> getPageReport(Location location)
 	{
 		// get page report for the current page, using long summary
-		return this._getPageReport(false, location, distanceThreshold);
+		return this._getPageReport(false, location);
 	}
 
 	/**
@@ -172,7 +171,7 @@ public class PagedPoiList {
 	public ArrayList<String> getPageReport()
 	{
 		// get page report for the current page, using short summary
-		return this._getPageReport(true, null, null);
+		return this._getPageReport(true, null);
 	}
 
 	/**
@@ -180,9 +179,8 @@ public class PagedPoiList {
 	 *
 	 * @param useShortSummary Determines whether a short summary or standard summary is output
 	 * @param location Location against which distance is calculated; only relevant is <code>useShortSummary</code> is <code>false</code>.
-	 * @param distanceThreshold distanceThreshold Maximum distance at which directions are available; only relevant is <code>useShortSummary</code> is <code>false</code>.
 	 */
-	private ArrayList<String> _getPageReport(boolean useShortSummary, Location location, Integer distanceThreshold)
+	private ArrayList<String> _getPageReport(boolean useShortSummary, Location location)
 	{
 		// pull out the relevant page
 		ArrayList<Poi> poiList = this._pages.get(this._currentPage - 1);
@@ -207,7 +205,7 @@ public class PagedPoiList {
 				report.add(poi.getShortSummary(colorCode));
 			}
 			else {
-				report.addAll(poi.getSummary(location, distanceThreshold, colorCode));
+				report.addAll(poi.getSummary(location, colorCode));
 			}
 		}
 

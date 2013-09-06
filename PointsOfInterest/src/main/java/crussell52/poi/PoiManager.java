@@ -229,13 +229,6 @@ public class PoiManager {
 
             _getPOIs(sql, results);
 
-            if (results.size() > 0)
-                _log.info("found " + results.size() + " pois.");
-
-            for (Poi poi : results) {
-                _log.info(poi.toString());
-            }
-
             return results;
         }
         catch (Exception ex) {
@@ -322,7 +315,7 @@ public class PoiManager {
         this._selectedPOIs.put(player, poi);
 
         // tell the plugin to notify listeners of the select.
-        PointsOfInterest.notifyListeners(PoiEvent.selectEvent(player, poi, Config.getDistanceThreshold()));
+        PointsOfInterest.notifyListeners(PoiEvent.selectEvent(player, poi));
     }
 
 	/**

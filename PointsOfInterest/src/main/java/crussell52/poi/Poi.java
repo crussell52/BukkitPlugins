@@ -185,14 +185,13 @@ public class Poi implements IPoi {
 	 * and directions (if within distance threshold).
 	 *
 	 * @param location Location which the distance is calculated against
-	 * @param distanceThreshold Maximum distance at which directions are available; pass a value of -1 for "no threshold".
 	 * @param colorCode The <code>ChatColor</code> to apply to each of the summary lines.
 	 */
-	public ArrayList<String> getSummary(Location location, int distanceThreshold, ChatColor colorCode)
+	public ArrayList<String> getSummary(Location location, ChatColor colorCode)
 	{
 		ArrayList<String> summary = new ArrayList<String>();
 		summary.add(this.getShortSummary(colorCode));
-		summary.add(PointsOfInterest.getDirections(location.toVector(), this.getVector(), distanceThreshold, colorCode));
+		summary.add(PointsOfInterest.getDirections(location.toVector(), this.getVector(), colorCode));
 		return summary;
 	}
 

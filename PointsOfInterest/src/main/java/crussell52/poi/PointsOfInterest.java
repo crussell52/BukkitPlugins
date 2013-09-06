@@ -103,9 +103,6 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	final PluginManager pm = getServer().getPluginManager();
     	pm.registerEvents(new PlayerListener(this._poiManager, this), this);
     	pm.registerEvents(new SignListener(this._poiManager, this), this);
-
-        // Identify that we have been loaded
-        this.getLogger().info( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
     }
 
     /**
@@ -122,22 +119,18 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
     	}
     }
 
-    public static String getDirections(Vector source, Vector target, int distanceThreshold, ChatColor colorCode)
+    public static String getDirections(Vector source, Vector target, ChatColor colorCode)
     {
         int distance = (int)source.distance(target);
         String directions = colorCode + "    " + distance + " meters (";
-        if (distanceThreshold < 0 || distance <= distanceThreshold) {
-            int deltaX = (int)(source.getX() - target.getX());
-            int deltaY = (int)(source.getY() - target.getY());
-            int deltaZ = (int)(source.getZ() - target.getZ());
 
-            directions += (deltaX > 0 ? "West: " : "East: ") + Math.abs(deltaX) + ", ";
-            directions += (deltaZ > 0 ? "North: " : "South: ") + Math.abs(deltaZ) + ", ";
-            directions += (deltaY > 0 ? "Down: " : "Up: ") + Math.abs(deltaY) + ")";
-        }
-        else {
-            directions += "(-- Out of Range --)";
-        }
+        int deltaX = (int)(source.getX() - target.getX());
+        int deltaY = (int)(source.getY() - target.getY());
+        int deltaZ = (int)(source.getZ() - target.getZ());
+
+        directions += (deltaX > 0 ? "West: " : "East: ") + Math.abs(deltaX) + ", ";
+        directions += (deltaZ > 0 ? "North: " : "South: ") + Math.abs(deltaZ) + ", ";
+        directions += (deltaY > 0 ? "Down: " : "Up: ") + Math.abs(deltaY) + ")";
 
         return directions;
     }

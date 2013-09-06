@@ -63,7 +63,7 @@ public class SummaryAction extends ActionHandler {
     public static void sendSummary(Player recipient, Poi poi)
     {
         ArrayList<String> summaryReport =
-                poi.getSummary(recipient.getLocation(), Config.getDistanceThreshold(), ChatColor.WHITE);
+                poi.getSummary(recipient.getLocation(), ChatColor.WHITE);
         for (String message : summaryReport) {
             recipient.sendMessage(message);
         }

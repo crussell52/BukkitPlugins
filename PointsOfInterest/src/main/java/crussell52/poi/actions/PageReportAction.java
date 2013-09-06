@@ -82,7 +82,7 @@ public class PageReportAction extends ActionHandler {
 		// if we made it this far, we can show the report.
 		ArrayList<String> report;
 		if (results.getListType() == PagedPoiList.TYPE_AREA_SEARCH) {
-			report = results.getPageReport(((Player)sender).getLocation(), Config.getDistanceThreshold());
+			report = results.getPageReport(((Player)sender).getLocation());
 		}
 		else {
 			report = results.getPageReport();

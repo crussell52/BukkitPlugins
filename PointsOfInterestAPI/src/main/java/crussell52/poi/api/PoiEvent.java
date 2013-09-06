@@ -6,12 +6,11 @@ import crussell52.poi.api.IPoi;
 
 public class PoiEvent {
 	// TODO: figure out how to properly javaDoc this.
-	public enum Type { SELECTION_CHANGE, IN_RANGE_CHANGE };
+	public enum Type { SELECTION_CHANGE };
 
 	private Player _player;
 	private IPoi _poi;
 	private PoiEvent.Type _type;
-	private boolean _inRange = false;
 
 	private PoiEvent() {}
 
@@ -23,21 +22,11 @@ public class PoiEvent {
 		return event;
 	}
 
-	public static PoiEvent selectEvent(Player player, IPoi poi, int maxRange) {
+	public static PoiEvent selectEvent(Player player, IPoi poi) {
 		PoiEvent event = new PoiEvent();
 		event._player = player;
 		event._poi = poi;
 		event._type = PoiEvent.Type.SELECTION_CHANGE;
-		event._inRange = player.getLocation().toVector().distance(poi.getVector()) <= maxRange;
-		return event;
-	}
-
-	public static PoiEvent rangeEvent(Player player, IPoi poi, boolean inRange) {
-		PoiEvent event = new PoiEvent();
-		event._player = player;
-		event._poi = poi;
-		event._type = PoiEvent.Type.IN_RANGE_CHANGE;
-		event._inRange = inRange;
 		return event;
 	}
 
@@ -69,15 +58,5 @@ public class PoiEvent {
 	 */
 	public PoiEvent.Type getType() {
 		return _type;
-	}
-
-	/**
-	 * Returns a boolean indicator of whether or not the player was in range
-	 * of the POI at the time of the event.
-	 *
-	 * @return
-	 */
-	public boolean inRange() {
-		return _inRange;
 	}
 }

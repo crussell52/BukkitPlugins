@@ -16,9 +16,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-
-import crussell52.poi.api.PoiEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -38,12 +35,6 @@ public class PlayerListener implements Listener {
      * Reference to the main plugin.
      */
     private Plugin _plugin;
-
-	/**
-	 * Used to keep track of each player's last known "range" status.
-	 */
-	// TODO: move this into the PoiManager class
-	private final Map<Player, Boolean> _playerRangeStatus = new HashMap<Player, Boolean>();
 
     /**
      * A record of the pending summary for each player. A pending summary is queued whenever
@@ -178,7 +169,7 @@ public class PlayerListener implements Listener {
                                         player.sendMessage(PointsOfInterest.getDirections(
                                                 player.getLocation().toVector(),
                                                 player.getCompassTarget().toVector(),
-                                                -1, ChatColor.WHITE));
+                                                ChatColor.WHITE));
                                     }
                                     else {
                                         // send a summary report to the user with a nice header.
@@ -210,7 +201,7 @@ public class PlayerListener implements Listener {
             player.sendMessage(PointsOfInterest.getDirections(
                     player.getLocation().toVector(),
                     compassLoc.toVector(),
-                    -1, ChatColor.WHITE));
+                    ChatColor.WHITE));
         }
         else {
 
@@ -224,27 +215,4 @@ public class PlayerListener implements Listener {
             SummaryAction.sendSummary(player, poi);
         }
     }
-
-	/**
-	 * EventHandler for player movement.
-	 */
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerMove(PlayerMoveEvent event) {
-		// see if the player has a poi
-		Player player = event.getPlayer();
-		Poi selectedPoi = this._poiManager.getSelectedPoi(player);
-		if (selectedPoi == null) {
-			// no selected poi, early exit.
-			return;
-		}
-
-		// see if the player's new position is within range of the poi.
-		boolean inRange = event.getTo().toVector().distance(selectedPoi.getVector()) <= Config.getDistanceThreshold();
-
-		// see if their current range status represents a change from their last known status.
-		if (!this._playerRangeStatus.containsKey(player) || this._playerRangeStatus.get(player) != inRange) {
-			this._playerRangeStatus.put(player, inRange);
-			PointsOfInterest.notifyListeners(PoiEvent.rangeEvent(player, selectedPoi, inRange));
-		}
-	}
 }

@@ -43,7 +43,7 @@ public class SearchAction extends ActionHandler {
 
             this._poiManager.setPagedResults(player, pagedResults);
 
-            ArrayList<String> messages = pagedResults.getPageReport(player.getLocation(), Config.getDistanceThreshold());
+            ArrayList<String> messages = pagedResults.getPageReport(player.getLocation());
 			sender.sendMessage("");
 			for (String message : messages) {
 				player.sendMessage(message);
