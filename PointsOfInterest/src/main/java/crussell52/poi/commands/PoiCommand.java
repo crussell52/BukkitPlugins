@@ -43,11 +43,6 @@ public class PoiCommand implements CommandExecutor {
     public static final String ACTION_RELOAD_CONFIG = "config";
 
     /**
-     * Performs the heavy lifting of POI interactions.
-     */
-    private PoiManager _poiManager;
-
-    /**
      * Map between action strings and the ActionHandler subclass that should handle each.
      */
     private final Map<String, ActionHandler> actionHandlers = new HashMap<String, ActionHandler>();
@@ -59,16 +54,15 @@ public class PoiCommand implements CommandExecutor {
      */
     public PoiCommand(PoiManager poiManager) {
         // record a handle to the poi manager
-        this._poiManager = poiManager;
 
         // set up action handlers for all available actions
-        actionHandlers.put(ACTION_SEARCH, new SearchAction(this._poiManager));
-        actionHandlers.put(ACTION_SELECT, new SelectAction(this._poiManager));
-        actionHandlers.put(ACTION_PAGE, new PageReportAction(this._poiManager));
-        actionHandlers.put(ACTION_SUMMARY, new SummaryAction(this._poiManager));
-        actionHandlers.put(ACTION_REMOVE, new RemoveAction(this._poiManager));
-        actionHandlers.put(ACTION_HELP, new HelpAction(this._poiManager));
-        actionHandlers.put(ACTION_LIST, new OwnerListAction(this._poiManager));
+        actionHandlers.put(ACTION_SEARCH, new SearchAction(poiManager));
+        actionHandlers.put(ACTION_SELECT, new SelectAction(poiManager));
+        actionHandlers.put(ACTION_PAGE, new PageReportAction(poiManager));
+        actionHandlers.put(ACTION_SUMMARY, new SummaryAction(poiManager));
+        actionHandlers.put(ACTION_REMOVE, new RemoveAction(poiManager));
+        actionHandlers.put(ACTION_HELP, new HelpAction(poiManager));
+        actionHandlers.put(ACTION_LIST, new OwnerListAction(poiManager));
         actionHandlers.put(ACTION_RELOAD_CONFIG, new ConfigReload());
     }
 
@@ -121,9 +115,7 @@ public class PoiCommand implements CommandExecutor {
         // in all other cases remove the first argument
         // and return the rest as a new String[]
         String[] remaining = new String[args.length - 1];
-        for (int i = 1; i < args.length; i++) {
-            remaining[i - 1] = args[i];
-        }
+        System.arraycopy(args, 1, remaining, 0, args.length - 1);
 
         return remaining;
     }

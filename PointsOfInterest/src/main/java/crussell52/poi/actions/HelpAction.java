@@ -6,11 +6,8 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import crussell52.poi.Config;
 import crussell52.poi.PoiManager;
 import crussell52.poi.commands.PoiCommand;
-
-import javax.swing.border.TitledBorder;
 
 public class HelpAction extends ActionHandler {
 

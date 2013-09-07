@@ -131,7 +131,7 @@ public abstract class ActionHandler {
      */
     protected void _actionUsageError(CommandSender recipient, String message, String action) {
         recipient.sendMessage(ChatColor.RED + message);
-        recipient.sendMessage(ChatColor.RED + "Use " + ChatColor.YELLOW + "\"/poi help\" " + ChatColor.RED + "for guidance.");
+        recipient.sendMessage(ChatColor.RED + "Use " + ChatColor.YELLOW + "\"/poi help\" " + action + ChatColor.RED + " for guidance.");
     }
 
     /**
