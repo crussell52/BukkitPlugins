@@ -3,6 +3,7 @@
  */
 package crussell52.poi.commands;
 
+import crussell52.poi.actions.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,15 +11,6 @@ import org.bukkit.entity.Player;
 
 import crussell52.poi.Config;
 import crussell52.poi.PoiManager;
-import crussell52.poi.actions.ActionHandler;
-import crussell52.poi.actions.ConfigReload;
-import crussell52.poi.actions.HelpAction;
-import crussell52.poi.actions.OwnerListAction;
-import crussell52.poi.actions.PageReportAction;
-import crussell52.poi.actions.RemoveAction;
-import crussell52.poi.actions.SearchAction;
-import crussell52.poi.actions.SelectAction;
-import crussell52.poi.actions.SummaryAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +26,7 @@ public class PoiCommand implements CommandExecutor {
     public static final String ACTION_REMOVE = "remove";
     public static final String ACTION_SET_DETAIL = "setdetail";
     public static final String ACTION_SUMMARY = "summary";
-    public static final String ACTION_ADD = "add";
+    public static final String ACTION_TELEPORT = "tp";
     public static final String ACTION_SEARCH = "search";
     public static final String ACTION_SELECT = "select";
     public static final String ACTION_PAGE = "page";
@@ -56,6 +48,7 @@ public class PoiCommand implements CommandExecutor {
         // record a handle to the poi manager
 
         // set up action handlers for all available actions
+        actionHandlers.put(ACTION_TELEPORT, new TeleportAction(poiManager));
         actionHandlers.put(ACTION_SEARCH, new SearchAction(poiManager));
         actionHandlers.put(ACTION_SELECT, new SelectAction(poiManager));
         actionHandlers.put(ACTION_PAGE, new PageReportAction(poiManager));

@@ -421,7 +421,7 @@ public class Config {
         }
 
         // if there is a version mismatch, then the version is not confirmed
-        if (configId.equals(Config.CURRENT_ID)) {
+        if (!configId.equals(Config.CURRENT_ID)) {
             // go into lockdown.
             _instance._isLocked = true;
 

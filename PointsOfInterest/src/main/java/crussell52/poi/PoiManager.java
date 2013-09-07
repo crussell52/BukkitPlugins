@@ -286,6 +286,15 @@ public class PoiManager {
         }
     }
 
+    public Poi getPoi(int id) {
+        // get the POI by id... Let the method create its own connection.
+        try {
+            return this._getPoi(id, null);
+        } catch (PoiException e) {
+            return null;
+        }
+    }
+
     /**
      * Finds the POI with the given id and makes it the given player's selected POI.
      *

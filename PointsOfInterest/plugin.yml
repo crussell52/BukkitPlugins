@@ -11,6 +11,7 @@ permissions:
             poi.action.remove: true
             poi.action.remove.others: true
             poi.action.view: true
+            poi.action.teleport: true
     poi.action.add:
         description: Allows you to add POIs
         default: op
@@ -20,7 +21,7 @@ permissions:
     poi.action.remove:
         description: Allows you to remove POIs
         default: op
-        children: 
+        children:
             poi.action.view: true
     poi.action.remove.others:
         description: Allows you to remove POIs that belong to other players as well as your own.
@@ -30,9 +31,14 @@ permissions:
     poi.action.view:
         description: Allows you to search for and view POIs.
         default: true
+    poi.action.teleport:
+        description: Allows you to teleport to POIs.
+        default: op
+        children:
+          poi.action.view: true
 
 commands:
     poi:
        description: Show your friends what's interesting in the world!
        usage: |
-           Use "/poi help" for guidance.          
+           Use "/poi help" for guidance.
