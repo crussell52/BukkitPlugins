@@ -26,10 +26,10 @@ import org.bukkit.scheduler.BukkitTask;
  */
 public class PlayerListener implements Listener {
 
-	/**
-	 * Used for all poi interactions
-	 */
-	private PoiManager _poiManager;
+    /**
+     * Used for all poi interactions
+     */
+    private PoiManager _poiManager;
 
     /**
      * Reference to the main plugin.
@@ -43,13 +43,13 @@ public class PlayerListener implements Listener {
      */
     private final Map<Player, BukkitTask> _pendingSummaries = new HashMap<Player, BukkitTask>();
 
-	/**
-	 * Creates a new instance with a PoiManager to use forvPOI interactions.
-	 */
-	public PlayerListener(PoiManager poiManager, Plugin plugin) {
-		this._poiManager = poiManager;
+    /**
+     * Creates a new instance with a PoiManager to use forvPOI interactions.
+     */
+    public PlayerListener(PoiManager poiManager, Plugin plugin) {
+        this._poiManager = poiManager;
         this._plugin = plugin;
-	}
+    }
 
     /**
      * A helper method which finds the next POI relative to the currently active POI.

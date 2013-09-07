@@ -12,43 +12,43 @@ import java.util.List;
 
 public class ConfigReload extends ActionHandler {
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @param poiManager
-	 */
-	public ConfigReload() {
-		super(null);
+    /**
+     * {@inheritDoc}
+     *
+     * @param poiManager
+     */
+    public ConfigReload() {
+        super(null);
 
-		this._relatedPermission = "poi.action.config.reload";
-		this._fromConsole = true;
-		this._fromInGame  = true;
-		this._lockdownOverride = true;
-	}
+        this._relatedPermission = "poi.action.config.reload";
+        this._fromConsole = true;
+        this._fromInGame  = true;
+        this._lockdownOverride = true;
+    }
 
-	@Override
-	public void handleAction(CommandSender sender, String action, String[] args) {
-		if (!this._canExecute(sender)){
-			return;
-		}
+    @Override
+    public void handleAction(CommandSender sender, String action, String[] args) {
+        if (!this._canExecute(sender)){
+            return;
+        }
 
-		// make a record of whether lockdown is active before the reload.
-		boolean lockDownActive = Config.isLocked();
+        // make a record of whether lockdown is active before the reload.
+        boolean lockDownActive = Config.isLocked();
 
-		// attempt to reload.
-		if (Config.reload()) {
-			sender.sendMessage(ChatColor.GREEN + "Config successfully reloaded.");
+        // attempt to reload.
+        if (Config.reload()) {
+            sender.sendMessage(ChatColor.GREEN + "Config successfully reloaded.");
 
-			// see if a lock was just released
-			if (lockDownActive && !Config.isLocked()) {
-			    // announce that the the lock down has been released
-			    Bukkit.getServer().broadcastMessage(ChatColor.YELLOW + "Points Of Interest is no longer in lock-down! Have Fun!");
-			}
-		}
-		else {
-			sender.sendMessage(ChatColor.RED + "Error reloading config - details in Log");
-		}
-	}
+            // see if a lock was just released
+            if (lockDownActive && !Config.isLocked()) {
+                // announce that the the lock down has been released
+                Bukkit.getServer().broadcastMessage(ChatColor.YELLOW + "Points Of Interest is no longer in lock-down! Have Fun!");
+            }
+        }
+        else {
+            sender.sendMessage(ChatColor.RED + "Error reloading config - details in Log");
+        }
+    }
 
     public static List<String> getHelp(boolean isShort) {
         ArrayList<String> messages = new ArrayList<String>();

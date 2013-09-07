@@ -29,183 +29,183 @@ import crussell52.poi.api.PoiEvent;
 @SuppressWarnings({"JavaDoc", "FieldCanBeLocal"})
 public class PoiManager {
 
-	/**
-	 * Used for logging as necessary throughout this class.
-	 *
-	 * Exception stack traces are still output to the standard error out.
-	 */
-	private Logger _log;
+    /**
+     * Used for logging as necessary throughout this class.
+     *
+     * Exception stack traces are still output to the standard error out.
+     */
+    private Logger _log;
 
-	/**
-	 * Keeps track of the most recent, paged results of a player.
-	 */
-	private final Map<Player, Map<String, PagedPoiList>> _pagedResults = new HashMap<Player, Map<String, PagedPoiList>>();
+    /**
+     * Keeps track of the most recent, paged results of a player.
+     */
+    private final Map<Player, Map<String, PagedPoiList>> _pagedResults = new HashMap<Player, Map<String, PagedPoiList>>();
 
     /**
      * Keeps track of the most recent, unpaged area results of each player.
      */
     private final Map<Player, PoiResults> _areaSearchCache = new HashMap<Player, PoiResults>();
 
-	/**
-	 * Keeps track of which POI each player has selected.
-	 */
-	private Map<Player, Poi> _selectedPOIs = new HashMap<Player, Poi>();
+    /**
+     * Keeps track of which POI each player has selected.
+     */
+    private Map<Player, Poi> _selectedPOIs = new HashMap<Player, Poi>();
 
-	/**
-	 * Maximum number of characters allowed for a POI name
-	 */
-	public static final int MAX_NAME_LENGTH = 31;
+    /**
+     * Maximum number of characters allowed for a POI name
+     */
+    public static final int MAX_NAME_LENGTH = 31;
 
-	/**
-	 * SQL SELECT statement fragment used as a basis for all SELECT statements.
-	 */
-	private static final String SELECT_BASE = "SELECT id, name, world, owner, x, y, z ";
+    /**
+     * SQL SELECT statement fragment used as a basis for all SELECT statements.
+     */
+    private static final String SELECT_BASE = "SELECT id, name, world, owner, x, y, z ";
 
-	/**
-	 * The canonical path to the database which stores POIs.
-	 */
-	private String _dbPath;
+    /**
+     * The canonical path to the database which stores POIs.
+     */
+    private String _dbPath;
 
-	/**
-	 * The most recent database version -- this is the version of the database
-	 * which is compatible with this version of the plugin.
-	 */
-	private final int LATEST_DB_VERSION = 2;
+    /**
+     * The most recent database version -- this is the version of the database
+     * which is compatible with this version of the plugin.
+     */
+    private final int LATEST_DB_VERSION = 2;
 
-	/**
-	 * This is the current version of the database according to
-	 * PRAGMA user_version.
-	 *
-	 * This is used to detect whether database alterations are necessary
-	 * or database incompatibilities.
-	 */
-	private int _currentDBVersion;
+    /**
+     * This is the current version of the database according to
+     * PRAGMA user_version.
+     *
+     * This is used to detect whether database alterations are necessary
+     * or database incompatibilities.
+     */
+    private int _currentDBVersion;
 
-	/**
-	 * Attempts to make necessary preparations for reading/writing POIs and returns a
-	 * boolean indicator of success.
-	 *
-	 * @param pluginDataFolder the main data folder of the plugin
-	 */
-	public boolean initialize(File pluginDataFolder, Logger logger)
-	{
-		// Capture the logger
+    /**
+     * Attempts to make necessary preparations for reading/writing POIs and returns a
+     * boolean indicator of success.
+     *
+     * @param pluginDataFolder the main data folder of the plugin
+     */
+    public boolean initialize(File pluginDataFolder, Logger logger)
+    {
+        // Capture the logger
         _log = logger;
 
-		// attempt to get the database ready
-		Connection conn = null;
-		Boolean success = false;
-		try {
+        // attempt to get the database ready
+        Connection conn = null;
+        Boolean success = false;
+        try {
 
-			// make sure we have a folder for the database and get
-			// the canonical path to the db.
-			File dbFolder = new File(pluginDataFolder, "db");
-			if (!dbFolder.exists() && !dbFolder.mkdir()) {
+            // make sure we have a folder for the database and get
+            // the canonical path to the db.
+            File dbFolder = new File(pluginDataFolder, "db");
+            if (!dbFolder.exists() && !dbFolder.mkdir()) {
                 throw new Exception("Failed to create db directory.");
             }
-			_dbPath = new File(dbFolder, "POI.db").getCanonicalPath();
+            _dbPath = new File(dbFolder, "POI.db").getCanonicalPath();
 
-			// make a connection (which will create the database if necessary)
-			conn = _getDBConn();
+            // make a connection (which will create the database if necessary)
+            conn = _getDBConn();
 
-			// perform setup operations on the database
-			success =_setupDB(conn);
-		}
-		catch (Exception ex) {
-			// something went wrong, output the exception stacktrace.
-			ex.printStackTrace();
-		}
-		finally {
-			// success or failure, don't leave a dangling
-			// db connection
-			_closeConn(conn);
-		}
+            // perform setup operations on the database
+            success =_setupDB(conn);
+        }
+        catch (Exception ex) {
+            // something went wrong, output the exception stacktrace.
+            ex.printStackTrace();
+        }
+        finally {
+            // success or failure, don't leave a dangling
+            // db connection
+            _closeConn(conn);
+        }
 
-		return success;
-	}
-
-	/**
-	 * Makes and returns a database connection.
-	 */
-	private Connection _getDBConn(){
-		try {
-			Class.forName("org.sqlite.JDBC");
-			return DriverManager.getConnection("jdbc:sqlite:" + _dbPath);
-		}
-		catch (Exception ex) {
-			// something went wrong, output the stack trace
-			ex.printStackTrace();
-		}
-
-		return null;
+        return success;
     }
 
-	/**
-	 * Get the recent paged results for a given player.
-	 *
-	 * @param player
-	 * @return
-	 */
-	public PagedPoiList getPagedResults(Player player)
-	{
-		try {
-			return this._pagedResults.get(player).get(player.getWorld().getName());
-		}
-		catch (Exception ex) {
-			return null;
-		}
-	}
+    /**
+     * Makes and returns a database connection.
+     */
+    private Connection _getDBConn(){
+        try {
+            Class.forName("org.sqlite.JDBC");
+            return DriverManager.getConnection("jdbc:sqlite:" + _dbPath);
+        }
+        catch (Exception ex) {
+            // something went wrong, output the stack trace
+            ex.printStackTrace();
+        }
 
-	/**
-	 * Set the most recent paged results for a player.
-	 *
-	 * @param player
-	 * @param results
-	 */
-	public void setPagedResults(Player player, PagedPoiList results)
-	{
-		// see if we already have a place to store results for this player
-		if (!this._pagedResults.containsKey(player)) {
-			// we do not, create one.
-			this._pagedResults.put(player, new HashMap<String, PagedPoiList>());
-		}
+        return null;
+    }
 
-		// key the results by player and world.
-		this._pagedResults.get(player).put(player.getWorld().getName(), results);
-	}
+    /**
+     * Get the recent paged results for a given player.
+     *
+     * @param player
+     * @return
+     */
+    public PagedPoiList getPagedResults(Player player)
+    {
+        try {
+            return this._pagedResults.get(player).get(player.getWorld().getName());
+        }
+        catch (Exception ex) {
+            return null;
+        }
+    }
 
-	/**
-	 * Unselect the currently selected POI for a given player.
-	 *
-	 * @param player
-	 */
-	public void unselectPoi(Player player)
-	{
-		this._selectedPOIs.remove(player);
+    /**
+     * Set the most recent paged results for a player.
+     *
+     * @param player
+     * @param results
+     */
+    public void setPagedResults(Player player, PagedPoiList results)
+    {
+        // see if we already have a place to store results for this player
+        if (!this._pagedResults.containsKey(player)) {
+            // we do not, create one.
+            this._pagedResults.put(player, new HashMap<String, PagedPoiList>());
+        }
 
-		// tell the plugin to notify listeners of the unselect.
-		PointsOfInterest.notifyListeners(PoiEvent.unselectEvent(player));
-	}
+        // key the results by player and world.
+        this._pagedResults.get(player).put(player.getWorld().getName(), results);
+    }
 
-	/**
-	 * Return the currently selected POI for a given player.
-	 *
-	 * If the player does not have a selected POI, or the currently selected POI
-	 * belongs to a world other than the player's current world, null will be returned.
-	 *
-	 * @param player
-	 * @return
-	 */
-	public Poi getSelectedPoi(Player player)
-	{
-		// get the selected POI, and make sure it is in the player's current world.
-		Poi poi = this._selectedPOIs.get(player);
-		if (poi != null && poi.getWorld().equals(player.getWorld().getName())) {
-			return poi;
-		}
+    /**
+     * Unselect the currently selected POI for a given player.
+     *
+     * @param player
+     */
+    public void unselectPoi(Player player)
+    {
+        this._selectedPOIs.remove(player);
 
-		return null;
-	}
+        // tell the plugin to notify listeners of the unselect.
+        PointsOfInterest.notifyListeners(PoiEvent.unselectEvent(player));
+    }
+
+    /**
+     * Return the currently selected POI for a given player.
+     *
+     * If the player does not have a selected POI, or the currently selected POI
+     * belongs to a world other than the player's current world, null will be returned.
+     *
+     * @param player
+     * @return
+     */
+    public Poi getSelectedPoi(Player player)
+    {
+        // get the selected POI, and make sure it is in the player's current world.
+        Poi poi = this._selectedPOIs.get(player);
+        if (poi != null && poi.getWorld().equals(player.getWorld().getName())) {
+            return poi;
+        }
+
+        return null;
+    }
 
     public List<Poi> getChunkPoi(Chunk chunk) throws PoiException {
         Connection conn = _getDBConn();
@@ -240,74 +240,74 @@ public class PoiManager {
         }
     }
 
-	/**
-	 * Internal helper method for getting a POI by id.
-	 *
-	 * @param id
-	 * @param conn
+    /**
+     * Internal helper method for getting a POI by id.
      *
-	 * @throws PoiException
-	 */
-	private Poi _getPoi(int id, Connection conn) throws PoiException
-	{
-		boolean createdConnection = false;
-		if (conn == null) {
-			conn = _getDBConn();
-			createdConnection = true;
-		}
+     * @param id
+     * @param conn
+     *
+     * @throws PoiException
+     */
+    private Poi _getPoi(int id, Connection conn) throws PoiException
+    {
+        boolean createdConnection = false;
+        if (conn == null) {
+            conn = _getDBConn();
+            createdConnection = true;
+        }
 
-		try {
-			PreparedStatement sql = conn.prepareStatement(
-				SELECT_BASE +
-				"FROM poi " +
-				"WHERE id = ?;");
+        try {
+            PreparedStatement sql = conn.prepareStatement(
+                SELECT_BASE +
+                "FROM poi " +
+                "WHERE id = ?;");
 
-			sql.setInt(1, id);
+            sql.setInt(1, id);
 
-			PoiResults results = new PoiResults();
+            PoiResults results = new PoiResults();
             _getPOIs(sql, results);
-			if (results.size() == 0) {
-				throw new PoiException(PoiException.NO_POI_AT_ID, "No POI with specified id.");
-			}
+            if (results.size() == 0) {
+                throw new PoiException(PoiException.NO_POI_AT_ID, "No POI with specified id.");
+            }
 
-			// id selection always returns exactly one POI.
-			return results.get(0);
-		}
-		catch (PoiException ex) {
-			throw ex;
-		}
-		catch (Exception ex) {
-			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
-		}
-		finally {
-			if (createdConnection) {
-				_closeConn(conn);
-			}
-		}
-	}
+            // id selection always returns exactly one POI.
+            return results.get(0);
+        }
+        catch (PoiException ex) {
+            throw ex;
+        }
+        catch (Exception ex) {
+            throw new PoiException(PoiException.SYSTEM_ERROR, ex);
+        }
+        finally {
+            if (createdConnection) {
+                _closeConn(conn);
+            }
+        }
+    }
 
-	/**
-	 * Finds the POI with the given id and makes it the given player's selected POI.
-	 *
-	 * @param id
-	 * @param player
+    /**
+     * Finds the POI with the given id and makes it the given player's selected POI.
      *
-	 * @throws PoiException
-	 */
-	public void selectPOI(int id, Player player) throws PoiException
-	{
-		// get the POI by id... the method create its own connection
-		Poi poi = this._getPoi(id, null);
+     * @param id
+     * @param player
+     *
+     * @throws PoiException
+     */
+    public void selectPOI(int id, Player player) throws PoiException
+    {
+        // get the POI by id... the method create its own connection
+        Poi poi = this._getPoi(id, null);
 
-		// make sure the POI is in the Player's current world
+        // make sure the POI is in the Player's current world
         World poiWorld = player.getServer().getWorld(poi.getWorld());
-		if (poiWorld == null || poiWorld != player.getWorld()) {
-			// poi isn't in the same world as the player.
-			throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
-		}
+        if (poiWorld == null || poiWorld != player.getWorld()) {
+            // poi isn't in the same world as the player.
+            throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
+        }
 
         selectPOI(poi, player);
-	}
+    }
 
     public void selectPOI(Poi poi, Player player)
     {
@@ -318,92 +318,92 @@ public class PoiManager {
         PointsOfInterest.notifyListeners(PoiEvent.selectEvent(player, poi));
     }
 
-	/**
-	 * Deletes a POI from the database by id.
-	 *
-	 * @param id
-	 * @param conn
-	 * @throws PoiException
-	 */
-	private void _deletePOI(int id, Connection conn) throws PoiException
-	{
-		// attempt to perform the delete against the given connection
-		try {
-			PreparedStatement sql = conn.prepareStatement("DELETE FROM poi WHERE id = ?;");
-			sql.setInt(1, id);
-			sql.executeUpdate();
-		}
-		catch (Exception ex) {
-			throw new PoiException(PoiException.SYSTEM_ERROR, ex);
-		}
-	}
+    /**
+     * Deletes a POI from the database by id.
+     *
+     * @param id
+     * @param conn
+     * @throws PoiException
+     */
+    private void _deletePOI(int id, Connection conn) throws PoiException
+    {
+        // attempt to perform the delete against the given connection
+        try {
+            PreparedStatement sql = conn.prepareStatement("DELETE FROM poi WHERE id = ?;");
+            sql.setInt(1, id);
+            sql.executeUpdate();
+        }
+        catch (Exception ex) {
+            throw new PoiException(PoiException.SYSTEM_ERROR, ex);
+        }
+    }
 
-	/**
-	 * Remove the POI which has the given id, and name.
-	 *
-	 * @param id
-	 * @param name
-	 * @throws PoiException
+    /**
+     * Remove the POI which has the given id, and name.
+     *
+     * @param id
+     * @param name
+     * @throws PoiException
      *
      * @return A handle to the removed POI.
-	 */
-	public Poi removePOI(int id, String name) throws PoiException
-	{
-		Connection conn = null;
-		try {
-			conn = _getDBConn();
-			Poi poi = this._getPoi(id, conn);
+     */
+    public Poi removePOI(int id, String name) throws PoiException
+    {
+        Connection conn = null;
+        try {
+            conn = _getDBConn();
+            Poi poi = this._getPoi(id, conn);
 
-			if (!name.equalsIgnoreCase(poi.getName())) {
-				throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
-			}
+            if (!name.equalsIgnoreCase(poi.getName())) {
+                throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
+            }
 
-			this._deletePOI(id, conn);
+            this._deletePOI(id, conn);
             return poi;
-		}
-		finally {
-			// no matter what, close the connection after we execute.
-			this._closeConn(conn);
-		}
-	}
+        }
+        finally {
+            // no matter what, close the connection after we execute.
+            this._closeConn(conn);
+        }
+    }
 
-	/**
-	 * Remove the POI which has the given id, name, owner, and world.
-	 *
-	 * @param id
-	 * @param name
-	 * @param owner
-	 * @param world
-	 * @throws PoiException
-	 */
-	public void removePOI(int id, String name, String owner, String world) throws PoiException
-	{
-		Connection conn = null;
+    /**
+     * Remove the POI which has the given id, name, owner, and world.
+     *
+     * @param id
+     * @param name
+     * @param owner
+     * @param world
+     * @throws PoiException
+     */
+    public void removePOI(int id, String name, String owner, String world) throws PoiException
+    {
+        Connection conn = null;
 
-		try {
-			conn = _getDBConn();
-			Poi poi = this._getPoi(id, conn);
+        try {
+            conn = _getDBConn();
+            Poi poi = this._getPoi(id, conn);
 
-			// verify that the poi is in the expected world
-			if (!world.equals(poi.getWorld())) {
-				throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
-			}
+            // verify that the poi is in the expected world
+            if (!world.equals(poi.getWorld())) {
+                throw new PoiException(PoiException.POI_OUT_OF_WORLD, "POI belongs to a different world.");
+            }
 
-			if (!owner.equals(poi.getOwner())) {
-				throw new PoiException(PoiException.POI_BELONGS_TO_SOMEONE_ELSE, "POI belongs to someone else.");
-			}
+            if (!owner.equals(poi.getOwner())) {
+                throw new PoiException(PoiException.POI_BELONGS_TO_SOMEONE_ELSE, "POI belongs to someone else.");
+            }
 
-			if (!name.equalsIgnoreCase(poi.getName())) {
-				throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
-			}
+            if (!name.equalsIgnoreCase(poi.getName())) {
+                throw new PoiException(PoiException.POI_NAME_MISMATCH, "Name does not go with this Id.");
+            }
 
-			this._deletePOI(id, conn);
-		}
-		finally {
-			// no matter what, close the connection after we execute.
-			this._closeConn(conn);
-		}
-	}
+            this._deletePOI(id, conn);
+        }
+        finally {
+            // no matter what, close the connection after we execute.
+            this._closeConn(conn);
+        }
+    }
 
     public int add(String name, String playerName, Location location, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
     {
@@ -459,112 +459,112 @@ public class PoiManager {
         }
     }
 
-	/**
-	 * Adds a new POI for the specified player.
-	 *
-	 * @param name
-	 * @param player
-	 * @param minPoiGap
-	 * @param maxPlayerPoiPerWorld
+    /**
+     * Adds a new POI for the specified player.
      *
-	 * @throws PoiException
-	 */
-	public int add(String name, Player player, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
-	{
+     * @param name
+     * @param player
+     * @param minPoiGap
+     * @param maxPlayerPoiPerWorld
+     *
+     * @throws PoiException
+     */
+    public int add(String name, Player player, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
+    {
         return add(name, player.getName(), player.getLocation(), minPoiGap, maxPlayerPoiPerWorld);
-	}
+    }
 
-	/**
-	 * Create a distance function in the database for performing distance queries.
-	 *
-	 * @param conn
-	 * @throws SQLException
-	 */
-	private void _createDistanceFunc(Connection conn) throws SQLException
-	{
-		Function.create(conn, "distance", new Function() {
+    /**
+     * Create a distance function in the database for performing distance queries.
+     *
+     * @param conn
+     * @throws SQLException
+     */
+    private void _createDistanceFunc(Connection conn) throws SQLException
+    {
+        Function.create(conn, "distance", new Function() {
             protected void xFunc() throws SQLException {
-            	try {
-            		int x1 = value_int(0);
-            		int y1 = value_int(1);
-            		int z1 = value_int(2);
-            		int x2 = value_int(3);
-            		int y2 = value_int(4);
-            		int z2 = value_int(5);
+                try {
+                    int x1 = value_int(0);
+                    int y1 = value_int(1);
+                    int z1 = value_int(2);
+                    int x2 = value_int(3);
+                    int y2 = value_int(4);
+                    int z2 = value_int(5);
 
-            		result(Math.abs(Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2) + Math.pow((z2 - z1), 2))));
-            	}
-	            catch (Exception e) {
-	            	throw new SQLException("Unable to calculate distance - invalid parameters", e);
-	            }
+                    result(Math.abs(Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2) + Math.pow((z2 - z1), 2))));
+                }
+                catch (Exception e) {
+                    throw new SQLException("Unable to calculate distance - invalid parameters", e);
+                }
             }
         });
-	}
+    }
 
-	/**
-	 * Internal helper method for getting a list of <code>Poi</code> instances using a given
-	 * <code>PreparedStatement</code>.
-	 *
-	 * @param sql
+    /**
+     * Internal helper method for getting a list of <code>Poi</code> instances using a given
+     * <code>PreparedStatement</code>.
      *
-	 * @throws SQLException
-	 */
-	private void _getPOIs(PreparedStatement sql, List<Poi> results) throws SQLException
-	{
-		ResultSet rs = null;
-		Poi poi;
+     * @param sql
+     *
+     * @throws SQLException
+     */
+    private void _getPOIs(PreparedStatement sql, List<Poi> results) throws SQLException
+    {
+        ResultSet rs = null;
+        Poi poi;
 
-		try {
-			rs = sql.executeQuery();
-			while (rs.next()) {
-				poi = new Poi();
-				poi.setX(rs.getInt("x"));
-				poi.setY(rs.getInt("y"));
-				poi.setZ(rs.getInt("z"));
-				poi.setId(rs.getInt("id"));
-				poi.setName(rs.getString("name"));
-				poi.setOwner(rs.getString("owner"));
-				poi.setWorld(rs.getString("world"));
-				results.add(poi);
-			}
-		}
-		finally {
-			_closeResultSet(rs);
-		}
-	}
+        try {
+            rs = sql.executeQuery();
+            while (rs.next()) {
+                poi = new Poi();
+                poi.setX(rs.getInt("x"));
+                poi.setY(rs.getInt("y"));
+                poi.setZ(rs.getInt("z"));
+                poi.setId(rs.getInt("id"));
+                poi.setName(rs.getString("name"));
+                poi.setOwner(rs.getString("owner"));
+                poi.setWorld(rs.getString("world"));
+                results.add(poi);
+            }
+        }
+        finally {
+            _closeResultSet(rs);
+        }
+    }
 
-	/**
-	 * Return a list of POIs belonging to a specific owner within a given world.
-	 *
-	 * @param currentWorld
-	 * @param owner
-	 * @return
-	 * @throws PoiException
-	 */
-	public ArrayList<Poi> getOwnedBy(World currentWorld, String owner) throws PoiException
-	{
-		Connection conn = _getDBConn();
-		try {
-			PreparedStatement sql = conn.prepareStatement(
-				SELECT_BASE +
-				"FROM poi " +
-				"WHERE owner like ? " +   // case insensitive search
-				"AND world = ? ");
+    /**
+     * Return a list of POIs belonging to a specific owner within a given world.
+     *
+     * @param currentWorld
+     * @param owner
+     * @return
+     * @throws PoiException
+     */
+    public ArrayList<Poi> getOwnedBy(World currentWorld, String owner) throws PoiException
+    {
+        Connection conn = _getDBConn();
+        try {
+            PreparedStatement sql = conn.prepareStatement(
+                SELECT_BASE +
+                "FROM poi " +
+                "WHERE owner like ? " +   // case insensitive search
+                "AND world = ? ");
 
-			sql.setString(1, owner);
-			sql.setString(2, currentWorld.getName());
+            sql.setString(1, owner);
+            sql.setString(2, currentWorld.getName());
 
             PoiResults results = new PoiResults();
-			_getPOIs(sql, results);
+            _getPOIs(sql, results);
             return results;
-		}
-		catch (SQLException sqlEx) {
-			throw new PoiException(PoiException.SYSTEM_ERROR, sqlEx);
-		}
-		finally {
-			_closeConn(conn);
-		}
-	}
+        }
+        catch (SQLException sqlEx) {
+            throw new PoiException(PoiException.SYSTEM_ERROR, sqlEx);
+        }
+        finally {
+            _closeConn(conn);
+        }
+    }
 
     /**
      * Returns a list of POIs within a given distance of a specified player.
@@ -595,62 +595,62 @@ public class PoiManager {
     }
 
     /**
-	 * Returns a list of POIs within a given distance of a specified location.
-	 *
-	 * @param location Location which distance is calculated against
-	 * @param maxDistance maximum distance to look
-	 * @param limit maximum number of POIs to find - closest will be returned
+     * Returns a list of POIs within a given distance of a specified location.
      *
-	 * @throws PoiException
-	 */
-	public PoiResults getNearby(Location location, int maxDistance, int limit) throws PoiException
+     * @param location Location which distance is calculated against
+     * @param maxDistance maximum distance to look
+     * @param limit maximum number of POIs to find - closest will be returned
+     *
+     * @throws PoiException
+     */
+    public PoiResults getNearby(Location location, int maxDistance, int limit) throws PoiException
     {
-    	Connection conn = _getDBConn();
+        Connection conn = _getDBConn();
 
-    	try {
-			_createDistanceFunc(conn);
-			PreparedStatement sql = conn.prepareStatement(
-				SELECT_BASE + ", distance(?, ?, ?, poi.x, poi.y, poi.z) AS distance " +
-				"FROM poi " +
-				"WHERE distance <= ? " +
-				"AND world = ? " +
-				"ORDER BY distance ASC " +
-				"LIMIT ?;");
+        try {
+            _createDistanceFunc(conn);
+            PreparedStatement sql = conn.prepareStatement(
+                SELECT_BASE + ", distance(?, ?, ?, poi.x, poi.y, poi.z) AS distance " +
+                "FROM poi " +
+                "WHERE distance <= ? " +
+                "AND world = ? " +
+                "ORDER BY distance ASC " +
+                "LIMIT ?;");
 
-			sql.setInt(1, (int)location.getX());
-			sql.setInt(2, (int)location.getY());
-			sql.setInt(3, (int)location.getZ());
-			sql.setInt(4, maxDistance);
-			sql.setString(5, location.getWorld().getName());
-			sql.setInt(6, limit);
+            sql.setInt(1, (int)location.getX());
+            sql.setInt(2, (int)location.getY());
+            sql.setInt(3, (int)location.getZ());
+            sql.setInt(4, maxDistance);
+            sql.setString(5, location.getWorld().getName());
+            sql.setInt(6, limit);
 
             PoiResults results = new PoiResults(location);
-			_getPOIs(sql, results);
+            _getPOIs(sql, results);
             return results;
-		}
-		catch (SQLException sqlEx) {
-			throw new PoiException(PoiException.SYSTEM_ERROR, sqlEx);
-		}
-		finally {
-			_closeConn(conn);
-		}
+        }
+        catch (SQLException sqlEx) {
+            throw new PoiException(PoiException.SYSTEM_ERROR, sqlEx);
+        }
+        finally {
+            _closeConn(conn);
+        }
     }
 
-	/**
-	 * Exception-tolerant method for closing a <code>Connection</code>.
-	 *
-	 * @param conn
-	 */
+    /**
+     * Exception-tolerant method for closing a <code>Connection</code>.
+     *
+     * @param conn
+     */
     private void _closeConn(Connection conn)
     {
-    	try {
-			if (conn != null) {
-				conn.close();
-			}
-		}
-		catch(Exception ex) {
-			_log.info("Failed to close Connection: " + ex);
-		}
+        try {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+        catch(Exception ex) {
+            _log.info("Failed to close Connection: " + ex);
+        }
     }
 
     /**
@@ -660,14 +660,14 @@ public class PoiManager {
      */
     private void _closeResultSet(ResultSet rs)
     {
-    	try {
-			if (rs != null) {
-				rs.close();
-			}
-		}
-		catch(Exception ex) {
-			_log.info("Failed to close ResultSet: " + ex);
-		}
+        try {
+            if (rs != null) {
+                rs.close();
+            }
+        }
+        catch(Exception ex) {
+            _log.info("Failed to close ResultSet: " + ex);
+        }
     }
 
     /**
@@ -677,63 +677,63 @@ public class PoiManager {
      * @return
      */
     private boolean _setupDB(Connection conn) {
-    	ResultSet rs;
+        ResultSet rs;
 
-    	try {
-	    	Statement sql = conn.createStatement();
+        try {
+            Statement sql = conn.createStatement();
 
-	    	// get the current database version
-	    	rs = sql.executeQuery("PRAGMA user_version;");
-	    	rs.next();
-	    	this._currentDBVersion = rs.getInt(1);
+            // get the current database version
+            rs = sql.executeQuery("PRAGMA user_version;");
+            rs.next();
+            this._currentDBVersion = rs.getInt(1);
 
-	    	// see if the poi table exists
-	    	rs = sql.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='poi';");
-	    	if (!rs.next()) {
-	    		// we don't have a poi table.
+            // see if the poi table exists
+            rs = sql.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='poi';");
+            if (!rs.next()) {
+                // we don't have a poi table.
 
-	    		// clean up and start a transaction
+                // clean up and start a transaction
                 _closeResultSet(rs);
-	    		conn.setAutoCommit(false);
+                conn.setAutoCommit(false);
 
-	    		// set to the latest db version
-	    		sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
+                // set to the latest db version
+                sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
 
                 _createTable(conn);
 
- 		        conn.setAutoCommit(true);
+                 conn.setAutoCommit(true);
 
- 		        // no reason to query for the db version... we just set it.
- 		        this._currentDBVersion = LATEST_DB_VERSION;
-	    	}
-	    	else {
+                 // no reason to query for the db version... we just set it.
+                 this._currentDBVersion = LATEST_DB_VERSION;
+            }
+            else {
                 // Clean up previous result set.
                 _closeResultSet(rs);
 
-	    		// the poi table exists -- see if we need to do any migration work.
-	    		if (this._currentDBVersion > LATEST_DB_VERSION) {
-	    			_log.severe("PointsOfInterest: Database is a later version than expected! " +
-	    				"Can not safely modify database. Update plugin, restore database backup or " +
-	    				"delete the database file (all POIs will be lost)."
-	    				);
-	    			return false;
-	    		}
-	    		else if (this._currentDBVersion < LATEST_DB_VERSION) {
-	    	        // Everything can be directly migrated to version 2.
+                // the poi table exists -- see if we need to do any migration work.
+                if (this._currentDBVersion > LATEST_DB_VERSION) {
+                    _log.severe("PointsOfInterest: Database is a later version than expected! " +
+                        "Can not safely modify database. Update plugin, restore database backup or " +
+                        "delete the database file (all POIs will be lost)."
+                        );
+                    return false;
+                }
+                else if (this._currentDBVersion < LATEST_DB_VERSION) {
+                    // Everything can be directly migrated to version 2.
                     _migrateToV2DB(conn);
-	    		}
-	    	}
-		}
-		catch (SQLException sqlEx) {
-			_log.severe("Failed to setup POI database");
-			sqlEx.printStackTrace();
-			return false;
-		}
-		finally {
-			_closeConn(conn);
-		}
+                }
+            }
+        }
+        catch (SQLException sqlEx) {
+            _log.severe("Failed to setup POI database");
+            sqlEx.printStackTrace();
+            return false;
+        }
+        finally {
+            _closeConn(conn);
+        }
 
-		return true;
+        return true;
     }
 
     private void _migrateToV2DB(Connection conn) throws SQLException {

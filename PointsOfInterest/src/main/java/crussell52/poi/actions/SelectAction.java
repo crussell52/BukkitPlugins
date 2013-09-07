@@ -14,31 +14,31 @@ import java.util.List;
 
 public class SelectAction extends ActionHandler {
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @param poiManager
-	 */
-	public SelectAction(PoiManager poiManager) {
-		super(poiManager);
+    /**
+     * {@inheritDoc}
+     *
+     * @param poiManager
+     */
+    public SelectAction(PoiManager poiManager) {
+        super(poiManager);
 
-		this._relatedPermission = "poi.action.view";
-	}
+        this._relatedPermission = "poi.action.view";
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void handleAction(CommandSender sender, String action, String[] args) {
-		if (!this._canExecute(sender)){
-			return;
-		}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleAction(CommandSender sender, String action, String[] args) {
+        if (!this._canExecute(sender)){
+            return;
+        }
 
-		// attempt to select the POI
-		if (this._selectPOI(args, 0, (Player)sender, action)) {
-			Poi poi = this._poiManager.getSelectedPoi((Player)sender);
-			sender.sendMessage("POI selected:");
-			sender.sendMessage(poi.getShortSummary(ChatColor.WHITE));
+        // attempt to select the POI
+        if (this._selectPOI(args, 0, (Player)sender, action)) {
+            Poi poi = this._poiManager.getSelectedPoi((Player)sender);
+            sender.sendMessage("POI selected:");
+            sender.sendMessage(poi.getShortSummary(ChatColor.WHITE));
             Location location = poi.toLocation(sender.getServer());
             if (location != null) {
                 ((Player) sender).setCompassTarget(location);
@@ -47,8 +47,8 @@ public class SelectAction extends ActionHandler {
                 _log.severe("Failed to get Location from POI " + poi.toString());
                 sender.sendMessage("An error occurred while trying to adjust compass heading.");
             }
-		}
-	}
+        }
+    }
 
     public static List<String> getHelp(boolean isShort) {
         ArrayList<String> messages = new ArrayList<String>();
