@@ -83,9 +83,8 @@ public class SearchAction extends ActionHandler {
         messages.add(ChatColor.YELLOW + HelpAction.actionXRef(PoiCommand.ACTION_PAGE) + " can be used to view the rest. The results ");
         messages.add(ChatColor.YELLOW + "will contain an id for each POI which can be used to");
         messages.add(ChatColor.YELLOW + "further interact with it. You can also cycle through nearby");
-        messages.add(ChatColor.YELLOW + "POIs by double-clicking the \"use\" button while holding your");
-        messages.add(ChatColor.YELLOW + "compass and not looking at a block. Use " + HelpAction.actionXRef("help compass"));
-        messages.add(ChatColor.YELLOW + "for more details about your compass.");
+        messages.add(ChatColor.YELLOW + "while holding your compass. Use " + HelpAction.actionXRef("help compass") + " for more");
+        messages.add(ChatColor.YELLOW + "details about your compass.");
 
         return messages;
     }

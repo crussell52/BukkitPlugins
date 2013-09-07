@@ -67,7 +67,6 @@ public class SignListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkLoad(ChunkLoadEvent event) throws PoiException {
-        _plugin.getLogger().info("Chunk Loading.");
         final Chunk chunk = event.getChunk();
         try {
             final List<Poi> results = _poiManager.getChunkPoi(chunk);

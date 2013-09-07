@@ -86,8 +86,7 @@ public class SummaryAction extends ActionHandler {
         messages.add(ChatColor.YELLOW + "of Interest. If you provide an id, the related POI will");
         messages.add(ChatColor.YELLOW + "become your selected POI. If you do not provide an id, then");
         messages.add(ChatColor.YELLOW + "you will see a summary of your selected POI. You can also");
-        messages.add(ChatColor.YELLOW + "get a summary of your current POI by clicking the \"use\"");
-        messages.add(ChatColor.YELLOW + "button while holding a compass and not looking at a block.");
+        messages.add(ChatColor.YELLOW + "get a summary of your current POI with a held compass.");
         messages.add(ChatColor.YELLOW + "Use" + HelpAction.actionXRef("help compass") + " for more details about your compass.");
 
         return messages;

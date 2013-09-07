@@ -14,8 +14,6 @@ public class ConfigReload extends ActionHandler {
 
     /**
      * {@inheritDoc}
-     *
-     * @param poiManager
      */
     public ConfigReload() {
         super(null);
