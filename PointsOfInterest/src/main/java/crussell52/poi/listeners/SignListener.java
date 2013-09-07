@@ -3,11 +3,9 @@ package crussell52.poi.listeners;
 import crussell52.poi.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,10 +13,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.plugin.Plugin;
 
 import java.util.Iterator;
-import java.util.List;
 
 public class SignListener implements Listener {
 
@@ -54,8 +50,15 @@ public class SignListener implements Listener {
             }
 
             // It is a poi sign. See if the player doing the breaking owns it.
+            Player player = event.getPlayer();
             if (poi.getOwner().equals(event.getPlayer().getName())) {
                 try {
+                    // See if the player has permission to remove POIs.
+                    if (!player.hasPermission("poi.action.remove")) {
+                        player.sendMessage("You do not have permission to remove POIs.");
+                        event.setCancelled(true);
+                        return;
+                    }
                     _poiManager.removePOI(poi.getId(), poi.getName());
                     event.getPlayer().sendMessage("POI removed!");
                 } catch (PoiException e) {
@@ -92,6 +95,12 @@ public class SignListener implements Listener {
             if (!Config.isWorldSupported(event.getBlock().getWorld().getName())) {
                 event.setCancelled(true);
                 player.sendMessage("Points of Interest are not allowed in this world.");
+                return;
+            }
+
+            if (!player.hasPermission("poi.action.add")) {
+                event.setCancelled(true);
+                player.sendMessage("You do not have permission to create Points of Interest.");
                 return;
             }
 
