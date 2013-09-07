@@ -110,8 +110,8 @@ public class PlayerListener implements Listener {
             Player player = event.getPlayer();
             if (player.getInventory().getItem(event.getNewSlot()).getType().equals(Material.COMPASS)) {
                 player.sendMessage("");
-                player.sendMessage(ChatColor.YELLOW + "-- Double-click \"attack\" button to change compass target. --");
-                player.sendMessage(ChatColor.YELLOW + "-- Click \"attack\" button to see current details. --");
+                player.sendMessage(ChatColor.YELLOW + "Click \"use\" button in the air to see current target summary.");
+                player.sendMessage(ChatColor.YELLOW + "Double-click \"use\" button in the air to change compass target.");
             }
         }
         catch (Exception ignore) {}
@@ -123,12 +123,15 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCompassUse(PlayerInteractEvent event) {
         Action action = event.getAction();
-        if (!action.equals(Action.LEFT_CLICK_AIR) && !action.equals(Action.LEFT_CLICK_BLOCK)) {
-            return;
+        if (action == Action.RIGHT_CLICK_BLOCK) {
+            Poi poi = _poiManager.getPoiAt(event.getClickedBlock().getLocation());
+            if (poi != null) {
+                event.getPlayer().sendMessage("Welcome to " + poi.getName() + ", created by " + poi.getOwner() + "!");
+                return;
+            }
         }
 
-        if (event.hasItem() && event.getItem().getType() == Material.COMPASS) {
-
+        if (event.hasItem() && event.getItem().getType() != Material.COMPASS && action == Action.LEFT_CLICK_AIR) {
             // See if the player double-clicked.
             final Player player = event.getPlayer();
             if (_pendingSummaries.containsKey(player)) {

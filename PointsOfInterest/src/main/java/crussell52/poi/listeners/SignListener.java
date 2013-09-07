@@ -1,7 +1,7 @@
 package crussell52.poi.listeners;
 
 import crussell52.poi.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -16,7 +16,6 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.plugin.Plugin;
-import sun.misc.Regexp;
 
 import java.util.Iterator;
 import java.util.List;
@@ -68,10 +67,8 @@ public class SignListener implements Listener {
         }
     }
 
-
-
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onChunkLoad(ChunkLoadEvent event) {
+    public void onChunkLoad(ChunkLoadEvent event) throws PoiException {
         final Chunk chunk = event.getChunk();
         try {
             final List<Poi> results = _poiManager.getChunkPoi(chunk);
@@ -89,7 +86,6 @@ public class SignListener implements Listener {
                             String[] lines = new String[] {"", "", "", ""};
                             _setSignText(lines, poi);
                             for (int i = 0; i < lines.length; i++) {
-                                _plugin.getLogger().info(lines[i]);
                                 sign.setLine(i, lines[i]);
                             }
                             sign.update();
@@ -98,14 +94,11 @@ public class SignListener implements Listener {
                 }, 20);
 
             }
-
-
         } catch (PoiException e) {
-            _plugin.getLogger().info("ERROR!" + e.toString());
+            _plugin.getLogger().warning("Unable to load POIs on chunk load.");
+            throw e;
         }
     }
-
-
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignChange(SignChangeEvent event) {
@@ -240,9 +233,14 @@ public class SignListener implements Listener {
     {
         Pattern pattern = Pattern.compile("^(.{0,15})((?: .*$|$))");
         Matcher matcher = pattern.matcher(poi.getName());
-        matcher.matches();
-
-        _setSignText(text, matcher.group(1), matcher.group(2), poi.getOwner(), poi.getId());
+        if (matcher.matches()) {
+            // We were able to identify sign-friendly lines. Set them to th sign.
+            _setSignText(text, matcher.group(1), matcher.group(2), poi.getOwner(), poi.getId());
+        }
+        else {
+            // Can't split into sign-friendly lines. This is a pre-sign POI.
+            _setSignText(text, StringUtils.abbreviateMiddle(poi.getName(), "..", 15), "", poi.getOwner(), poi.getId());
+        }
     }
 
     private void _setSignText(String[] text, String title1, String title2, String ownerName, int poiID)
@@ -250,6 +248,6 @@ public class SignListener implements Listener {
         text[0] = title1;
         text[1] = title2;
         text[2] = ChatColor.DARK_GRAY + "POI[" + poiID + "] by:";
-        text[3] = ChatColor.DARK_GRAY + org.apache.commons.lang3.StringUtils.abbreviateMiddle(ownerName, "..", 15);
+        text[3] = ChatColor.DARK_GRAY + StringUtils.abbreviateMiddle(ownerName, "..", 15);
     }
 }
