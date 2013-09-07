@@ -1,12 +1,17 @@
 package crussell52.poi.actions;
 
+import crussell52.poi.commands.PoiCommand;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import crussell52.poi.Config;
 import crussell52.poi.PoiException;
 import crussell52.poi.PoiManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddAction extends ActionHandler {
 
@@ -62,5 +67,27 @@ public class AddAction extends ActionHandler {
 			}
 		}
 	}
+
+    public static List<String> getHelp(boolean isShort) {
+        ArrayList<String> messages = new ArrayList<String>();
+        String basic = HelpAction.action(PoiCommand.ACTION_ADD) + HelpAction.required("name");
+        if (isShort) {
+            basic += HelpAction.shortDescription("Create a POI");
+            messages.add(basic);
+            return messages;
+        }
+
+        messages.add(basic);
+        messages.add(ChatColor.GREEN + "------------");
+        messages.add(ChatColor.YELLOW + "Use this action to create a Point of Interest in the current");
+        messages.add(ChatColor.YELLOW + "world. You must provide a name which is no more than 31");
+        messages.add(ChatColor.YELLOW + "characters long.  Names do not need to be unique, but");
+        messages.add(ChatColor.YELLOW + "consider using " + HelpAction.actionXRef(PoiCommand.ACTION_SEARCH) + "to look at nearby POIs before");
+        messages.add(ChatColor.YELLOW + "choosing a name. You may also add a POI by placing a sign with");
+        messages.add(ChatColor.YELLOW + "special text. Use " + HelpAction.actionXRef("help signs") + " for more details about");
+        messages.add(ChatColor.YELLOW + "signs.");
+
+        return messages;
+    }
 
 }

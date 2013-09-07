@@ -1,7 +1,9 @@
 package crussell52.poi.actions;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import crussell52.poi.commands.PoiCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -67,6 +69,28 @@ public class SummaryAction extends ActionHandler {
         for (String message : summaryReport) {
             recipient.sendMessage(message);
         }
+    }
+
+    public static List<String> getHelp(boolean isShort) {
+        ArrayList<String> messages = new ArrayList<String>();
+        String basic = HelpAction.action(null) + HelpAction.optional(PoiCommand.ACTION_SUMMARY) + HelpAction.optional("id");
+        if (isShort) {
+            basic += HelpAction.shortDescription("Get summary of selected POI");
+            messages.add(basic);
+            return messages;
+        }
+
+        messages.add(basic);
+        messages.add(ChatColor.GREEN + "------------");
+        messages.add(ChatColor.YELLOW + "Use this action to get a summary and directions of a Point");
+        messages.add(ChatColor.YELLOW + "of Interest. If you provide an id, the related POI will");
+        messages.add(ChatColor.YELLOW + "become your selected POI. If you do not provide an id, then");
+        messages.add(ChatColor.YELLOW + "you will see a summary of your selected POI. You can also");
+        messages.add(ChatColor.YELLOW + "get a summary of your current POI by clicking the \"use\"");
+        messages.add(ChatColor.YELLOW + "button while holding a compass and not looking at a block.");
+        messages.add(ChatColor.YELLOW + "Use" + HelpAction.actionXRef("help compass") + " for more details about your compass.");
+
+        return messages;
     }
 
 }

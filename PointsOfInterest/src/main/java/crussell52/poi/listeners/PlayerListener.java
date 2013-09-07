@@ -131,7 +131,8 @@ public class PlayerListener implements Listener {
             }
         }
 
-        if (event.hasItem() && event.getItem().getType() != Material.COMPASS && action == Action.LEFT_CLICK_AIR) {
+        if (event.hasItem() && event.getItem().getType() == Material.COMPASS &&
+                (action == Action.LEFT_CLICK_AIR || action == Action.RIGHT_CLICK_AIR)) {
             // See if the player double-clicked.
             final Player player = event.getPlayer();
             if (_pendingSummaries.containsKey(player)) {

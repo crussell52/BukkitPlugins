@@ -1,7 +1,10 @@
 package crussell52.poi.actions;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import crussell52.poi.commands.PoiCommand;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -62,4 +65,23 @@ public class OwnerListAction extends ActionHandler {
 		}
 	}
 
+    public static List<String> getHelp(boolean isShort) {
+        ArrayList<String> messages = new ArrayList<String>();
+        String basic = HelpAction.action(PoiCommand.ACTION_LIST) + HelpAction.optional("playerName");
+        if (isShort) {
+            basic += HelpAction.shortDescription("List all POIs belonging to a player");
+            messages.add(basic);
+            return messages;
+        }
+
+        messages.add(basic);
+        messages.add(ChatColor.GREEN + "------------");
+        messages.add(ChatColor.YELLOW + "Use this action to see all Points of Interest within your");
+        messages.add(ChatColor.YELLOW + "current world that belong to a specific player. The first page");
+        messages.add(ChatColor.YELLOW + "of results will be shown and " + HelpAction.actionXRef(PoiCommand.ACTION_PAGE) + " can be used to see");
+        messages.add(ChatColor.YELLOW + "the rest.  The results will contain an id for each POI which");
+        messages.add(ChatColor.YELLOW + "can be used to interact further with it.");
+
+        return messages;
+    }
 }

@@ -1,5 +1,6 @@
 package crussell52.poi.actions;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -182,6 +183,5 @@ public abstract class ActionHandler {
 
 			return false;
 		}
-
 	}
 }

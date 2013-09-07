@@ -1,7 +1,10 @@
 package crussell52.poi.actions;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import crussell52.poi.commands.PoiCommand;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -94,5 +97,34 @@ public class PageReportAction extends ActionHandler {
 			sender.sendMessage(message);
 		}
 	}
+
+    public static List<String> getHelp(boolean isShort) {
+        ArrayList<String> messages = new ArrayList<String>();
+
+        // set up different possibilities for the argument
+        ArrayList<String> alternation = new ArrayList<String>();
+        alternation.add("number");
+        alternation.add("<<");
+        alternation.add("<");
+        alternation.add(">");
+        alternation.add(">>");
+
+        String basic = HelpAction.action(PoiCommand.ACTION_PAGE) + HelpAction.alternation(alternation, true);
+        if (isShort) {
+            basic += HelpAction.shortDescription("Page through last results");
+            messages.add(basic);
+            return messages;
+        }
+
+        messages.add(basic);
+        messages.add(ChatColor.GREEN + "------------");
+        messages.add(ChatColor.YELLOW + "Use this action to page through your last list of Points of");
+        messages.add(ChatColor.YELLOW + "Interest within the current world. If you provide a number,");
+        messages.add(ChatColor.YELLOW + "that page will be displayed. You can also use <<, <, >, or >>");
+        messages.add(ChatColor.YELLOW + "to view the first, previous, next, or last page. If you do not");
+        messages.add(ChatColor.YELLOW + "provide anything, the current page will be redisplayed.");
+
+        return messages;
+    }
 
 }

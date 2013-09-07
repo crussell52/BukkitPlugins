@@ -1,5 +1,6 @@
 package crussell52.poi.actions;
 
+import crussell52.poi.commands.PoiCommand;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
@@ -9,6 +10,9 @@ import org.bukkit.entity.Player;
 import crussell52.poi.Poi;
 import crussell52.poi.PoiException;
 import crussell52.poi.PoiManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RemoveAction extends ActionHandler {
 
@@ -98,5 +102,26 @@ public class RemoveAction extends ActionHandler {
 			this._actionUsageError(sender, "ID is expected to be a number instead of: " + args[0], action);
 		}
 	}
+
+    public static List<String> getHelp(boolean isShort) {
+        List<String> messages = new ArrayList<String>();
+        String basic = HelpAction.action(PoiCommand.ACTION_REMOVE) + HelpAction.required("id") + HelpAction.required("name");
+        if (isShort) {
+            basic += HelpAction.shortDescription("Remove a POI");
+            messages.add(basic);
+            return messages;
+        }
+
+        messages.add(basic);
+        messages.add(ChatColor.GREEN + "------------");
+        messages.add(ChatColor.YELLOW + "Use this action to remove a Point of Interest in your");
+        messages.add(ChatColor.YELLOW + "current world. To prevent accidental removals, you must");
+        messages.add(ChatColor.YELLOW + "provide the id *and* name.  You can only remove a POI");
+        messages.add(ChatColor.YELLOW + "that you own unless you have special permissions. You can");
+        messages.add(ChatColor.YELLOW + "also remove a POI which belongs to you by breaking its");
+        messages.add(ChatColor.YELLOW + "sign. Use " + HelpAction.actionXRef("help signs") + " for more details about signs.");
+
+        return messages;
+    }
 
 }
