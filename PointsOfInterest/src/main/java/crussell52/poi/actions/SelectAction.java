@@ -2,12 +2,15 @@ package crussell52.poi.actions;
 
 import crussell52.poi.commands.PoiCommand;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import crussell52.poi.Poi;
 import crussell52.poi.PoiManager;
 
+import javax.print.attribute.standard.Severity;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +41,14 @@ public class SelectAction extends ActionHandler {
 			Poi poi = this._poiManager.getSelectedPoi((Player)sender);
 			sender.sendMessage("POI selected:");
 			sender.sendMessage(poi.getShortSummary(ChatColor.WHITE));
+            Location location = poi.toLocation(sender.getServer());
+            if (location != null) {
+                ((Player) sender).setCompassTarget(location);
+            }
+            else {
+                _log.severe("Failed to get Location from POI " + poi.toString());
+                sender.sendMessage("An error occurred while trying to adjust compass heading.");
+            }
 		}
 	}
 

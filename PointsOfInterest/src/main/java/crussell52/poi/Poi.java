@@ -198,7 +198,7 @@ public class Poi implements IPoi {
     public Location toLocation(Server server)
     {
         World world = server.getWorld(this.getWorld());
-        if (world == null) {
+        if (world != null) {
             return new Location(world, this.getX(), this.getY(), this.getZ());
         }
 
@@ -210,6 +210,6 @@ public class Poi implements IPoi {
 	 */
     @Override
 	public String toString() {
-		return getVector() + "|" + _name + "|" + _owner + "|" + _id;
+		return getVector() + "|" + _name + "|" + _owner + "|" + _id + "|" + _world;
 	}
 }
