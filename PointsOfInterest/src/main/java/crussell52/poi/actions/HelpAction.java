@@ -39,10 +39,7 @@ public class HelpAction extends ActionHandler {
 		String targetAction = (args.length > 0) ? args[0] : PoiCommand.ACTION_HELP;
 
 		// try to output help for a specific action.
-		if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_ADD)) {
-			messages = AddAction.getHelp(false);
-		}
-		else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_LIST)) {
+		if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_LIST)) {
 			messages = OwnerListAction.getHelp(false);
 		}
         else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_RELOAD_CONFIG)) {
@@ -96,7 +93,6 @@ public class HelpAction extends ActionHandler {
 		// provide short usage for every action.
 		messages.add(SelectAction.getHelp(true).get(0));
 		messages.add(SummaryAction.getHelp(true).get(0));
-		messages.add(AddAction.getHelp(true).get(0));
 		messages.add(RemoveAction.getHelp(true).get(0));
 		messages.add(SearchAction.getHelp(true).get(0));
 		messages.add(OwnerListAction.getHelp(true).get(0));

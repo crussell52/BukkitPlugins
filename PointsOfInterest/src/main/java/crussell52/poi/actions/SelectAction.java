@@ -3,14 +3,12 @@ package crussell52.poi.actions;
 import crussell52.poi.commands.PoiCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import crussell52.poi.Poi;
 import crussell52.poi.PoiManager;
 
-import javax.print.attribute.standard.Severity;
 import java.util.ArrayList;
 import java.util.List;
 

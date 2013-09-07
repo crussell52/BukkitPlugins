@@ -344,8 +344,10 @@ public class PoiManager {
 	 * @param id
 	 * @param name
 	 * @throws PoiException
+     *
+     * @return A handle to the removed POI.
 	 */
-	public void removePOI(int id, String name) throws PoiException
+	public Poi removePOI(int id, String name) throws PoiException
 	{
 		Connection conn = null;
 		try {
@@ -357,6 +359,7 @@ public class PoiManager {
 			}
 
 			this._deletePOI(id, conn);
+            return poi;
 		}
 		finally {
 			// no matter what, close the connection after we execute.

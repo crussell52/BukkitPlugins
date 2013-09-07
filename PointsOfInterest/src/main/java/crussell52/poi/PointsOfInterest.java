@@ -2,7 +2,10 @@ package crussell52.poi;
 
 import crussell52.poi.listeners.PlayerListener;
 import crussell52.poi.listeners.SignListener;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,6 +19,8 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * PointsOfInterest for Bukkit
@@ -34,7 +39,34 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
 	 */
 	private static final Map<PoiEvent.Type, ArrayList<IPoiListener>> _listeners = new HashMap<PoiEvent.Type, ArrayList<IPoiListener>>();
 
-	/**
+    public static boolean resemblesPoiSign(Block block)
+    {
+        return block != null && (block.getState() instanceof Sign) &&
+                ((Sign) block.getState()).getLine(2).replaceAll("(?i)\u00A7[0-F]", "").matches("^POI\\[[0-9]+] by:$");
+    }
+
+    public static void setSignText(String[] text, String title1, String title2, String ownerName, int poiID)
+    {
+        text[0] = title1;
+        text[1] = title2;
+        text[2] = ChatColor.DARK_GRAY + "POI[" + poiID + "] by:";
+        text[3] = ChatColor.DARK_GRAY + StringUtils.abbreviateMiddle(ownerName, "..", 15);
+    }
+
+    public static void setSignText(String[] text, String name, String ownerName, int poiID) {
+        Pattern pattern = Pattern.compile("^(.{0,15})((?: .*$|$))");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.matches()) {
+            // We were able to identify sign-friendly lines. Set them to th sign.
+            setSignText(text, matcher.group(1), matcher.group(2), ownerName, poiID);
+        }
+        else {
+            // Can't split into sign-friendly lines. This is a pre-sign POI.
+            setSignText(text, StringUtils.abbreviateMiddle(name, "..", 15), "", ownerName, poiID);
+        }
+    }
+
+    /**
 	 * {@inheritDoc}
 	 */
 	public void registerPoiListener(PoiEvent.Type type, IPoiListener poiListener) {

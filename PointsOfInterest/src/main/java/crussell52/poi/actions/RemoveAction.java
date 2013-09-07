@@ -1,9 +1,14 @@
 package crussell52.poi.actions;
 
+import crussell52.poi.PointsOfInterest;
 import crussell52.poi.commands.PoiCommand;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -59,8 +64,15 @@ public class RemoveAction extends ActionHandler {
             // see if player is allowed to remove others' POIs
 			if (player.hasPermission("poi.action.remove.others")) {
 				// can remove others, so don't qualify with player name or world.
-				this._poiManager.removePOI(id, name);
-			}
+				Poi removedPoi = this._poiManager.removePOI(id, name);
+                Location location = removedPoi.toLocation(player.getServer());
+
+                // Remove related sign, if it exists.
+                Block block = location.getBlock();
+                if (PointsOfInterest.resemblesPoiSign(block)) {
+                    block.setType(Material.AIR);
+                }
+            }
 			else {
 				// can only remove their own, so qualify with name and world
 				// TODO: should they really be required to be in the same world as the POI?
