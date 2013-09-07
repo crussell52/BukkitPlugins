@@ -4,6 +4,9 @@ import crussell52.poi.listeners.PlayerListener;
 import crussell52.poi.listeners.SignListener;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -18,6 +21,7 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -114,6 +118,8 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         // create files necessary for operation
         _createSupportingFiles();
 
+
+
         // attempt to load configuration
         if(!Config.load(this.getDataFolder(), this.getLogger())) {
             // something went wrong reading in the config -- unsafe to run
@@ -127,6 +133,15 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
             this.getLogger().severe(pdfFile.getName() + ": encountered problem preparing poi manager - Unsure if it is safe to run. Disabled.");
             this.getServer().getPluginManager().disablePlugin(this);
             return;
+        }
+
+        // Update POI signs for all pre-loaded chunks.
+        for (World world : getServer().getWorlds()) {
+            if (Config.isWorldSupported(world.getName())) {
+                for (Chunk chunk : world.getLoadedChunks()) {
+                    updateChunkSigns(chunk);
+                }
+            }
         }
 
         // handle the poi command
@@ -165,6 +180,34 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         directions += (deltaY > 0 ? "Down: " : "Up: ") + Math.abs(deltaY) + ")";
 
         return directions;
+    }
+
+    public void updateChunkSigns(Chunk chunk) {
+        try {
+            List<Poi> results = _poiManager.getChunkPoi(chunk);
+
+            for (Poi poi : results) {
+                Block block = chunk.getWorld().getBlockAt(poi.getX(), poi.getY(), poi.getZ());
+                if (!PointsOfInterest.resemblesPoiSign(block)) {
+                    block.setType(Material.SIGN_POST);
+                }
+
+                Sign sign = (Sign) block.getState();
+                String[] lines = new String[] {"", "", "", ""};
+                PointsOfInterest.setSignText(lines, poi.getName(), poi.getOwner(), poi.getId());
+                for (int i = 0; i < lines.length; i++) {
+                    sign.setLine(i, lines[i]);
+                }
+                sign.update();
+            }
+        } catch (Exception e) {
+            getLogger().warning("Unabled to update POI signs in chunk. Exception to follow");
+            getLogger().warning(e.toString());
+        }
+    }
+
+    public void updateChunkSigns(String worldName, int chunkX, int chunkZ) {
+        updateChunkSigns(getServer().getWorld(worldName).getChunkAt(chunkX, chunkZ));
     }
 }
 

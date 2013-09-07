@@ -23,78 +23,64 @@ import java.util.List;
 public class SignListener implements Listener {
 
     private PoiManager _poiManager;
-    private Plugin _plugin;
+    private PointsOfInterest _plugin;
 
-    public SignListener(PoiManager poiManager, Plugin plugin) {
+    public SignListener(PoiManager poiManager, PointsOfInterest plugin) {
         _poiManager = poiManager;
         _plugin = plugin;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignBurn(BlockBurnEvent event) {
-        if (_isPoiSign(event.getBlock()) != null || _hasAttachedPoiSign(event.getBlock()) != null) {
-            event.setCancelled(true);
+        if (Config.isWorldSupported(event.getBlock().getWorld().getName())) {
+            if (_isPoiSign(event.getBlock()) != null || _hasAttachedPoiSign(event.getBlock()) != null) {
+                event.setCancelled(true);
+            }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignBreak(BlockBreakEvent event) {
-        // The event must be cancelled if the block being broken is a POI sign that belongs
-        // to somebody other than the breaker.
-        Poi poi = _isPoiSign(event.getBlock());
-        if (poi == null) {
-            // Not a POI, but does it have a POI sign attached?
-            if (_hasAttachedPoiSign(event.getBlock()) != null) {
+        if (Config.isWorldSupported(event.getBlock().getWorld().getName())) {
+            // The event must be cancelled if the block being broken is a POI sign that belongs
+            // to somebody other than the breaker.
+            Poi poi = _isPoiSign(event.getBlock());
+            if (poi == null) {
+                // Not a POI, but does it have a POI sign attached?
+                if (_hasAttachedPoiSign(event.getBlock()) != null) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+
+            // It is a poi sign. See if the player doing the breaking owns it.
+            if (poi.getOwner().equals(event.getPlayer().getName())) {
+                try {
+                    _poiManager.removePOI(poi.getId(), poi.getName());
+                    event.getPlayer().sendMessage("POI removed!");
+                } catch (PoiException e) {
+                    event.getPlayer().sendMessage(ChatColor.RED + "An error occurred while removing POI.");
+                }
+            }
+            else {
+                // Not the owner of the POI, cancel the breaking.
                 event.setCancelled(true);
             }
-            return;
-        }
-
-        // It is a poi sign. See if the player doing the breaking owns it.
-        if (poi.getOwner().equals(event.getPlayer().getName())) {
-            try {
-                _poiManager.removePOI(poi.getId(), "socks");
-                event.getPlayer().sendMessage("POI removed!");
-            } catch (PoiException e) {
-                event.getPlayer().sendMessage(ChatColor.RED + "An error occurred while removing POI.");
-            }
-        }
-        else {
-            // Not the owner of the POI, cancel the breaking.
-            event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkLoad(ChunkLoadEvent event) throws PoiException {
-        final Chunk chunk = event.getChunk();
-        try {
-            final List<Poi> results = _poiManager.getChunkPoi(chunk);
-            if (results.size() > 0) {
-                _plugin.getServer().getScheduler().runTaskLater(_plugin, new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Poi poi : results) {
-                            Block block = chunk.getWorld().getBlockAt(poi.getX(), poi.getY(), poi.getZ());
-                            if (!PointsOfInterest.resemblesPoiSign(block)) {
-                                block.setType(Material.SIGN_POST);
-                            }
-
-                            Sign sign = (Sign) block.getState();
-                            String[] lines = new String[] {"", "", "", ""};
-                            PointsOfInterest.setSignText(lines, poi.getName(), poi.getOwner(), poi.getId());
-                            for (int i = 0; i < lines.length; i++) {
-                                sign.setLine(i, lines[i]);
-                            }
-                            sign.update();
-                        }
-                    }
-                }, 20);
-
-            }
-        } catch (PoiException e) {
-            _plugin.getLogger().warning("Unable to load POIs on chunk load.");
-            throw e;
+        if (Config.isWorldSupported(event.getWorld().getName())) {
+            final int chunkX = event.getChunk().getX();
+            final int chunkZ = event.getChunk().getZ();
+            final String worldName = event.getWorld().getName();
+            _plugin.getServer().getScheduler().runTaskLater(_plugin, new Runnable() {
+                @Override
+                public void run() {
+                    _plugin.updateChunkSigns(worldName, chunkX, chunkZ);
+                }
+            }, 1);
         }
     }
 
@@ -103,6 +89,13 @@ public class SignListener implements Listener {
         String[] lines = event.getLines();
         if (StringUtils.trimToEmpty(lines[0]).equalsIgnoreCase("[POI]")) {
             Player player = event.getPlayer();
+            if (!Config.isWorldSupported(event.getBlock().getWorld().getName())) {
+                event.setCancelled(true);
+                player.sendMessage("Points of Interest are not allowed in this world.");
+                return;
+            }
+
+            // Cleanup the sign lines.
             lines[1] = StringUtils.trimToEmpty(lines[1]);
             lines[2] = StringUtils.trimToEmpty(lines[2]);
             lines[3] = StringUtils.trimToEmpty(lines[3]);
@@ -146,31 +139,37 @@ public class SignListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignMove(BlockPistonExtendEvent event) {
-        // Loop over every affected block. If any of them have a POI sign attached to it, then
-        // the event must be cancelled.
-        for (Block block : event.getBlocks()) {
-            if (_hasAttachedPoiSign(block) != null) {
-                event.setCancelled(true);
-                return;
+        if (Config.isWorldSupported(event.getBlock().getWorld().getName())) {
+            // Loop over every affected block. If any of them have a POI sign attached to it, then
+            // the event must be cancelled.
+            for (Block block : event.getBlocks()) {
+                if (_hasAttachedPoiSign(block) != null) {
+                    event.setCancelled(true);
+                    return;
+                }
             }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignMove(BlockPistonRetractEvent event) {
-        if(_hasAttachedPoiSign(event.getRetractLocation().getBlock()) != null) {
-            event.setCancelled(true);
+        if (Config.isWorldSupported(event.getBlock().getWorld().getName())) {
+            if(_hasAttachedPoiSign(event.getRetractLocation().getBlock()) != null) {
+                event.setCancelled(true);
+            }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignExplode(EntityExplodeEvent event) {
-        // Loop over all affected blocks and remove all those which are poi signs or have
-        // poi signs attached.
-        for (Iterator<Block> it = event.blockList().iterator(); it.hasNext();) {
-            Block block = it.next();
-            if (_isPoiSign(block) != null || _hasAttachedPoiSign(block) != null) {
-                it.remove();
+        if (Config.isWorldSupported(event.getEntity().getWorld().getName())) {
+            // Loop over all affected blocks and remove all those which are poi signs or have
+            // poi signs attached.
+            for (Iterator<Block> it = event.blockList().iterator(); it.hasNext();) {
+                Block block = it.next();
+                if (_isPoiSign(block) != null || _hasAttachedPoiSign(block) != null) {
+                    it.remove();
+                }
             }
         }
     }
