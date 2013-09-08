@@ -60,6 +60,7 @@ public class SignListener implements Listener {
                         return;
                     }
                     _poiManager.removePOI(poi.getId(), poi.getName());
+                    _poiManager.unselectPoi(player, poi.getId());
                     event.getPlayer().sendMessage("POI removed!");
                 } catch (PoiException e) {
                     event.getPlayer().sendMessage(ChatColor.RED + "An error occurred while removing POI.");

@@ -188,6 +188,18 @@ public class PoiManager {
     }
 
     /**
+     * Unselect the currently selected POI for a given player if it matches the given id.
+     *
+     * @param player
+     */
+    public void unselectPoi(Player player, int poiID)
+    {
+        if (_selectedPOIs.containsKey(player) && _selectedPOIs.get(player).getId() == poiID) {
+            unselectPoi(player);
+        }
+    }
+
+    /**
      * Return the currently selected POI for a given player.
      *
      * If the player does not have a selected POI, or the currently selected POI

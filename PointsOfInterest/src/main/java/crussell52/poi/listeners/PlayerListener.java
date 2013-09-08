@@ -108,10 +108,10 @@ public class PlayerListener implements Listener {
     public void onEquipCompass(PlayerItemHeldEvent event) {
         try {
             Player player = event.getPlayer();
-            if (player.getInventory().getItem(event.getNewSlot()).getType().equals(Material.COMPASS)) {
+            if (player.hasPermission("poi.action.view") && player.getInventory().getItem(event.getNewSlot()).getType().equals(Material.COMPASS)) {
                 player.sendMessage("");
-                player.sendMessage(ChatColor.YELLOW + "Click \"use\" button in the air to see current target summary.");
-                player.sendMessage(ChatColor.YELLOW + "Double-click \"use\" button in the air to change compass target.");
+                player.sendMessage(ChatColor.YELLOW + "Use " + ChatColor.GOLD + "/poi help compass " + ChatColor.YELLOW + " for details on how to use your");
+                player.sendMessage(ChatColor.YELLOW + "compass to interact with Points of Interest.");
             }
         }
         catch (Exception ignore) {}
@@ -131,10 +131,13 @@ public class PlayerListener implements Listener {
             }
         }
 
-        if (event.hasItem() && event.getItem().getType() == Material.COMPASS &&
-                (action == Action.LEFT_CLICK_AIR || action == Action.RIGHT_CLICK_AIR)) {
+        final Player player = event.getPlayer();
+        if (!player.hasPermission("poi.action.view")) {
+            return;
+        }
+
+        if (event.hasItem() && event.getItem().getType() == Material.COMPASS && action == Action.RIGHT_CLICK_AIR) {
             // See if the player double-clicked.
-            final Player player = event.getPlayer();
             if (_pendingSummaries.containsKey(player)) {
                 // The first click set a task to run in 500 milliseconds which removes itself
                 // from the list of pending summaries when it executes.  If this player still
