@@ -37,6 +37,11 @@ public class PlayerListener implements Listener {
     private Plugin _plugin;
 
     /**
+     * Keeps track of the last time the player received a compass-use hint so as to not spam them.
+     */
+    private final Map<Player, Long> _compassHintCoolDown = new HashMap<Player, Long>();
+
+    /**
      * A record of the pending summary for each player. A pending summary is queued whenever
      * a player uses the compass and cancelled if they use it again within 10 server ticks
      * (double-click).
@@ -106,15 +111,25 @@ public class PlayerListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEquipCompass(PlayerItemHeldEvent event) {
-        try {
-            Player player = event.getPlayer();
-            if (player.hasPermission("poi.action.view") && player.getInventory().getItem(event.getNewSlot()).getType().equals(Material.COMPASS)) {
-                player.sendMessage("");
-                player.sendMessage(ChatColor.YELLOW + "Use " + ChatColor.GOLD + "/poi help compass " + ChatColor.YELLOW + " for details on how to use your");
-                player.sendMessage(ChatColor.YELLOW + "compass to interact with Points of Interest.");
+        Player player = event.getPlayer();
+        if (Config.isWorldSupported(player.getWorld().getName()) && player.hasPermission("poi.action.view")) {
+            try {
+                if (player.getInventory().getItem(event.getNewSlot()).getType().equals(Material.COMPASS)) {
+                    // See if we've provided the compass hint in the last 15 minutes.
+                    if (_compassHintCoolDown.containsKey(player) &&
+                            (System.currentTimeMillis() - _compassHintCoolDown.get(player)) <= 900000) {
+                        return;
+                    }
+
+                    // Provide the a hint.
+                    _compassHintCoolDown.put(player, System.currentTimeMillis());
+                    player.sendMessage("");
+                    player.sendMessage(ChatColor.YELLOW + "Use " + ChatColor.GOLD + "/poi help compass " + ChatColor.YELLOW + " for details on how to use your");
+                    player.sendMessage(ChatColor.YELLOW + "compass to interact with Points of Interest.");
+                }
             }
+            catch (Exception ignore) {}
         }
-        catch (Exception ignore) {}
     }
 
     /**
