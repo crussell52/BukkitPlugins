@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import crussell52.poi.api.IPoi;
+import crussell52.poi.markers.MarkerManager;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -81,6 +82,8 @@ public class PoiManager {
      */
     private int _currentDBVersion;
 
+    private MarkerManager _markerManager;
+
     /**
      * Attempts to make necessary preparations for reading/writing POIs and returns a
      * boolean indicator of success.
@@ -122,6 +125,10 @@ public class PoiManager {
         }
 
         return success;
+    }
+
+    public void setMarkerManager(MarkerManager markerManager) {
+        _markerManager = markerManager;
     }
 
     /**
@@ -217,6 +224,25 @@ public class PoiManager {
         }
 
         return null;
+    }
+
+    public List<Poi> getAll() throws PoiException {
+        Connection conn = _getDBConn();
+        ResultSet rs = null;
+        List<Poi> results = new ArrayList<Poi>();
+
+        try {
+            PreparedStatement sql = conn.prepareStatement(SELECT_BASE + "FROM poi;");
+            _getPOIs(sql, results);
+            return results;
+        }
+        catch (Exception ex) {
+            throw new PoiException(PoiException.SYSTEM_ERROR, ex);
+        }
+        finally {
+            _closeConn(conn);
+            _closeResultSet(rs);
+        }
     }
 
     public List<Poi> getChunkPoi(Chunk chunk) throws PoiException {
@@ -380,6 +406,9 @@ public class PoiManager {
             }
 
             this._deletePOI(id, conn);
+            if (_markerManager != null) {
+                _markerManager.removeMarker(poi);
+            }
             return poi;
         }
         finally {
@@ -426,7 +455,7 @@ public class PoiManager {
         }
     }
 
-    public int add(String name, String playerName, Location location, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
+    public Poi add(String name, String playerName, Location location, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
     {
         Connection conn = _getDBConn();
         ResultSet rs = null;
@@ -465,7 +494,12 @@ public class PoiManager {
             sql.executeUpdate();
             keys = sql.getGeneratedKeys();
             keys.next();
-            return keys.getInt(1);
+            Poi newPoi = _getPoi(keys.getInt(1), conn);
+            if (_markerManager != null) {
+                _markerManager.addMarker(newPoi);
+            }
+
+            return newPoi;
         }
         catch (PoiException ex) {
             throw ex;
@@ -478,21 +512,6 @@ public class PoiManager {
             _closeResultSet(rs);
             _closeResultSet(keys);
         }
-    }
-
-    /**
-     * Adds a new POI for the specified player.
-     *
-     * @param name
-     * @param player
-     * @param minPoiGap
-     * @param maxPlayerPoiPerWorld
-     *
-     * @throws PoiException
-     */
-    public int add(String name, Player player, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
-    {
-        return add(name, player.getName(), player.getLocation(), minPoiGap, maxPlayerPoiPerWorld);
     }
 
     /**

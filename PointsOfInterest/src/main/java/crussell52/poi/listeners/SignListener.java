@@ -125,7 +125,7 @@ public class SignListener implements Listener {
 
             String name = StringUtils.trim(lines[1] + " " + lines[2]);
             try {
-                int id = this._poiManager.add(name, player.getName(), event.getBlock().getLocation(), Config.getMinPoiGap(), Config.getMaxPoiPerWorld(player));
+                int id = this._poiManager.add(name, player.getName(), event.getBlock().getLocation(), Config.getMinPoiGap(), Config.getMaxPoiPerWorld(player)).getId();
                 PointsOfInterest.setSignText(lines, lines[1], lines[2], player.getName(), id);
                 player.sendMessage("POI " + name + " Created!");
             }
