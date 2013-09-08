@@ -31,6 +31,8 @@ permissions:
     crussell52.poi.action.add:
         description: Allows you to add POIs
         default: op
+        children:
+            crussell52.poi.action.remove: true
     crussell52.poi.action.config.reload:
         description: Allows you to reload the configuration from the file
         default: op
