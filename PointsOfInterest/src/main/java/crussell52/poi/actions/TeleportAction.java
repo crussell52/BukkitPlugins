@@ -18,7 +18,7 @@ public class TeleportAction extends ActionHandler {
     public TeleportAction(PoiManager poiManager) {
         super(poiManager);
 
-        this._relatedPermission = "poi.action.teleport";
+        this._relatedPermission = "crussell52.poi.action.teleport";
     }
 
     @Override

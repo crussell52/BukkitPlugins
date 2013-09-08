@@ -112,7 +112,7 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEquipCompass(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
-        if (Config.isWorldSupported(player.getWorld().getName()) && player.hasPermission("poi.action.view")) {
+        if (player.hasPermission("crussell52.poi.compass") && Config.isWorldSupported(player.getWorld().getName())) {
             try {
                 if (player.getInventory().getItem(event.getNewSlot()).getType().equals(Material.COMPASS)) {
                     // See if we've provided the compass hint in the last 15 minutes.
@@ -137,71 +137,70 @@ public class PlayerListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCompassUse(PlayerInteractEvent event) {
-        Action action = event.getAction();
-        if (action == Action.RIGHT_CLICK_BLOCK) {
-            Poi poi = _poiManager.getPoiAt(event.getClickedBlock().getLocation());
-            if (poi != null) {
-                event.getPlayer().sendMessage("Welcome to " + poi.getName() + ", created by " + poi.getOwner() + "!");
-                return;
-            }
-        }
-
         final Player player = event.getPlayer();
-        if (!player.hasPermission("poi.action.view")) {
-            return;
-        }
+        if (player.hasPermission("crussell52.poi.compass") && Config.isWorldSupported(player.getWorld().getName())) {
 
-        if (event.hasItem() && event.getItem().getType() == Material.COMPASS && action == Action.RIGHT_CLICK_AIR) {
-            // See if the player double-clicked.
-            if (_pendingSummaries.containsKey(player)) {
-                // The first click set a task to run in 500 milliseconds which removes itself
-                // from the list of pending summaries when it executes.  If this player still
-                // has a pending summary, then they clicked twice within 500 ms. (Double-click!)
-                BukkitTask pendingSummary = _pendingSummaries.get(player);
+            Action action = event.getAction();
+            if (action == Action.RIGHT_CLICK_BLOCK) {
+                Poi poi = _poiManager.getPoiAt(event.getClickedBlock().getLocation());
+                if (poi != null) {
+                    event.getPlayer().sendMessage("Welcome to " + poi.getName() + ", created by " + poi.getOwner() + "!");
+                    return;
+                }
+            }
 
-                // Cancel the pending summary and remove it from the list of pending ones.
-                pendingSummary.cancel();
-                _pendingSummaries.remove(player);
+            if (event.hasItem() && event.getItem().getType() == Material.COMPASS && action == Action.RIGHT_CLICK_AIR) {
+                // See if the player double-clicked.
+                if (_pendingSummaries.containsKey(player)) {
+                    // The first click set a task to run in 500 milliseconds which removes itself
+                    // from the list of pending summaries when it executes.  If this player still
+                    // has a pending summary, then they clicked twice within 500 ms. (Double-click!)
+                    BukkitTask pendingSummary = _pendingSummaries.get(player);
 
-                // Don't allow the normal interaction caused by this click.
-                event.setUseInteractedBlock(Event.Result.DENY);
-                Poi poi = _findNextPoi(player);
-                if (poi == null) {
-                    // Unselect currently selected POI.
-                    _poiManager.unselectPoi(player);
+                    // Cancel the pending summary and remove it from the list of pending ones.
+                    pendingSummary.cancel();
+                    _pendingSummaries.remove(player);
+
+                    // Don't allow the normal interaction caused by this click.
+                    event.setUseInteractedBlock(Event.Result.DENY);
+                    Poi poi = _findNextPoi(player);
+                    if (poi == null) {
+                        // Unselect currently selected POI.
+                        _poiManager.unselectPoi(player);
+                    }
+                    else {
+                        // We have a POI to select.
+                        _poiManager.selectPOI(poi, player);
+                    }
+
+                    this._setCompass(player);
                 }
                 else {
-                    // We have a POI to select.
-                    _poiManager.selectPOI(poi, player);
+                    // There was no pending summary yet, so queue one up.
+                    _pendingSummaries.put(
+                            player, player.getServer().getScheduler().runTaskLater(
+                                _plugin, new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Poi summaryPoi = _poiManager.getSelectedPoi(player);
+                                        if (summaryPoi == null && player.getCompassTarget() != null) {
+                                            player.sendMessage("");
+                                            player.sendMessage(ChatColor.YELLOW + "---- Spawn Location ----");
+                                            player.sendMessage(PointsOfInterest.getDirections(
+                                                    player.getLocation().toVector(),
+                                                    player.getCompassTarget().toVector(),
+                                                    ChatColor.WHITE));
+                                        }
+                                        else {
+                                            // send a summary report to the user with a nice header.
+                                            player.sendMessage("");
+                                            player.sendMessage(ChatColor.YELLOW + "---- POI ----");
+                                            SummaryAction.sendSummary(player, summaryPoi);
+                                        }
+                                        _pendingSummaries.remove(player);
+                                    }
+                                }, 10));
                 }
-
-                this._setCompass(player);
-            }
-            else {
-                // There was no pending summary yet, so queue one up.
-                _pendingSummaries.put(
-                        player, player.getServer().getScheduler().runTaskLater(
-                            _plugin, new Runnable() {
-                                @Override
-                                public void run() {
-                                    Poi summaryPoi = _poiManager.getSelectedPoi(player);
-                                    if (summaryPoi == null && player.getCompassTarget() != null) {
-                                        player.sendMessage("");
-                                        player.sendMessage(ChatColor.YELLOW + "---- Spawn Location ----");
-                                        player.sendMessage(PointsOfInterest.getDirections(
-                                                player.getLocation().toVector(),
-                                                player.getCompassTarget().toVector(),
-                                                ChatColor.WHITE));
-                                    }
-                                    else {
-                                        // send a summary report to the user with a nice header.
-                                        player.sendMessage("");
-                                        player.sendMessage(ChatColor.YELLOW + "---- POI ----");
-                                        SummaryAction.sendSummary(player, summaryPoi);
-                                    }
-                                    _pendingSummaries.remove(player);
-                                }
-                            }, 10));
             }
         }
     }

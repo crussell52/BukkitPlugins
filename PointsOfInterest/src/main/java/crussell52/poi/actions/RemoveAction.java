@@ -28,7 +28,7 @@ public class RemoveAction extends ActionHandler {
     public RemoveAction(PoiManager poiManager) {
         super(poiManager);
 
-        this._relatedPermission = "poi.action.remove";
+        this._relatedPermission = "crussell52.poi.action.remove";
     }
 
     /**
@@ -61,7 +61,7 @@ public class RemoveAction extends ActionHandler {
             String name = StringUtils.join(ArrayUtils.subarray(args, 1, args.length), " ");
 
             // see if player is allowed to remove others' POIs
-            if (player.hasPermission("poi.action.remove.others")) {
+            if (player.hasPermission("crussell52.poi.action.remove.others")) {
                 // can remove others, so don't qualify with player name or world.
                 Poi removedPoi = this._poiManager.removePOI(id, name);
                 Location location = removedPoi.toLocation(player.getServer());

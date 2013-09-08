@@ -22,7 +22,7 @@ public class SummaryAction extends ActionHandler {
     public SummaryAction(PoiManager poiManager) {
         super(poiManager);
 
-        this._relatedPermission = "poi.action.view";
+        this._relatedPermission = "crussell52.poi.view";
     }
 
     /**

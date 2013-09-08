@@ -54,7 +54,7 @@ public class SignListener implements Listener {
             if (poi.getOwner().equals(event.getPlayer().getName())) {
                 try {
                     // See if the player has permission to remove POIs.
-                    if (!player.hasPermission("poi.action.remove")) {
+                    if (!player.hasPermission("crussell52.poi.action.remove")) {
                         player.sendMessage("You do not have permission to remove POIs.");
                         event.setCancelled(true);
                         return;
@@ -99,7 +99,7 @@ public class SignListener implements Listener {
                 return;
             }
 
-            if (!player.hasPermission("poi.action.add")) {
+            if (!player.hasPermission("crussell52.poi.action.add")) {
                 event.setCancelled(true);
                 player.sendMessage("You do not have permission to create Points of Interest.");
                 return;

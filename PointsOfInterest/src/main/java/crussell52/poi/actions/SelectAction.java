@@ -22,7 +22,7 @@ public class SelectAction extends ActionHandler {
     public SelectAction(PoiManager poiManager) {
         super(poiManager);
 
-        this._relatedPermission = "poi.action.view";
+        this._relatedPermission = "crussell52.poi.view";
     }
 
     /**
@@ -39,13 +39,18 @@ public class SelectAction extends ActionHandler {
             Poi poi = this._poiManager.getSelectedPoi((Player)sender);
             sender.sendMessage("POI selected:");
             sender.sendMessage(poi.getShortSummary(ChatColor.WHITE));
-            Location location = poi.toLocation(sender.getServer());
-            if (location != null) {
-                ((Player) sender).setCompassTarget(location);
-            }
-            else {
-                _log.severe("Failed to get Location from POI " + poi.toString());
-                sender.sendMessage("An error occurred while trying to adjust compass heading.");
+
+            // See if we need to adjust the compass heading.
+            Player player = (Player) sender;
+            if (player.hasPermission("crussell52.poi.compass")) {
+                Location location = poi.toLocation(sender.getServer());
+                if (location != null) {
+                    ((Player) sender).setCompassTarget(location);
+                }
+                else {
+                    _log.severe("Failed to get Location from POI " + poi.toString());
+                    sender.sendMessage("An error occurred while trying to adjust compass heading.");
+                }
             }
         }
     }

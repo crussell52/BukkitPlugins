@@ -146,7 +146,7 @@ public class Config {
         // loop over available maximums
         for (Map.Entry<String, Integer> entry : _instance._maxPoiMap.entrySet()) {
             // see if the player has the permission associated with this max
-            if (player.hasPermission("poi.action.add.max." + entry.getKey())) {
+            if (player.hasPermission("crussell52.poi.action.add.max." + entry.getKey())) {
                 // player has the related permission, but we want the most restrictive
                 // value... see if it is the lowest so far.  Note, -1 is a special case because
                 // it is LEAST restrictive.
@@ -337,7 +337,7 @@ public class Config {
             output = output.replace("#{maxPlayerPoiPerWorld}#", yaml.dump(configMap));
 
             configMap.clear();
-            configMap.put("poi.action.add.max", _instance._maxPoiMap);
+            configMap.put("crussell52.poi.action.add.max", _instance._maxPoiMap);
             output = output.replace("#{poi.action.add.max}#", yaml.dump(configMap));
 
             configMap.clear();
@@ -475,10 +475,10 @@ public class Config {
             }
         }
 
-        if (map.containsKey("poi.action.add.max")) {
+        if (map.containsKey("crussell52.poi.action.add.max")) {
             try {
                 @SuppressWarnings("unchecked")
-                Map<String, Integer> maxMap = (Map<String, Integer>)map.get("poi.action.add.max");
+                Map<String, Integer> maxMap = (Map<String, Integer>)map.get("crussell52.poi.action.add.max");
 
                 // null is a reasonable value...
                 if (maxMap != null) {

@@ -1,41 +1,54 @@
 name: PointsOfInterest
 main: crussell52.poi.PointsOfInterest
-version: 1.0.0
+version: 1.0.1
 
 permissions:
-    poi.action.*:
+    crussell52.poi.*:
+        description: Gives access to all POI functionality.
+        children:
+          crussell52.poi.action.*: true
+          crussell52.view: true
+    crussell52.poi.action.*:
         description: Gives access to all actions under the poi command
         children:
-            poi.action.add: true
-            poi.action.config.reload: true
-            poi.action.remove: true
-            poi.action.remove.others: true
-            poi.action.view: true
-            poi.action.teleport: true
-    poi.action.add:
+            crussell52.poi.action.add: true
+            crussell52.poi.action.config.reload: true
+            crussell52.poi.action.remove: true
+            crussell52.poi.action.remove.others: true
+            crussell52.poi.action.teleport: true
+            crussell52.poi.action.list: true
+            crussell52.poi.action.search: true
+    crussell52.poi.view:
+            description: Convenience permission for using compass, search, and list to view POIs.
+            default: true
+            children:
+                crussell52.poi.action.list: true
+                crussell52.poi.action.search: true
+                crussell52.poi.compass: true
+    crussell52.poi.compass:
+        description: Allows you to interact with POIs through a compass.
+        default: true
+    crussell52.poi.action.add:
         description: Allows you to add POIs
         default: op
-    poi.action.config.reload:
+    crussell52.poi.action.config.reload:
         description: Allows you to reload the configuration from the file
         default: op
-    poi.action.remove:
+    crussell52.poi.action.remove:
         description: Allows you to remove POIs
         default: op
         children:
-            poi.action.view: true
-    poi.action.remove.others:
+            crussell52.poi.view: true
+    crussell52.poi.action.remove.others:
         description: Allows you to remove POIs that belong to other players as well as your own.
         default: op
         children:
-            poi.action.remove: true
-    poi.action.view:
-        description: Allows you to search for and view POIs.
-        default: true
-    poi.action.teleport:
+            crussell52.poi.action.remove: true
+    crussell52.poi.action.teleport:
         description: Allows you to teleport to POIs.
         default: op
         children:
-          poi.action.view: true
+          crussell52.poi.view: true
 
 commands:
     poi:

@@ -18,7 +18,7 @@ public class ConfigReload extends ActionHandler {
     public ConfigReload() {
         super(null);
 
-        this._relatedPermission = "poi.action.config.reload";
+        this._relatedPermission = "crussell52.poi.action.config.reload";
         this._fromConsole = true;
         this._fromInGame  = true;
         this._lockdownOverride = true;
