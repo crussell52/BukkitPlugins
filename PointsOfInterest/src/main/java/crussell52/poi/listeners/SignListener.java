@@ -84,7 +84,7 @@ public class SignListener implements Listener {
                 public void run() {
                     _plugin.updateChunkSigns(worldName, chunkX, chunkZ);
                 }
-            }, 1);
+            }, 20);
         }
     }
 

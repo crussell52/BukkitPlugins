@@ -9,6 +9,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,10 +21,7 @@ import crussell52.poi.api.IPoiListener;
 import crussell52.poi.commands.PoiCommand;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -128,6 +127,13 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
             return;
         }
 
+        // Build dynamic permissions based on values from the config. Give them all a default value
+        // of false so that ops don't automatically end up with them and get stuck with the lowest
+        // maximum possible.
+        for (String key : Config.getMaxPoiMap().keySet()) {
+            getServer().getPluginManager().addPermission(new Permission("crussell52.poi.max." + key, PermissionDefault.FALSE));
+        }
+
         // attempt to initialize the the poi manager.
         if (!this._poiManager.initialize(this.getDataFolder(), this.getLogger())) {
             this.getLogger().severe(pdfFile.getName() + ": encountered problem preparing poi manager - Unsure if it is safe to run. Disabled.");
@@ -139,7 +145,11 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         for (World world : getServer().getWorlds()) {
             if (Config.isWorldSupported(world.getName())) {
                 for (Chunk chunk : world.getLoadedChunks()) {
-                    updateChunkSigns(chunk);
+                    try {
+                        updateChunkSigns(chunk);
+                    } catch (Exception ignored) {
+                        getLogger().warning("Startup: unable to update signs in chunk." + chunk.getX() + "," + chunk.getZ());
+                    }
                 }
             }
         }
@@ -187,7 +197,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
             List<Poi> results = _poiManager.getChunkPoi(chunk);
 
             for (Poi poi : results) {
-                Block block = chunk.getWorld().getBlockAt(poi.getX(), poi.getY(), poi.getZ());
+                Block block = chunk.getBlock(poi.getX() >> 4, poi.getY(), poi.getZ() >> 4);
                 if (!PointsOfInterest.resemblesPoiSign(block)) {
                     block.setType(Material.SIGN_POST);
                 }
@@ -201,8 +211,8 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
                 sign.update();
             }
         } catch (Exception e) {
-            getLogger().warning("Unabled to update POI signs in chunk. Exception to follow");
-            getLogger().warning(e.toString());
+            getLogger().warning("Unable to update POI signs in chunk. Exception to follow");
+            e.printStackTrace();
         }
     }
 

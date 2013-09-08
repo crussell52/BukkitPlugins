@@ -96,7 +96,7 @@
 #
 #    Maximum number of POIs, per world players are allowed to have.
 #
-#    poi.action.add.max (see below) can be used to override this value
+#    crussell52.poi.max (see below) can be used to override this value
 #    for one or more players.
 #
 #    A negative value indicates "no maximum" (not recommended).
@@ -107,12 +107,12 @@
 #{maxPlayerPoiPerWorld}#
 
 #####
-#    Maximum number of POIs for players with the poi.action.add permission.
+#    Create dynamic permissions which control the maximum number of POIs per world.
 #
 #    Each label under this configuration represents a custom permission.
 #    Any value can be used, and any number of them can be created.  To apply a
 #    custom maximum to a player, simply assign the fully qualified permission
-#    to that player, like any other permission (example: poi.action.add.max.elder).
+#    to that player, like any other permission (example: crussell52.poi.max.elder).
 #
 #    Any player who has the poi.action.add permission without a custom max
 #    permission will be limited by the value listed under the "default" label.
@@ -125,12 +125,12 @@
 #
 #    For example...
 #
-#    poi.action.add.max:
+#    crussell52.poi.max:
 #      commoner: 30
 #      elder: 50
 #      chief: -1
 #####
-#{poi.action.add.max}#
+#{crussell52.poi.max}#
 
 #####
 #    A list of worlds which do not allow POIs. If a world with existing POIs is added

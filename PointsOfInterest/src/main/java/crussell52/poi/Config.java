@@ -3,7 +3,6 @@ package crussell52.poi;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -94,6 +93,11 @@ public class Config {
         _maxPoiMap = new HashMap<String, Integer>();
     }
 
+    public static Map<String, Integer> getMaxPoiMap()
+    {
+        return _instance._maxPoiMap;
+    }
+
     /**
      * Indicates whether or not the plugin is in lockdown mode.
      *
@@ -146,12 +150,15 @@ public class Config {
         // loop over available maximums
         for (Map.Entry<String, Integer> entry : _instance._maxPoiMap.entrySet()) {
             // see if the player has the permission associated with this max
-            if (player.hasPermission("crussell52.poi.action.add.max." + entry.getKey())) {
+            _log.info("Looking for: " + entry.getKey());
+            if (player.hasPermission("crussell52.poi.max." + entry.getKey())) {
+                _log.info("Permission found. Value: " + entry.getValue());
                 // player has the related permission, but we want the most restrictive
                 // value... see if it is the lowest so far.  Note, -1 is a special case because
                 // it is LEAST restrictive.
                 if (lowestMax == null || (entry.getValue() < lowestMax && entry.getValue() != -1)) {
                     // lowest maximum so far.
+                    _log.info("new lowest.");
                     lowestMax = entry.getValue();
                 }
             }
@@ -221,6 +228,7 @@ public class Config {
 
         // always start with a new instance.
         _instance = new Config();
+        _log = log;
 
         // setup a YAML instance for read/write of config file
         DumperOptions options = new DumperOptions();
@@ -308,6 +316,9 @@ public class Config {
               }
             } while (read >= 0);
 
+            reader.close();
+            templateInput.close();;
+
             // create a hash map...
             // we will feed the config keys into it (one at a time) and use
             // Yaml to get the YAML representation for output.
@@ -337,8 +348,8 @@ public class Config {
             output = output.replace("#{maxPlayerPoiPerWorld}#", yaml.dump(configMap));
 
             configMap.clear();
-            configMap.put("crussell52.poi.action.add.max", _instance._maxPoiMap);
-            output = output.replace("#{poi.action.add.max}#", yaml.dump(configMap));
+            configMap.put("crussell52.poi.max", _instance._maxPoiMap);
+            output = output.replace("#{crussell52.poi.max}#", yaml.dump(configMap));
 
             configMap.clear();
             configMap.put("worldBlacklist", _instance._worldBlackList);
@@ -371,7 +382,6 @@ public class Config {
 
         // record the datafolder and logger for future use.
         Config._dataFolder = dataFolder;
-        Config._log = log;
 
         // didn't hit any of the early exits, so everything went fine.
         return true;
@@ -397,6 +407,13 @@ public class Config {
         // if there any problems, we'll flip this flag but we want
         // every key to get its opportunity to load.
         boolean success = true;
+
+        // Version control.
+        // Translate < v1.0.2 key for dynamic maximum POI permissions.
+        if (map.containsKey("poi.action.add.max")) {
+            map.put("crussell52.poi.max", map.get("poi.action.add.max"));
+            map.remove("poi.action.max.add");
+        }
 
         // see if lockDown is configured
         if (map.containsKey("lockDown")) {
@@ -475,10 +492,10 @@ public class Config {
             }
         }
 
-        if (map.containsKey("crussell52.poi.action.add.max")) {
+        if (map.containsKey("crussell52.poi.max")) {
             try {
                 @SuppressWarnings("unchecked")
-                Map<String, Integer> maxMap = (Map<String, Integer>)map.get("crussell52.poi.action.add.max");
+                Map<String, Integer> maxMap = (Map<String, Integer>)map.get("crussell52.poi.max");
 
                 // null is a reasonable value...
                 if (maxMap != null) {
@@ -487,7 +504,7 @@ public class Config {
                     // loop to make sure everything is what we expect it to be.
                     for (Map.Entry<String, Integer> entry : maxMap.entrySet()) {
                         if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof Integer)) {
-                          log.severe("PointsOfInterest: Bad configuration for poi.action.add.max");
+                          log.severe("PointsOfInterest: Bad configuration for crussell52.poi.max");
                           success = false;
                           break;
                         }
@@ -495,7 +512,7 @@ public class Config {
                 }
             }
             catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for poi.action.add.max");
+                log.severe("PointsOfInterest: Bad configuration for crussell52.poi.max");
                 success = false;
             }
         }
