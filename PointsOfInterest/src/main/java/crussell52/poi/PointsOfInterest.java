@@ -121,6 +121,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         _createSupportingFiles();
 
         // attempt to load configuration
+        getLogger().info("Loading configuration...");
         if(!Config.load(this.getDataFolder(), this.getLogger())) {
             // something went wrong reading in the config -- unsafe to run
             this.getLogger().severe(pdfFile.getName() + ": encountered problem loading config - Unsure if it is safe to run. Disabled.");
@@ -136,6 +137,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         }
 
         // attempt to initialize the the poi manager.
+        getLogger().info("Initializing POI manager...");
         if (!this._poiManager.initialize(this.getDataFolder(), this.getLogger())) {
             this.getLogger().severe(pdfFile.getName() + ": encountered problem preparing poi manager - Unsure if it is safe to run. Disabled.");
             this.getServer().getPluginManager().disablePlugin(this);
@@ -143,6 +145,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         }
 
         // Update POI signs for all pre-loaded chunks.
+        getLogger().info("Updating pre-loaded chunks...");
         for (World world : getServer().getWorlds()) {
             if (Config.isWorldSupported(world.getName())) {
                 for (Chunk chunk : world.getLoadedChunks()) {
@@ -162,19 +165,32 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         pm.registerEvents(new PlayerListener(this._poiManager, this), this);
         pm.registerEvents(new SignListener(this._poiManager, this), this);
 
+        MarkerManager markerManager = null;
         try {
-            MarkerManager markerManager = new MarkerManager(this);
-            _poiManager.setMarkerManager(markerManager);
-            getLogger().info("Dynmap marker support enabled. Creating markers...");
-            markerManager.setMarkers(_poiManager.getAll());
+            markerManager = new MarkerManager(this);
         }
         catch (PoiException poiEx) {
-            _poiManager.setMarkerManager(null);
-            getLogger().severe("Unable to create markers. Disabling Marker support.");
-            poiEx.getCause().printStackTrace();
+            // This is a controlled error... just output the message of the exception.
+            getLogger().info(poiEx.getMessage());
+            getLogger().info("Dynmap POI marker support NOT enabled.");
         }
         catch (Exception e) {
-            getLogger().info("Dynmap marker support NOT enabled.");
+            // Something unexpected happen. Notify that dynmap support is disabled and dump
+            // the stack trace.
+            getLogger().info("Dynmap POI marker support NOT enabled.");
+            e.printStackTrace();
+        }
+
+        // Attempt to actually set the markers
+        if (markerManager != null) {
+            try {
+                _poiManager.setMarkerManager(markerManager);
+                getLogger().info("Dynmap POI marker support enabled. Creating markers...");
+                markerManager.setMarkers(_poiManager.getAll());
+            } catch (PoiException e) {
+                getLogger().severe("Unable to set markers. Disabling dynmap marker support. Stack trace to follow.");
+                e.printStackTrace();
+            }
         }
     }
 

@@ -147,3 +147,59 @@
 #   - world2
 #####
 #{worldBlacklist}#
+
+#---------------------
+#   Dynmap integration options
+#
+#   These options are related to dynmap integration. In order for Dynmap integration to work, your
+#   server must be running at version 1.8+ of Dynmap and your Dynmap configuration must allow
+#   for map markers (it does by default).
+#-----------------------
+
+#####
+#    A list of worlds which allow display of POI markers through dynmap.
+#
+#    World names are NOT case sensitive and should follow the following format...
+#
+#    mapMarkerWorlds:
+#    - world1
+#    - world2_nether
+#    - world2
+#####
+#{mapMarkerWorlds}#
+
+#####
+#   An explicit white-list of loaded dynmap icons which are supported. The default dynmap icons are
+#   defined here:
+#
+#     https://github.com/webbukkit/dynmap/wiki/Using-markers#marker-icons
+#
+#   Hint: If you want the majority of the default icons, consider using the mapMarkerBlacklist
+#         option instead of this option.
+#
+#   For example, if you only want to support churches, buildings, and houses...
+#
+#   mapMarkerWhitelist:
+#   - church
+#   - building
+#   - house
+#####
+#{mapMarkerWhitelist}#
+
+#####
+#   An list of loaded dynmap icons which are not allowed. The default dynmap icons are
+#   defined here:
+#
+#     https://github.com/webbukkit/dynmap/wiki/Using-markers#marker-icons
+#
+#   Hint: If you want to block the majority of the default icons, consider using the
+#         mapMarkerWhitelist option instead of this option.
+#
+#   For example, if you don't want kings, queens, or scales...
+#
+#   mapMarkerBlacklist:
+#   - king
+#   - queen
+#   - scales
+#####
+#{mapMarkerBlacklist}#

@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -37,6 +38,11 @@ public class Config {
      * Contains the singleton instance for this class
      */
     private static Config _instance;
+
+    /**
+     * Contains the template to use for outputting configuration to a file.
+     */
+    private static String _configTemplate;
 
     /**
      * If true, the plugin is operating in "lock down" mode.
@@ -75,7 +81,22 @@ public class Config {
     /**
      * List of worlds in which POIs are not supported.
      */
-    private ArrayList<String> _worldBlackList = new ArrayList<String>();
+    private List<String> _worldBlackList = new ArrayList<String>();
+
+    /**
+     * List of worlds in which POIs are not supported.
+     */
+    private List<String> _mapMarkerWorlds = new ArrayList<String>();
+
+    /**
+     * List of worlds in which POIs are not supported.
+     */
+    private List<String> _mapMarkerWhitelist = new ArrayList<String>();
+
+    /**
+     * List of worlds in which POIs are not supported.
+     */
+    private List<String> _mapMarkerBlacklist = new ArrayList<String>();
 
     /**
      * keep a handle to the last data folder used for loading.
@@ -169,10 +190,25 @@ public class Config {
     }
 
     /**
-     * List of worlds in which POIs are not supported.
+     * Provides indicator of whether a given world has POIs enabled.
      */
     public static boolean isWorldSupported(String world) {
         return _instance._worldBlackList == null || !_instance._worldBlackList.contains(world.toLowerCase());
+    }
+
+    /**
+     * Provides indicator of whether a given world supports POI map markers.
+     */
+    public static boolean isMapMarkerWorld(String world) {
+        return isWorldSupported(world) && (_instance._mapMarkerWorlds == null || !_instance._mapMarkerWorlds.contains(world.toLowerCase()));
+    }
+
+    public static List<String> getMapMarkerWhitelist() {
+        return _instance._mapMarkerWhitelist;
+    }
+
+    public static List<String> getMapMarkerBlacklist() {
+        return _instance._mapMarkerBlacklist;
     }
 
     /**
@@ -256,8 +292,8 @@ public class Config {
             }
 
             // we will be defaulting to lockdown mode -- log a warning
-            log.warning("PointsOfInterest: The plugin has been forced into lockdown mode to give you");
-            log.warning("PointsOfInterest: a chance to adjust your configuration settings.  ");
+            log.warning("The plugin has been forced into lockdown mode to give you a chance to adjust " +
+                    "your configuration settings.");
         }
         else {
             // we have a config file, try to read it.
@@ -290,8 +326,8 @@ public class Config {
         // see if we are in lockdown (either forced or manual)
         if (_instance._isLocked) {
             // Make appropriate log entries
-            log.warning("PointsOfInterest: Operating in \"lock down\" mode. To release the lock, please update the related");
-            log.warning("PointsOfInterest: configuration option and run the command to reload the config OR restart the server.");
+            log.warning("Operating in \"lock down\" mode. To release the lock, please update the related " +
+                        "configuration option and run the command to reload the config OR restart the server.");
         }
 
         // try to re-write the config file.
@@ -299,88 +335,127 @@ public class Config {
         //   - Obsolete or incorrect config keys will be removed
         //   - Omitted keys (included ones introduced in an update) will
         //     be written to have default values.
-        FileWriter writer = null;
-        InputStream templateInput = (new Config()).getClass().getResourceAsStream("/resources/config_tpl.txt");
-        String output;
-        try {
 
-            // read in the template
-            InputStreamReader reader = new InputStreamReader(templateInput, "UTF-8");
-            char[] buffer = new char[1024];
-            Integer read;
-            StringBuilder stringBuilder = new StringBuilder();
-            do {
-              read = reader.read(buffer, 0, buffer.length);
-              if (read>0) {
-                  stringBuilder.append(buffer, 0, read);
-              }
-            } while (read >= 0);
+        // See if we already have a configuration template for output
+        if (_configTemplate == null) {
+            // Read in the template.
+            InputStream templateInput = null;
+            InputStreamReader reader = null;
 
-            reader.close();
-            templateInput.close();;
-
-            // create a hash map...
-            // we will feed the config keys into it (one at a time) and use
-            // Yaml to get the YAML representation for output.
-            HashMap<String, Object> configMap = new HashMap<String, Object>();
-
-            configMap.put("distanceThreshold", _instance._distanceThreshold);
-            output = stringBuilder.toString().replace("#{distanceThreshold}#", yaml.dump(configMap));
-
-            configMap.clear();
-            configMap.put("configId", Config.CURRENT_ID); // always current
-            output = output.replace("#{configId}#", yaml.dump(configMap));
-
-            configMap.clear();
-            configMap.put("lockDown", _instance._isLocked);
-            output = output.replace("#{lockDown}#", yaml.dump(configMap));
-
-            configMap.clear();
-            configMap.put("minPoiGap", _instance._minPoiGap);
-            output = output.replace("#{minPoiGap}#", yaml.dump(configMap));
-
-            configMap.clear();
-            configMap.put("maxSearchResults", _instance._maxSearchResults);
-            output = output.replace("#{maxSearchResults}#", yaml.dump(configMap));
-
-            configMap.clear();
-            configMap.put("maxPlayerPoiPerWorld", _instance._maxPlayerPoiPerWorld);
-            output = output.replace("#{maxPlayerPoiPerWorld}#", yaml.dump(configMap));
-
-            configMap.clear();
-            configMap.put("crussell52.poi.max", _instance._maxPoiMap);
-            output = output.replace("#{crussell52.poi.max}#", yaml.dump(configMap));
-
-            configMap.clear();
-            configMap.put("worldBlacklist", _instance._worldBlackList);
-            output = output.replace("#{worldBlacklist}#", yaml.dump(configMap));
-
-            // adjust new lines to make the file human-readable according to
-            // current system.
-            output = output.replace("\n", System.getProperty("line.separator"));
-
-            // create a file writer in "overwrite" mode
-            // and use Yaml to dump the data into the file.
-            writer = new FileWriter(dataFile, false);
-            writer.write(output);
-        }
-        catch (Exception e) {
-            log.warning("PointsOfInterest: Failed to rewrite config file - trace to follow.");
-            e.printStackTrace();
-
-            // this doesn't warrant a failure -- we read everyting in fine, just weren't able
-            // to tidy up the config file.
-        }
-        finally {
-            // make sure the writer is closed
-            // handle failures to close quietly
             try {
-                writer.close();
+                // read in the template
+                templateInput = (new Config()).getClass().getResourceAsStream("/resources/config_tpl.txt");
+                reader = new InputStreamReader(templateInput, "UTF-8");
+                char[] buffer = new char[1024];
+                Integer read;
+                StringBuilder stringBuilder = new StringBuilder();
+                do {
+                    read = reader.read(buffer, 0, buffer.length);
+                    if (read > 0) {
+                        stringBuilder.append(buffer, 0, read);
+                    }
+                } while (read >= 0);
+
+                _configTemplate = stringBuilder.toString();
             }
-            catch (Exception ignored) { }
+            catch (Exception e) {
+                log.severe("PointsOfInterest: Failed to read in config template. Can't write current config values to file. Trace to follow.");
+                e.printStackTrace();
+            }
+            finally {
+                // Close off resources. No recourse in the case of failures, so just ignore
+                // exceptions.
+                try {
+                    reader.close();
+                }
+                catch (Exception ignored) { }
+
+                try {
+                    templateInput.close();
+                }
+                catch (Exception ignored) { }
+            }
         }
 
-        // record the datafolder and logger for future use.
+        // See if we have a config template, now.
+        if (_configTemplate != null) {
+            // We have a config template... Time out output our config values.
+            FileWriter writer = null;
+
+            try {
+                // create a hash map...
+                // we will feed the config keys into it (one at a time) and use
+                // Yaml to get the YAML representation for output.
+                HashMap<String, Object> configMap = new HashMap<String, Object>();
+
+                configMap.put("distanceThreshold", _instance._distanceThreshold);
+                String output = _configTemplate.replace("#{distanceThreshold}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("configId", Config.CURRENT_ID); // always current
+                output = output.replace("#{configId}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("lockDown", _instance._isLocked);
+                output = output.replace("#{lockDown}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("minPoiGap", _instance._minPoiGap);
+                output = output.replace("#{minPoiGap}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("maxSearchResults", _instance._maxSearchResults);
+                output = output.replace("#{maxSearchResults}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("maxPlayerPoiPerWorld", _instance._maxPlayerPoiPerWorld);
+                output = output.replace("#{maxPlayerPoiPerWorld}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("crussell52.poi.max", _instance._maxPoiMap);
+                output = output.replace("#{crussell52.poi.max}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("worldBlacklist", _instance._worldBlackList);
+                output = output.replace("#{worldBlacklist}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("mapMarkerWorlds", _instance._mapMarkerWorlds);
+                output = output.replace("#{mapMarkerWorlds}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("mapMarkerWhitelist", _instance._mapMarkerWhitelist);
+                output = output.replace("#{mapMarkerWhitelist}#", yaml.dump(configMap));
+
+                configMap.clear();
+                configMap.put("mapMarkerBlacklist", _instance._mapMarkerBlacklist);
+                output = output.replace("#{mapMarkerBlacklist}#", yaml.dump(configMap));
+
+                // adjust new lines to make the file human-readable according to
+                // current system.
+                output = output.replace("\n", System.getProperty("line.separator"));
+
+                // create a file writer in "overwrite" mode
+                // and use Yaml to dump the data into the file.
+                writer = new FileWriter(dataFile, false);
+                writer.write(output);
+            }
+            catch (Exception e) {
+                log.warning("PointsOfInterest: Failed to rewrite config file - trace to follow.");
+                e.printStackTrace();
+
+                // this doesn't warrant a failure -- we read everything in fine, just weren't able
+                // to tidy up the config file.
+            }
+            finally {
+                // Make a best-effort attempt to clean up resources.
+                try {
+                    writer.close();
+                } catch (Exception ignored) { }
+            }
+        }
+
+        // record the data folder for future use.
         Config._dataFolder = dataFolder;
 
         // didn't hit any of the early exits, so everything went fine.
@@ -517,27 +592,59 @@ public class Config {
             }
         }
 
-        _instance._worldBlackList = new ArrayList<String>();
-        if (map.containsKey("worldBlacklist")) {
+        try {
+            _instance._worldBlackList = _processStringList(map, "worldBlacklist");
+        } catch (Exception e) {
+            _instance._worldBlackList = new ArrayList<String>();
+            success = false;
+        }
+
+        try {
+            _instance._mapMarkerWorlds = _processStringList(map, "mapMarkerWorlds");
+        } catch (Exception e) {
+            _instance._mapMarkerWorlds = new ArrayList<String>();
+            success = false;
+        }
+
+        try {
+            _instance._mapMarkerWhitelist = _processStringList(map, "mapMarkerWhitelist");
+        } catch (Exception e) {
+            _instance._mapMarkerWhitelist = new ArrayList<String>();
+            success = false;
+        }
+
+        try {
+            _instance._mapMarkerBlacklist = _processStringList(map, "mapMarkerBlacklist");
+        } catch (Exception e) {
+            _instance._mapMarkerBlacklist = new ArrayList<String>();
+            success = false;
+        }
+
+        // return success indicator
+        return success;
+    }
+
+    private static List<String> _processStringList(Map<String, Object> map, String configKey) throws Exception {
+        List<String> configValue = new ArrayList<String>();
+        if (map.containsKey(configKey)) {
             try {
                 @SuppressWarnings("unchecked")
-                ArrayList<String> tmp = (ArrayList<String>)map.get("worldBlacklist");
+                ArrayList<String> tmp = (ArrayList<String>)map.get(configKey);
 
                 // it's reasonable for this key to have a null value
                 if (tmp != null) {
                     // convert each blacklisted world to lower-case before recording it
                     for (String world : tmp) {
-                        _instance._worldBlackList.add(world.toLowerCase());
+                        configValue.add(world.toLowerCase());
                     }
                 }
             }
             catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for worldBlacklist.");
-                success = false;
+                _log.severe("Bad configuration for " + configKey + ".");
+                throw new Exception();
             }
         }
 
-        // return success indicator
-        return success;
+        return configValue;
     }
 }
