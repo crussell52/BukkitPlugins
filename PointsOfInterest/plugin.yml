@@ -1,7 +1,6 @@
 name: PointsOfInterest
 main: crussell52.poi.PointsOfInterest
-version: 1.1.0
-softdepend: [dynmap]
+version: 1.0.3
 
 permissions:
     crussell52.poi.*:
