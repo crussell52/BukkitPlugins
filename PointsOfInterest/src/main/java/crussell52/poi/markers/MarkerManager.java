@@ -1,7 +1,6 @@
 package crussell52.poi.markers;
 
 import crussell52.poi.Poi;
-import crussell52.poi.PoiResults;
 import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.markers.Marker;
@@ -74,8 +73,8 @@ public class MarkerManager {
 
     private String _getLabelMarkup(Poi poi)
     {
-        return  poi.getName() + "\n" +
-                "By: " + poi.getOwner() + "\n" +
+        return  poi.getName() + "<br />" +
+                "By: " + poi.getOwner() + "<br />" +
                 "ID: " + poi.getId();
     }
 }

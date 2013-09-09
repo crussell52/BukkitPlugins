@@ -162,20 +162,20 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         pm.registerEvents(new PlayerListener(this._poiManager, this), this);
         pm.registerEvents(new SignListener(this._poiManager, this), this);
 
-//        try {
-//            MarkerManager markerManager = new MarkerManager(this);
-//            _poiManager.setMarkerManager(markerManager);
-//            getLogger().info("Dynmap marker support enabled. Creating markers...");
-//            markerManager.setMarkers(_poiManager.getAll());
-//        }
-//        catch (PoiException poiEx) {
-//            _poiManager.setMarkerManager(null);
-//            getLogger().severe("Unable to create markers. Disabling Marker support.");
-//            poiEx.getCause().printStackTrace();
-//        }
-//        catch (Exception e) {
-//            getLogger().info("Dynmap marker support NOT enabled.");
-//        }
+        try {
+            MarkerManager markerManager = new MarkerManager(this);
+            _poiManager.setMarkerManager(markerManager);
+            getLogger().info("Dynmap marker support enabled. Creating markers...");
+            markerManager.setMarkers(_poiManager.getAll());
+        }
+        catch (PoiException poiEx) {
+            _poiManager.setMarkerManager(null);
+            getLogger().severe("Unable to create markers. Disabling Marker support.");
+            poiEx.getCause().printStackTrace();
+        }
+        catch (Exception e) {
+            getLogger().info("Dynmap marker support NOT enabled.");
+        }
     }
 
     /**
