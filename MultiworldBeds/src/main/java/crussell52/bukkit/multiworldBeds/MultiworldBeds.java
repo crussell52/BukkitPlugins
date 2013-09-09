@@ -10,6 +10,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -110,21 +112,28 @@ public final class MultiworldBeds extends JavaPlugin implements Listener
         BedSpawn bedSpawn = new BedSpawn(event.getPlayer().getWorld().getName(), loc.getX(), loc.getY(), loc.getZ());
         this._data.getConfig().set(this._getSpawnKey(event.getPlayer()), bedSpawn);
         this._data.saveConfig();
+        this._setBedSpawn(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerDeath(PlayerDeathEvent event) {
-
-        this.getLogger().log(Level.INFO, event.getEntity().getBedSpawnLocation().toString());
-
-        BedSpawn bedSpawn = (BedSpawn) this._data.getConfig().get(this._getSpawnKey(event.getEntity()));
+    private void _setBedSpawn(Player player)
+    {
+        BedSpawn bedSpawn = (BedSpawn) this._data.getConfig().get(this._getSpawnKey(player));
         if (bedSpawn != null) {
             try {
                 Location loc = bedSpawn.toLocation(this.getServer());
-                this.getLogger().log(Level.INFO, loc.toString());
-                event.getEntity().setBedSpawnLocation(loc);
+                player.setBedSpawnLocation(loc);
             }
             catch (Exception ignored) {}
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerLogin(PlayerLoginEvent event) {
+        _setBedSpawn(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
+        _setBedSpawn(event.getPlayer());
     }
 }
