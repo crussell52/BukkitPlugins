@@ -1,31 +1,20 @@
 package crussell52.poi;
 
+import crussell52.poi.api.PoiEvent;
+import crussell52.poi.markers.MarkerManager;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.sqlite.Function;
+
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import crussell52.poi.api.IPoi;
-import crussell52.poi.markers.MarkerManager;
-import org.apache.commons.lang3.StringUtils;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.Sign;
-import org.bukkit.entity.Player;
-import org.sqlite.Function;
-
-import crussell52.poi.api.PoiEvent;
 
 @SuppressWarnings({"JavaDoc", "FieldCanBeLocal"})
 public class PoiManager {

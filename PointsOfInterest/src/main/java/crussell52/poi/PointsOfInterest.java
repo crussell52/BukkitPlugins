@@ -1,5 +1,9 @@
 package crussell52.poi;
 
+import crussell52.poi.api.IPoiListener;
+import crussell52.poi.api.IPointsOfInterest;
+import crussell52.poi.api.PoiEvent;
+import crussell52.poi.commands.PoiCommand;
 import crussell52.poi.listeners.PlayerListener;
 import crussell52.poi.listeners.SignListener;
 import crussell52.poi.markers.MarkerManager;
@@ -12,22 +16,15 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import crussell52.poi.api.IPointsOfInterest;
-import crussell52.poi.api.PoiEvent;
-import crussell52.poi.api.IPoiListener;
-import crussell52.poi.commands.PoiCommand;
 import org.bukkit.util.Vector;
-import org.dynmap.DynmapCommonAPI;
-import org.dynmap.markers.MarkerAPI;
-import org.dynmap.markers.MarkerIcon;
-import org.dynmap.markers.MarkerSet;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -165,20 +162,20 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
         pm.registerEvents(new PlayerListener(this._poiManager, this), this);
         pm.registerEvents(new SignListener(this._poiManager, this), this);
 
-        try {
-            MarkerManager markerManager = new MarkerManager(this);
-            _poiManager.setMarkerManager(markerManager);
-            getLogger().info("Dynmap marker support enabled. Creating markers...");
-            markerManager.setMarkers(_poiManager.getAll());
-        }
-        catch (PoiException poiEx) {
-            _poiManager.setMarkerManager(null);
-            getLogger().severe("Unable to create markers. Disabling Marker support.");
-            poiEx.getCause().printStackTrace();
-        }
-        catch (Exception e) {
-            getLogger().info("Dynmap marker support NOT enabled.");
-        }
+//        try {
+//            MarkerManager markerManager = new MarkerManager(this);
+//            _poiManager.setMarkerManager(markerManager);
+//            getLogger().info("Dynmap marker support enabled. Creating markers...");
+//            markerManager.setMarkers(_poiManager.getAll());
+//        }
+//        catch (PoiException poiEx) {
+//            _poiManager.setMarkerManager(null);
+//            getLogger().severe("Unable to create markers. Disabling Marker support.");
+//            poiEx.getCause().printStackTrace();
+//        }
+//        catch (Exception e) {
+//            getLogger().info("Dynmap marker support NOT enabled.");
+//        }
     }
 
     /**
@@ -216,7 +213,9 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
             List<Poi> results = _poiManager.getChunkPoi(chunk);
 
             for (Poi poi : results) {
-                Block block = chunk.getBlock(poi.getX() >> 4, poi.getY(), poi.getZ() >> 4);
+                getLogger().info(poi.toString());
+                Block block = chunk.getWorld().getBlockAt(poi.getX(), poi.getY(), poi.getZ());
+                getLogger().info(block.getLocation().toString());
                 if (!PointsOfInterest.resemblesPoiSign(block)) {
                     block.setType(Material.SIGN_POST);
                 }
