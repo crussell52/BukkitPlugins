@@ -213,9 +213,7 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
             List<Poi> results = _poiManager.getChunkPoi(chunk);
 
             for (Poi poi : results) {
-                getLogger().info(poi.toString());
                 Block block = chunk.getWorld().getBlockAt(poi.getX(), poi.getY(), poi.getZ());
-                getLogger().info(block.getLocation().toString());
                 if (!PointsOfInterest.resemblesPoiSign(block)) {
                     block.setType(Material.SIGN_POST);
                 }
