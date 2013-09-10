@@ -51,6 +51,11 @@ public class Poi implements IPoi {
     private String _world;
 
     /**
+     * Indicates the type of POI.
+     */
+    private String _type;
+
+    /**
      * Name of the world the POI exists in.
      */
     public void setWorld(String world)
@@ -170,6 +175,11 @@ public class Poi implements IPoi {
         return new Vector(_x, _y, _z);
     }
 
+    public String getType()
+    {
+        return _type;
+    }
+
     /**
      * Get a one-line summary of the POI including name, owner, and id.
      *
@@ -210,6 +220,6 @@ public class Poi implements IPoi {
      */
     @Override
     public String toString() {
-        return getVector() + "|" + _name + "|" + _owner + "|" + _id + "|" + _world;
+        return getVector() + "|" + _name + "|" + _type + "|"+ _owner + "|" + _id + "|" + _world;
     }
 }

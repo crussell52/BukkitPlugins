@@ -122,9 +122,11 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
 
         // attempt to load configuration
         getLogger().info("Loading configuration...");
-        if(!Config.load(this.getDataFolder(), this.getLogger())) {
-            // something went wrong reading in the config -- unsafe to run
-            this.getLogger().severe(pdfFile.getName() + ": encountered problem loading config - Unsure if it is safe to run. Disabled.");
+        try {
+            Config.load(this.getDataFolder(), this.getLogger());
+        } catch (PoiException poiEx) {
+            getLogger().severe(poiEx.getMessage());
+            getLogger().severe("Encountered problem loading config - Unsure if it is safe to run. Disabled.");
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         }

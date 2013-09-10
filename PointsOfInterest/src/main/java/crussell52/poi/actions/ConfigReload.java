@@ -1,5 +1,6 @@
 package crussell52.poi.actions;
 
+import crussell52.poi.PoiException;
 import crussell52.poi.commands.PoiCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,7 +35,8 @@ public class ConfigReload extends ActionHandler {
         boolean lockDownActive = Config.isLocked();
 
         // attempt to reload.
-        if (Config.reload()) {
+        try {
+            Config.reload();
             sender.sendMessage(ChatColor.GREEN + "Config successfully reloaded.");
 
             // see if a lock was just released
@@ -43,7 +45,8 @@ public class ConfigReload extends ActionHandler {
                 Bukkit.getServer().broadcastMessage(ChatColor.YELLOW + "Points Of Interest is no longer in lock-down! Have Fun!");
             }
         }
-        else {
+        catch (PoiException e) {
+            _log.severe(e.getMessage());
             sender.sendMessage(ChatColor.RED + "Error reloading config - details in Log");
         }
     }

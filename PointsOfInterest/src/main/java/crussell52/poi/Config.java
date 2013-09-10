@@ -1,10 +1,6 @@
 package crussell52.poi;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,13 +43,13 @@ public class Config {
     /**
      * If true, the plugin is operating in "lock down" mode.
      */
-    private boolean _isLocked = true;
+    private boolean _isLocked;
 
     /**
      * Dictates how far to search and maximum distance
      * a player can be from a POI and still get directions
      */
-    private int _distanceThreshold = 2000;
+    private int _distanceThreshold;
 
     /**
      * Dictates minimum distance between POIs.
@@ -64,7 +60,7 @@ public class Config {
      * Maximum number of search results when a player does
      * an area search.
      */
-    private int _maxSearchResults = 10;
+    private int _maxSearchResults;
 
     /**
      * Map of permission keys and the maximum POIs associated
@@ -76,42 +72,42 @@ public class Config {
      * Maximum number of POIs a player can create in each world
      * if not specified by _maxPoiMap.
      */
-    private Integer _maxPlayerPoiPerWorld = 10;
+    private Integer _maxPlayerPoiPerWorld;
 
     /**
      * List of worlds in which POIs are not supported.
      */
-    private List<String> _worldBlackList = new ArrayList<String>();
+    private List<String> _worldBlackList;
 
     /**
      * List of worlds in which POIs are not supported.
      */
-    private List<String> _mapMarkerWorlds = new ArrayList<String>();
+    private List<String> _mapMarkerWorlds;
 
     /**
      * List of worlds in which POIs are not supported.
      */
-    private List<String> _mapMarkerWhitelist = new ArrayList<String>();
+    private List<String> _mapMarkerWhitelist;
 
     /**
      * List of worlds in which POIs are not supported.
      */
-    private List<String> _mapMarkerBlacklist = new ArrayList<String>();
+    private List<String> _mapMarkerBlacklist;
 
     /**
      * keep a handle to the last data folder used for loading.
      */
-    private static File _dataFolder;
+    private File _dataFolder;
 
     /**
      * Keep a handle to the last log file used.
      */
-    private static Logger _log;
+    private Logger _log;
 
     // hide default constructor -- everything should be accessed statically
     private Config()
     {
-        _maxPoiMap = new HashMap<String, Integer>();
+        // Hidden constructor.
     }
 
     public static Map<String, Integer> getMaxPoiMap()
@@ -171,15 +167,15 @@ public class Config {
         // loop over available maximums
         for (Map.Entry<String, Integer> entry : _instance._maxPoiMap.entrySet()) {
             // see if the player has the permission associated with this max
-            _log.info("Looking for: " + entry.getKey());
+            _instance._log.info("Looking for: " + entry.getKey());
             if (player.hasPermission("crussell52.poi.max." + entry.getKey())) {
-                _log.info("Permission found. Value: " + entry.getValue());
+                _instance._log.info("Permission found. Value: " + entry.getValue());
                 // player has the related permission, but we want the most restrictive
                 // value... see if it is the lowest so far.  Note, -1 is a special case because
                 // it is LEAST restrictive.
                 if (lowestMax == null || (entry.getValue() < lowestMax && entry.getValue() != -1)) {
                     // lowest maximum so far.
-                    _log.info("new lowest.");
+                    _instance._log.info("new lowest.");
                     lowestMax = entry.getValue();
                 }
             }
@@ -216,21 +212,20 @@ public class Config {
      *
      * @return
      */
-    public static boolean reload() {
+    public static void reload() throws PoiException {
 
         if (_instance == null) {
-            _log.severe("Tried to reload config before it had been loaded.");
-            return false;
+            throw new PoiException(PoiException.SYSTEM_ERROR, "Tried to reload config before it had been loaded.");
         }
 
         Config previous = _instance;
-        if (!_load(_dataFolder, _log)) {
-            _log.severe("Rolling back to last known configuration.");
+        try {
+            load(_instance._dataFolder, _instance._log);
+        } catch (PoiException e) {
             _instance = previous;
-            return false;
+            previous._log.severe(e.getMessage());
+            throw new PoiException(PoiException.SYSTEM_ERROR, "Failed to reload config. Reverted to last known configuration.");
         }
-
-        return true;
     }
 
     /**
@@ -241,59 +236,41 @@ public class Config {
      *
      * @return
      */
-    public static boolean load(File dataFolder, Logger log) {
-
-        if (!_load(dataFolder, log)) {
-            _instance = new Config();
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Loads the configuration file located in the specified data folder.
-     *
-     * @param dataFolder Where to look for the config file
-     * @param log Where to log problems - stack traces go to standard error out.
-     *
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    private static boolean _load(File dataFolder, Logger log) {
+    public static void load(File dataFolder, Logger log) throws PoiException {
 
         // always start with a new instance.
         _instance = new Config();
-        _log = log;
 
-        // setup a YAML instance for read/write of config file
-        DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(FlowStyle.BLOCK);
-        options.setDefaultScalarStyle(ScalarStyle.PLAIN);
-        Yaml yaml = new Yaml(options);
+        // Record the log and data folder for general use.
+        _instance._log = log;
+        _instance._dataFolder = dataFolder;
 
-        // get a handle to the config file
+        // setup a YAML instance for read of config file
+        Yaml yaml = new Yaml();
+
+        // get a handle to the config file and create var to contain config map.
         File dataFile = new File(dataFolder, "config.yml");
+        Map<String, Object> configMap;
 
         if (!dataFile.exists()) {
             // log a warning about the lack of config file.
-            log.warning("PointsOfInterest: No configuration file found -- assuming initial plugin install.");
+            log.warning("No configuration file found -- assuming initial plugin install.");
+            log.warning("The plugin will be forced into lock-down mode to give you a chance to adjust " +
+                    "your initial configuration settings before player start adding POIs.");
 
             // try to create the file.
             try {
                 if (!dataFile.createNewFile()) {
-                    throw new Exception("File.createNewFile() returned false.");
+                    throw new PoiException(PoiException.SYSTEM_ERROR, "File.createNewFile() returned false.");
                 }
             }
             catch (Exception e) {
-                log.severe("PointsOfInterest: Failed to create config file - trace to follow.");
-                e.printStackTrace();
-                return false;
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Failed to create config file.");
             }
 
-            // we will be defaulting to lockdown mode -- log a warning
-            log.warning("The plugin has been forced into lockdown mode to give you a chance to adjust " +
-                    "your configuration settings.");
+            // Force the config map to an empty map so we can skip the process of loading the file
+            // we just created.
+            configMap = new HashMap<String, Object>();
         }
         else {
             // we have a config file, try to read it.
@@ -301,29 +278,36 @@ public class Config {
             try {
                 // parse the file as a map.
                 input = new FileInputStream(dataFile);
-                if (!_processConfigMap((Map<String, Object>)yaml.load(input), log)) {
-                    // something was misconfigured.
-                    return false;
-                }
+                @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
+                Map<String, Object> yamlData = (Map<String, Object>)yaml.load(input);
+                configMap = yamlData;
             }
             catch (Exception e) {
-                log.severe("PointsOfInterest: Failed to load or parse config file - trace to follow.");
                 e.printStackTrace();
-
-                // problem opening or parsing the file.
-                return false;
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Config file exists, but failed to read it.");
             }
             finally {
                 // make sure we close the streams.
                 // handle failures quietly.
                 try {
-                    input.close();
+                    if (input != null) {
+                        input.close();
+                    }
                 }
                 catch (Exception ignored) {}
             }
         }
 
-        // see if we are in lockdown (either forced or manual)
+        try {
+            // Parse the config map.
+            _processConfigMap(configMap, log);
+        }
+        catch (PoiException poiEx) {
+            log.severe(poiEx.getMessage());
+            throw new PoiException(PoiException.SYSTEM_ERROR, "Failed to parse config file.");
+        }
+
+        // see if we are in lock-down (either forced or manual)
         if (_instance._isLocked) {
             // Make appropriate log entries
             log.warning("Operating in \"lock down\" mode. To release the lock, please update the related " +
@@ -335,131 +319,143 @@ public class Config {
         //   - Obsolete or incorrect config keys will be removed
         //   - Omitted keys (included ones introduced in an update) will
         //     be written to have default values.
+        _instance._writeConfig();
+    }
 
-        // See if we already have a configuration template for output
-        if (_configTemplate == null) {
-            // Read in the template.
-            InputStream templateInput = null;
-            InputStreamReader reader = null;
+    private String _getConfigTemplate() throws PoiException {
+        if (_configTemplate != null) {
+            return _configTemplate;
+        }
 
+        // Read in the template.
+        InputStream templateInput = null;
+        InputStreamReader reader = null;
+
+        try {
+            // read in the template
+            templateInput = (new Config()).getClass().getResourceAsStream("/resources/config_tpl.txt");
+            reader = new InputStreamReader(templateInput, "UTF-8");
+            char[] buffer = new char[1024];
+            Integer read;
+            StringBuilder stringBuilder = new StringBuilder();
+            do {
+                read = reader.read(buffer, 0, buffer.length);
+                if (read > 0) {
+                    stringBuilder.append(buffer, 0, read);
+                }
+            } while (read >= 0);
+
+            return _configTemplate = stringBuilder.toString();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw new PoiException(PoiException.SYSTEM_ERROR, "Failed to read in config template.");
+        }
+        finally {
+            // Close off resources. No recourse in the case of failures, so just ignore
+            // exceptions.
             try {
-                // read in the template
-                templateInput = (new Config()).getClass().getResourceAsStream("/resources/config_tpl.txt");
-                reader = new InputStreamReader(templateInput, "UTF-8");
-                char[] buffer = new char[1024];
-                Integer read;
-                StringBuilder stringBuilder = new StringBuilder();
-                do {
-                    read = reader.read(buffer, 0, buffer.length);
-                    if (read > 0) {
-                        stringBuilder.append(buffer, 0, read);
-                    }
-                } while (read >= 0);
-
-                _configTemplate = stringBuilder.toString();
-            }
-            catch (Exception e) {
-                log.severe("PointsOfInterest: Failed to read in config template. Can't write current config values to file. Trace to follow.");
-                e.printStackTrace();
-            }
-            finally {
-                // Close off resources. No recourse in the case of failures, so just ignore
-                // exceptions.
-                try {
+                if (reader != null) {
                     reader.close();
                 }
-                catch (Exception ignored) { }
-
-                try {
-                    templateInput.close();
-                }
-                catch (Exception ignored) { }
             }
-        }
-
-        // See if we have a config template, now.
-        if (_configTemplate != null) {
-            // We have a config template... Time out output our config values.
-            FileWriter writer = null;
+            catch (Exception ignored) {}
 
             try {
-                // create a hash map...
-                // we will feed the config keys into it (one at a time) and use
-                // Yaml to get the YAML representation for output.
-                HashMap<String, Object> configMap = new HashMap<String, Object>();
-
-                configMap.put("distanceThreshold", _instance._distanceThreshold);
-                String output = _configTemplate.replace("#{distanceThreshold}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("configId", Config.CURRENT_ID); // always current
-                output = output.replace("#{configId}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("lockDown", _instance._isLocked);
-                output = output.replace("#{lockDown}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("minPoiGap", _instance._minPoiGap);
-                output = output.replace("#{minPoiGap}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("maxSearchResults", _instance._maxSearchResults);
-                output = output.replace("#{maxSearchResults}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("maxPlayerPoiPerWorld", _instance._maxPlayerPoiPerWorld);
-                output = output.replace("#{maxPlayerPoiPerWorld}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("crussell52.poi.max", _instance._maxPoiMap);
-                output = output.replace("#{crussell52.poi.max}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("worldBlacklist", _instance._worldBlackList);
-                output = output.replace("#{worldBlacklist}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("mapMarkerWorlds", _instance._mapMarkerWorlds);
-                output = output.replace("#{mapMarkerWorlds}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("mapMarkerWhitelist", _instance._mapMarkerWhitelist);
-                output = output.replace("#{mapMarkerWhitelist}#", yaml.dump(configMap));
-
-                configMap.clear();
-                configMap.put("mapMarkerBlacklist", _instance._mapMarkerBlacklist);
-                output = output.replace("#{mapMarkerBlacklist}#", yaml.dump(configMap));
-
-                // adjust new lines to make the file human-readable according to
-                // current system.
-                output = output.replace("\n", System.getProperty("line.separator"));
-
-                // create a file writer in "overwrite" mode
-                // and use Yaml to dump the data into the file.
-                writer = new FileWriter(dataFile, false);
-                writer.write(output);
+                if (templateInput != null) {
+                    templateInput.close();
+                }
             }
-            catch (Exception e) {
-                log.warning("PointsOfInterest: Failed to rewrite config file - trace to follow.");
-                e.printStackTrace();
-
-                // this doesn't warrant a failure -- we read everything in fine, just weren't able
-                // to tidy up the config file.
-            }
-            finally {
-                // Make a best-effort attempt to clean up resources.
-                try {
-                    writer.close();
-                } catch (Exception ignored) { }
-            }
+            catch (Exception ignored) {}
         }
+    }
 
-        // record the data folder for future use.
-        Config._dataFolder = dataFolder;
+    private void _writeConfig() throws PoiException {
+        String configTemplate = _getConfigTemplate();
 
-        // didn't hit any of the early exits, so everything went fine.
-        return true;
+        // Create a var to hold our file writer.
+        FileWriter writer = null;
+        File dataFile = new File(_dataFolder, "config.yml");
+
+        // setup a YAML instance for write of config file
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(FlowStyle.BLOCK);
+        options.setDefaultScalarStyle(ScalarStyle.PLAIN);
+        Yaml yaml = new Yaml(options);
+
+        try {
+            // create a hash map...
+            // we will feed the config keys into it (one at a time) and use
+            // Yaml to get the YAML representation for output.
+            Map<String, Object> configMap = new HashMap<String, Object>();
+
+            configMap.put("distanceThreshold", _instance._distanceThreshold);
+            String output = configTemplate.replace("#{distanceThreshold}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("configId", Config.CURRENT_ID); // always current
+            output = output.replace("#{configId}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("lockDown", _instance._isLocked);
+            output = output.replace("#{lockDown}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("minPoiGap", _instance._minPoiGap);
+            output = output.replace("#{minPoiGap}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("maxSearchResults", _instance._maxSearchResults);
+            output = output.replace("#{maxSearchResults}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("maxPlayerPoiPerWorld", _instance._maxPlayerPoiPerWorld);
+            output = output.replace("#{maxPlayerPoiPerWorld}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("crussell52.poi.max", _instance._maxPoiMap);
+            output = output.replace("#{crussell52.poi.max}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("worldBlacklist", _instance._worldBlackList);
+            output = output.replace("#{worldBlacklist}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("mapMarkerWorlds", _instance._mapMarkerWorlds);
+            output = output.replace("#{mapMarkerWorlds}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("mapMarkerWhitelist", _instance._mapMarkerWhitelist);
+            output = output.replace("#{mapMarkerWhitelist}#", yaml.dump(configMap));
+
+            configMap.clear();
+            configMap.put("mapMarkerBlacklist", _instance._mapMarkerBlacklist);
+            output = output.replace("#{mapMarkerBlacklist}#", yaml.dump(configMap));
+
+            // adjust new lines to make the file human-readable according to
+            // current system.
+            output = output.replace("\n", System.getProperty("line.separator"));
+
+            // create a file writer in "overwrite" mode
+            // and use Yaml to dump the data into the file.
+            writer = new FileWriter(dataFile, false);
+            writer.write(output);
+        }
+        catch (Exception e) {
+            _log.warning("PointsOfInterest: Failed to rewrite config file - trace to follow.");
+            e.printStackTrace();
+
+            // this doesn't warrant a failure -- we read everything in fine, just weren't able
+            // to tidy up the config file.
+        }
+        finally {
+            // Make a best-effort attempt to clean up resources.
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (Exception ignored) { }
+        }
     }
 
     /**
@@ -471,17 +467,12 @@ public class Config {
      *
      * @return
      */
-    private static boolean _processConfigMap(Map<String, Object> map, Logger log) {
+    private static void _processConfigMap(Map<String, Object> map, Logger log) throws PoiException {
         // see if we have any data to process
         if (map == null) {
             // no data, easy success
-            return true;
+            return;
         }
-
-        // start off assuming success
-        // if there any problems, we'll flip this flag but we want
-        // every key to get its opportunity to load.
-        boolean success = true;
 
         // Version control.
         // Translate < v1.0.2 key for dynamic maximum POI permissions.
@@ -490,141 +481,121 @@ public class Config {
             map.remove("poi.action.max.add");
         }
 
-        // see if lockDown is configured
-        if (map.containsKey("lockDown")) {
-            try {
-                _instance._isLocked = (Boolean)map.get("lockDown");
-            }
-            catch (Exception ex) {
-                log.warning("PointsOfInterest: Bad configuration for lockDown -- assuming true.");
-            }
-        }
+        _instance._isLocked              = _getBoolean(map, "lockDown", true);
+        _instance._distanceThreshold     = _getInteger(map, "distanceThreshold", 2000);
+        _instance._minPoiGap             = _getInteger(map, "minPoiGap", 50);
+        _instance._maxSearchResults      = _getInteger(map, "maxSearchResults", 10);
+        _instance._maxPlayerPoiPerWorld  = _getInteger(map, "maxPlayerPoiPerWorld", 10);
+        _instance._worldBlackList        = _getStringList(map, "worldBlacklist");
+        _instance._mapMarkerWorlds       = _getStringList(map, "mapMarkerWorlds");
+        _instance._maxPoiMap             = _getIntegerMap(map, "crussell52.poi.max", false);
+        _instance._mapMarkerWhitelist    = _getStringList(map, "mapMarkerWhitelist");
+        _instance._mapMarkerBlacklist    = _getStringList(map, "mapMarkerBlacklist");
 
-        // see if config version is configured
-        Integer configId = 0;
-        if (map.containsKey("configId")) {
-            try {
-                configId = (Integer)map.get("configId");
-            }
-            catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for configId.");
-                success = false;
-            }
-        }
 
         // if there is a version mismatch, then the version is not confirmed
+        Integer configId = _getInteger(map, "configId", 0);
         if (!configId.equals(Config.CURRENT_ID)) {
-            // go into lockdown.
+            // go into lock-down.
             _instance._isLocked = true;
 
             // log the reason for the lock down
-            log.warning("PointsOfInterest: The plugin has been forced into \"lock down\" mode!");
-            log.warning("PointsOfInterest: Either the configuration id is not recognized or a recent update to the");
-            log.warning("PointsOfInterest: plugin has introduced a new configuration version which requires review.");
+            log.warning("The plugin has been forced into \"lock down\" mode!");
+            log.warning("Either the configuration id is not recognized or a recent update to the plugin has " +
+                    "introduced a new configuration version which requires review.");
         }
 
-        // see if a distance threshold is configured
-        if (map.containsKey("distanceThreshold")) {
-            try {
-                _instance._distanceThreshold = (Integer)map.get("distanceThreshold");
-            }
-            catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for distanceThreshold.");
-                success = false;
-            }
-        }
-
-        // see if a minimum distance between POIs is configured
-        if (map.containsKey("minPoiGap")) {
-            try {
-                _instance._minPoiGap = (Integer)map.get("minPoiGap");
-            }
-            catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for minPoiGap.");
-                success = false;
-            }
-        }
-
-        // see if a maximum number of search results
-        if (map.containsKey("maxSearchResults")) {
-            try {
-                _instance._maxSearchResults = (Integer)map.get("maxSearchResults");
-            }
-            catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for maxSearchResults.");
-                success = false;
-            }
-        }
-
-        // see if per-world maximum number of POIs for each player is configured
-        if (map.containsKey("maxPlayerPoiPerWorld")) {
-            try {
-                _instance._maxPlayerPoiPerWorld = (Integer)map.get("maxPlayerPoiPerWorld");
-            }
-            catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for maxPlayerPoiPerWorld.");
-                success = false;
-            }
-        }
-
-        if (map.containsKey("crussell52.poi.max")) {
-            try {
-                @SuppressWarnings("unchecked")
-                Map<String, Integer> maxMap = (Map<String, Integer>)map.get("crussell52.poi.max");
-
-                // null is a reasonable value...
-                if (maxMap != null) {
-                    _instance._maxPoiMap = maxMap;
-
-                    // loop to make sure everything is what we expect it to be.
-                    for (Map.Entry<String, Integer> entry : maxMap.entrySet()) {
-                        if (!(entry.getKey() instanceof String) || !(entry.getValue() instanceof Integer)) {
-                          log.severe("PointsOfInterest: Bad configuration for crussell52.poi.max");
-                          success = false;
-                          break;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) {
-                log.severe("PointsOfInterest: Bad configuration for crussell52.poi.max");
-                success = false;
-            }
-        }
-
-        try {
-            _instance._worldBlackList = _processStringList(map, "worldBlacklist");
-        } catch (Exception e) {
-            _instance._worldBlackList = new ArrayList<String>();
-            success = false;
-        }
-
-        try {
-            _instance._mapMarkerWorlds = _processStringList(map, "mapMarkerWorlds");
-        } catch (Exception e) {
-            _instance._mapMarkerWorlds = new ArrayList<String>();
-            success = false;
-        }
-
-        try {
-            _instance._mapMarkerWhitelist = _processStringList(map, "mapMarkerWhitelist");
-        } catch (Exception e) {
-            _instance._mapMarkerWhitelist = new ArrayList<String>();
-            success = false;
-        }
-
-        try {
-            _instance._mapMarkerBlacklist = _processStringList(map, "mapMarkerBlacklist");
-        } catch (Exception e) {
-            _instance._mapMarkerBlacklist = new ArrayList<String>();
-            success = false;
-        }
-
-        // return success indicator
-        return success;
     }
 
-    private static List<String> _processStringList(Map<String, Object> map, String configKey) throws Exception {
+    private static Boolean _getBoolean(Map<String, Object> map, String configKey, Boolean defaultVal) throws PoiException {
+        if (map.containsKey(configKey)) {
+            try {
+                return (Boolean)map.get(configKey);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Bad configuration for " + configKey + ".");
+            }
+        }
+
+        return defaultVal;
+    }
+
+    private static Integer _getInteger(Map<String, Object> map, String configKey, Integer defaultVal) throws PoiException {
+        if (map.containsKey(configKey)) {
+            try {
+                return (Integer)map.get(configKey);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Bad configuration for " + configKey + ".");
+            }
+        }
+
+        return defaultVal;
+    }
+
+    private static Map<String, Integer> _getIntegerMap(Map<String, Object> map, String configKey, boolean allowNullValues) throws PoiException {
+        if (map.containsKey(configKey)) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Integer> returnVal = (Map<String, Integer>)map.get(configKey);
+
+                // Null is a reasonable value, but we are going to force it to a
+                // Map of appropriate type.
+                if (returnVal == null) {
+                    return new HashMap<String, Integer>();
+                }
+
+                // loop to make sure everything is what we expect it to be.
+                for (Map.Entry<String, Integer> entry : returnVal.entrySet()) {
+                    if (entry.getKey() == null || (!allowNullValues && entry.getValue() == null)) {
+                        throw new Exception("Map values for " + configKey + " are not allowed to be null.");
+                    }
+                }
+
+                return returnVal;
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Bad configuration for " + configKey);
+            }
+        }
+
+        return new HashMap<String, Integer>();
+    }
+
+    private static Map<String, String> _getStringMap_getStringMap(Map<String, Object> map, String configKey, boolean allowNullValues) throws PoiException {
+        if (map.containsKey(configKey)) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, String> returnVal = (Map<String, String>)map.get(configKey);
+
+                // Null is a reasonable value, but we are going to force it to a
+                // Map of appropriate type.
+                if (returnVal == null) {
+                    return new HashMap<String, String>();
+                }
+
+                // loop to make sure everything is what we expect it to be.
+                for (Map.Entry<String, String> entry : returnVal.entrySet()) {
+                    if (entry.getKey() == null || (!allowNullValues && entry.getValue() == null)) {
+                        throw new Exception("Map values for " + configKey + " are not allowed to be null.");
+                    }
+                }
+
+                return returnVal;
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Bad configuration for " + configKey);
+            }
+        }
+
+        return new HashMap<String, String>();
+    }
+
+    private static List<String> _getStringList(Map<String, Object> map, String configKey) throws PoiException {
         List<String> configValue = new ArrayList<String>();
         if (map.containsKey(configKey)) {
             try {
@@ -640,8 +611,8 @@ public class Config {
                 }
             }
             catch (Exception ex) {
-                _log.severe("Bad configuration for " + configKey + ".");
-                throw new Exception();
+                ex.printStackTrace();
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Bad configuration for " + configKey + ".");
             }
         }
 
