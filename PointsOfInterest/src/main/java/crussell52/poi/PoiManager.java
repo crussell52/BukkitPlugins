@@ -60,7 +60,7 @@ public class PoiManager {
      * The most recent database version -- this is the version of the database
      * which is compatible with this version of the plugin.
      */
-    private final int LATEST_DB_VERSION = 2;
+    private final int LATEST_DB_VERSION = 3;
 
     /**
      * This is the current version of the database according to
@@ -748,8 +748,9 @@ public class PoiManager {
                     return false;
                 }
                 else if (this._currentDBVersion < LATEST_DB_VERSION) {
-                    // Everything can be directly migrated to version 2.
-                    _migrateToV2DB(conn);
+                    // Migrate
+                    _migrateDB(conn);
+
                 }
             }
         }
@@ -765,23 +766,23 @@ public class PoiManager {
         return true;
     }
 
-    private void _migrateToV2DB(Connection conn) throws SQLException {
-        _log.info("Migrating database from version " + _currentDBVersion + " to version 2.");
-
+    private void _migrateDB(Connection conn) throws SQLException {
         try {
-            conn.setAutoCommit(false);
             Statement sql = conn.createStatement();
-            sql.executeUpdate("DROP TABLE IF EXISTS `poi-old`");
-            sql.executeUpdate("CREATE TABLE `poi-old` as select * from `poi`;");
-            _log.info("Dropping old.");
-            sql.executeUpdate("DROP TABLE `poi`");
-            _createTable(conn);
-            _log.info("Copying data into new.");
-            sql.executeUpdate("INSERT INTO `poi` SELECT * FROM `poi-old`;");
+            conn.setAutoCommit(false);
+            if (_currentDBVersion <= 1) {
+                _migrateToV2DB(conn);
+            }
+            _log.info("Migrating database from version 2 to version 3...");
+            sql.executeUpdate("ALTER TABLE `poi` ADD COLUMN `type` STRING(12);");
+            _log.info("Database successfully migrated to version 3.");
+
             _log.info("Updating DB version.");
             sql.executeUpdate("PRAGMA user_version = " + LATEST_DB_VERSION + ";");
             conn.commit();
             conn.setAutoCommit(true);
+
+            _log.info("Database migration complete!");
         }
         catch (SQLException ex) {
             _log.severe("Database migration failed! Exception to follow.");
@@ -790,12 +791,41 @@ public class PoiManager {
             throw ex;
         }
 
-        _log.info("Database Migration complete.");
+    }
+
+    private void _migrateToV2DB(Connection conn) throws SQLException {
+        _log.info("Migrating database from version " + _currentDBVersion + " to version 2...");
+
+        Statement sql = conn.createStatement();
+        sql.executeUpdate("DROP TABLE IF EXISTS `poi-old`");
+        sql.executeUpdate("CREATE TABLE `poi-old` as select * from `poi`;");
+        _log.info("Dropping old.");
+        sql.executeUpdate("DROP TABLE `poi`");
+
+        // We need to re-create the poi table.
+        _log.info("Creating version 2 table.");
+        sql.executeUpdate("CREATE TABLE `poi` " +
+                "(`id` INTEGER PRIMARY KEY , " +
+                "`x` INTEGER NOT NULL ," +
+                "`y` INTEGER NOT NULL ," +
+                "`z` INTEGER NOT NULL ," +
+                "`owner` STRING(16) NOT NULL, " +
+                "`world` STRING NOT NULL, " +
+                "`name` STRING(31) NOT NULL);");
+
+        _log.info("Copying data into version 2 table.");
+        sql.executeUpdate("INSERT INTO `poi` SELECT * FROM `poi-old`;");
+
+        _log.info("Dropping temp table.");
+        sql.executeUpdate("DROP TABLE `poi-old`");
+
+        _log.info("Database successfully migrated to version 2.");
     }
 
     private void _createTable(Connection conn) throws SQLException {
         Statement sql = conn.createStatement();
         _log.info("Creating new table.");
+
         // the poi table doesn't exist... we need to create it.
         sql.executeUpdate("CREATE TABLE `poi` " +
                 "(`id` INTEGER PRIMARY KEY , " +
@@ -804,7 +834,8 @@ public class PoiManager {
                 "`z` INTEGER NOT NULL ," +
                 "`owner` STRING(16) NOT NULL, " +
                 "`world` STRING NOT NULL, " +
-                "`name` STRING(" + PoiManager.MAX_NAME_LENGTH +") NOT NULL);"
+                "`name` STRING(" + PoiManager.MAX_NAME_LENGTH +") NOT NULL, " +
+                "`type` STRING(12));"
         );
     }
 
