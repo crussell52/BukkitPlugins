@@ -9,7 +9,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 
-import crussell52.poi.Config;
 import crussell52.poi.PagedPoiList;
 import crussell52.poi.PoiManager;
 

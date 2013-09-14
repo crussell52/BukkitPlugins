@@ -5,6 +5,7 @@ import java.util.List;
 
 import crussell52.poi.*;
 import crussell52.poi.commands.PoiCommand;
+import crussell52.poi.config.Config;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

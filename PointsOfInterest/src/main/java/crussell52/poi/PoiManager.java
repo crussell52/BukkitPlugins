@@ -1,6 +1,7 @@
 package crussell52.poi;
 
 import crussell52.poi.api.PoiEvent;
+import crussell52.poi.config.Config;
 import crussell52.poi.markers.MarkerManager;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -16,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-@SuppressWarnings({"JavaDoc", "FieldCanBeLocal"})
 public class PoiManager {
 
     /**

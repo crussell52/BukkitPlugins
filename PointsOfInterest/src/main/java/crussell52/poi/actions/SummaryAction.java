@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import crussell52.poi.Config;
 import crussell52.poi.Poi;
 import crussell52.poi.PoiManager;
 

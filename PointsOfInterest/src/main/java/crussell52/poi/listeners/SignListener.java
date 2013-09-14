@@ -1,6 +1,7 @@
 package crussell52.poi.listeners;
 
 import crussell52.poi.*;
+import crussell52.poi.config.Config;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

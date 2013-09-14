@@ -148,6 +148,58 @@
 #####
 #{worldBlacklist}#
 
+#####
+#   This option defines what a list of POI types that are available.
+#
+#   A special permission is created for every POI type listed here based on its ID. So if you add a
+#   POI type with the id "school", then the permission will be "crussell52.poi.type.school". The
+#   default value of the permission is configurable per type.
+#
+#   Each POI type is configured with the following 4 properties:
+#
+#     id: string, max 12, no spaces, required
+#       When creating a POI, the type is identified by writing this ID on the 4th line of the sign.
+#       Each id must be unique. If two types use the same id, then the last one in the list will
+#       replace the earlier one(s).
+#
+#       Use the special id, "default" to identify the default POI type. This is the type which will
+#       be applied if the 4th line of the sign is left blank.  The default can appear anywhere in
+#       the list, but it is recommended that you place it as the first item in the list.
+#
+#     label: string, required
+#       This is the display name of the POI type. The format of this value will be preserved and
+#       will be used when displaying the POI type to players.
+#
+#     defaultPerm: true/false, optional, default - true
+#       If this is true, then all players will have be able to create POIs of this type unless they
+#       are explicitly denied access through related permission. If it is false, then only players
+#       which are granted the permission will be able to create POIs of this type.
+#
+#     mapMarkerIcon: string, optional, default - null
+#       This value only applies if dynmap, map marker support is enabled (see other config options
+#       below). This is the name of the dynmap marker icon to use for POIs of this type. If no value
+#       is given, then the icon set by the "defaultMapIcon" config option will be used.  The list of
+#       default, available dynmap icons is available here:
+#         https://github.com/webbukkit/dynmap/wiki/Using-markers#marker-icons
+#
+#     Example configuration...
+#
+#     poiTypes:
+#     - id: "default"
+#       label: "POI"
+#     - id: "mobTrap"
+#       label: "Mob Trap"
+#       defaultPerm: false
+#       mapMarkerIcon: gear
+#     - id: "home"
+#       label: "Residence"
+#       defaultPerm: true
+#       mapMarkerIcon: house
+#
+#####
+#{poiTypes}#
+
+
 #---------------------
 #   Dynmap integration options
 #
@@ -169,37 +221,11 @@
 #{mapMarkerWorlds}#
 
 #####
-#   An explicit white-list of loaded dynmap icons which are supported. The default dynmap icons are
-#   defined here:
+#   The default map marker icon to use. This icon will be used for any POI type which does not
+#   have the "mapMarkerIcon" configured.
 #
-#     https://github.com/webbukkit/dynmap/wiki/Using-markers#marker-icons
+#   For example...
 #
-#   Hint: If you want the majority of the default icons, consider using the mapMarkerBlacklist
-#         option instead of this option.
-#
-#   For example, if you only want to support churches, buildings, and houses...
-#
-#   mapMarkerWhitelist:
-#   - church
-#   - building
-#   - house
+#   defaultMapMarkerIcon: star
 #####
-#{mapMarkerWhitelist}#
-
-#####
-#   An list of loaded dynmap icons which are not allowed. The default dynmap icons are
-#   defined here:
-#
-#     https://github.com/webbukkit/dynmap/wiki/Using-markers#marker-icons
-#
-#   Hint: If you want to block the majority of the default icons, consider using the
-#         mapMarkerWhitelist option instead of this option.
-#
-#   For example, if you don't want kings, queens, or scales...
-#
-#   mapMarkerBlacklist:
-#   - king
-#   - queen
-#   - scales
-#####
-#{mapMarkerBlacklist}#
+#{defaultMapMarkerIcon}#

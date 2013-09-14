@@ -4,6 +4,7 @@ import crussell52.poi.api.IPoiListener;
 import crussell52.poi.api.IPointsOfInterest;
 import crussell52.poi.api.PoiEvent;
 import crussell52.poi.commands.PoiCommand;
+import crussell52.poi.config.Config;
 import crussell52.poi.listeners.PlayerListener;
 import crussell52.poi.listeners.SignListener;
 import crussell52.poi.markers.MarkerManager;

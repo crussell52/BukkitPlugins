@@ -1,4 +1,4 @@
-package crussell52.poi;
+package crussell52.poi.config;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import crussell52.poi.PoiException;
 import org.bukkit.entity.Player;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
@@ -103,6 +104,8 @@ public class Config {
      * Keep a handle to the last log file used.
      */
     private Logger _log;
+    private HashMap<String, PoiType> _poiTypes;
+    private String _defaultMapMarkerIcon;
 
     // hide default constructor -- everything should be accessed statically
     private Config()
@@ -199,12 +202,18 @@ public class Config {
         return isWorldSupported(world) && (_instance._mapMarkerWorlds == null || !_instance._mapMarkerWorlds.contains(world.toLowerCase()));
     }
 
-    public static List<String> getMapMarkerWhitelist() {
-        return _instance._mapMarkerWhitelist;
+    public static String getDefaultMapMarkerIcon() {
+        return _instance._defaultMapMarkerIcon;
     }
 
-    public static List<String> getMapMarkerBlacklist() {
-        return _instance._mapMarkerBlacklist;
+    public static PoiType getPoiType(String id)
+    {
+        if (_instance._poiTypes.containsKey(id)) {
+            return _instance._poiTypes.get(id);
+        }
+        else {
+            return _instance._poiTypes.get("default");
+        }
     }
 
     /**
@@ -425,12 +434,16 @@ public class Config {
             output = output.replace("#{mapMarkerWorlds}#", yaml.dump(configMap));
 
             configMap.clear();
-            configMap.put("mapMarkerWhitelist", _instance._mapMarkerWhitelist);
-            output = output.replace("#{mapMarkerWhitelist}#", yaml.dump(configMap));
+            configMap.put("defaultMapMarkerIcon", _instance._defaultMapMarkerIcon);
+            output = output.replace("#{defaultMapMarkerIcon}#", yaml.dump(configMap));
 
             configMap.clear();
-            configMap.put("mapMarkerBlacklist", _instance._mapMarkerBlacklist);
-            output = output.replace("#{mapMarkerBlacklist}#", yaml.dump(configMap));
+            ArrayList<Map<String, Object>> poiTypes = new ArrayList<Map<String, Object>>();
+            for (PoiType poiType : _instance._poiTypes.values()) {
+                poiTypes.add(poiType.toMap());
+            }
+            configMap.put("poiTypes", poiTypes);
+            output = output.replace("#{poiTypes}#", yaml.dump(configMap));
 
             // adjust new lines to make the file human-readable according to
             // current system.
@@ -489,9 +502,29 @@ public class Config {
         _instance._worldBlackList        = _getStringList(map, "worldBlacklist");
         _instance._mapMarkerWorlds       = _getStringList(map, "mapMarkerWorlds");
         _instance._maxPoiMap             = _getIntegerMap(map, "crussell52.poi.max", false);
-        _instance._mapMarkerWhitelist    = _getStringList(map, "mapMarkerWhitelist");
-        _instance._mapMarkerBlacklist    = _getStringList(map, "mapMarkerBlacklist");
+        _instance._defaultMapMarkerIcon  = _getString(map, "defaultMapMarkerIcon", "sign");
 
+        // Read in the poi types.
+        _instance._poiTypes = new HashMap<String, PoiType>();
+        if (map.containsKey("poiTypes")) {
+            try {
+                @SuppressWarnings("unchecked")
+                ArrayList<Map<String, Object>> poiTypeList =  (ArrayList<Map<String, Object>>)map.get("poiTypes");
+
+                for (Map<String, Object> poiTypeConfig : poiTypeList) {
+                    PoiType poiType = new PoiType(poiTypeConfig);
+                    _instance._poiTypes.put(poiType.getID(), poiType);
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Invalid configuration for poiTypes.");
+            }
+        }
+
+        if (!_instance._poiTypes.containsKey("default")) {
+            _instance._poiTypes.put("default", new PoiType("default", "POI"));
+        }
 
         // if there is a version mismatch, then the version is not confirmed
         Integer configId = _getInteger(map, "configId", 0);
@@ -508,7 +541,7 @@ public class Config {
     }
 
     private static Boolean _getBoolean(Map<String, Object> map, String configKey, Boolean defaultVal) throws PoiException {
-        if (map.containsKey(configKey)) {
+        if (map.containsKey(configKey) && map.get(configKey) != null) {
             try {
                 return (Boolean)map.get(configKey);
             }
@@ -522,9 +555,23 @@ public class Config {
     }
 
     private static Integer _getInteger(Map<String, Object> map, String configKey, Integer defaultVal) throws PoiException {
-        if (map.containsKey(configKey)) {
+        if (map.containsKey(configKey) && map.get(configKey) != null) {
             try {
                 return (Integer)map.get(configKey);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+                throw new PoiException(PoiException.SYSTEM_ERROR, "Bad configuration for " + configKey + ".");
+            }
+        }
+
+        return defaultVal;
+    }
+
+    private static String _getString(Map<String, Object> map, String configKey, String defaultVal) throws PoiException {
+        if (map.containsKey(configKey) && map.get(configKey) != null) {
+            try {
+                return (String)map.get(configKey);
             }
             catch (Exception ex) {
                 ex.printStackTrace();

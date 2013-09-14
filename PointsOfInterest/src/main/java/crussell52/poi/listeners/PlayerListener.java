@@ -5,6 +5,7 @@ import java.util.Map;
 
 import crussell52.poi.*;
 import crussell52.poi.actions.SummaryAction;
+import crussell52.poi.config.Config;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;

@@ -1,8 +1,8 @@
 package crussell52.poi.markers;
 
-import crussell52.poi.Config;
 import crussell52.poi.Poi;
 import crussell52.poi.PoiException;
+import crussell52.poi.config.Config;
 import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.markers.Marker;
@@ -10,10 +10,7 @@ import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class MarkerManager {
     private final Plugin _plugin;
@@ -44,29 +41,26 @@ public class MarkerManager {
 
         // All pre-requisites have been met.
         MarkerAPI markerAPI = _dynmapAPI.getMarkerAPI();
-        Set<MarkerIcon> markerIcons = markerAPI.getMarkerIcons();
-        _markerSet = markerAPI.createMarkerSet("crussell52.poi", "Points of Interest", new TreeSet<MarkerIcon>(), false);
-
-        // Iterate over available markerIcons
-        String markerIconID;
-        boolean haveWhitelist = Config.getMapMarkerWhitelist().size() > 0;
-        for (MarkerIcon markerIcon : markerIcons) {
-            // Allow the marker so long as it is not in the black list and the white
-            // list is empty or contains the marker id.
-            markerIconID = markerIcon.getMarkerIconID();
-            if (!Config.getMapMarkerBlacklist().contains(markerIconID) &&
-                    (!haveWhitelist || Config.getMapMarkerWhitelist().contains(markerIconID))) {
-                _markerSet.addAllowedMarkerIcon(markerIcon);
-            }
-        }
+        _markerSet = markerAPI.createMarkerSet("crussell52.poi", "Points of Interest", markerAPI.getMarkerIcons(), false);
     }
 
     public void addMarker(Poi poi) {
 
+        String markerIconID = Config.getPoiType(poi.getType()).getMapIconMarker();
+        if (markerIconID == null) {
+            markerIconID = Config.getDefaultMapMarkerIcon();
+        }
+        MarkerIcon markerIcon = _dynmapAPI.getMarkerAPI().getMarkerIcon(markerIconID);
+
+        if (markerIcon == null) {
+            _plugin.getLogger().warning("Unrecognized marker icon (" + markerIconID + "). Using system default (sign) instead.");
+            markerIcon = _dynmapAPI.getMarkerAPI().getMarkerIcon("sign");
+        }
+
         _markerSet.createMarker("crussell52.poi." + poi.getId(),
                 _getLabelMarkup(poi), true,
                 poi.getWorld(), poi.getX(), poi.getY(), poi.getZ(),
-                _markerSet.getDefaultMarkerIcon(), false);
+                markerIcon, false);
     }
 
     public void removeMarker(Poi poi) {

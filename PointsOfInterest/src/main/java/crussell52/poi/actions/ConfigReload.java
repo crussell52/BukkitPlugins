@@ -6,7 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import crussell52.poi.Config;
+import crussell52.poi.config.Config;
 
 import java.util.ArrayList;
 import java.util.List;
