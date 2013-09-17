@@ -45,6 +45,10 @@ public class MarkerManager {
     }
 
     public void addMarker(Poi poi) {
+        // Don't add markers to non marker worlds.
+        if (!Config.isMapMarkerWorld(poi.getWorld())) {
+            return;
+        }
 
         String markerIconID = Config.getPoiType(poi.getType()).getMapIconMarker();
         if (markerIconID == null) {

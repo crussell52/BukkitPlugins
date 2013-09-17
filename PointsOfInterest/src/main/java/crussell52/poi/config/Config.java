@@ -83,16 +83,6 @@ public class Config {
     private List<String> _mapMarkerWorlds;
 
     /**
-     * List of worlds in which POIs are not supported.
-     */
-    private List<String> _mapMarkerWhitelist;
-
-    /**
-     * List of worlds in which POIs are not supported.
-     */
-    private List<String> _mapMarkerBlacklist;
-
-    /**
      * keep a handle to the last data folder used for loading.
      */
     private File _dataFolder;
