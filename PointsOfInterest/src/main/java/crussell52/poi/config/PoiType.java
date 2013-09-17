@@ -11,7 +11,7 @@ public class PoiType
 {
     private String _id;
     private String _label;
-    private PermissionDefault _defaultPerm;
+    private PermissionDefault _defaultPerm = PermissionDefault.TRUE;
     private String _mapMarkerIcon;
 
     public String getID()
