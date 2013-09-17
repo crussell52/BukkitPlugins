@@ -1,6 +1,8 @@
 package crussell52.poi.config;
 
 import crussell52.poi.PoiException;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.util.permissions.DefaultPermissions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +11,7 @@ public class PoiType
 {
     private String _id;
     private String _label;
-    private boolean _defaultPerm;
+    private PermissionDefault _defaultPerm;
     private String _mapMarkerIcon;
 
     public String getID()
@@ -27,7 +29,7 @@ public class PoiType
         return _mapMarkerIcon;
     }
 
-    public boolean getDefaultPerm()
+    public PermissionDefault getDefaultPerm()
     {
         return _defaultPerm;
     }
@@ -80,10 +82,13 @@ public class PoiType
 
         try {
             if (poiTypeConfig.containsKey("defaultPerm")) {
-                _defaultPerm = (Boolean) poiTypeConfig.get("defaultPerm");
+                _defaultPerm = PermissionDefault.getByName(poiTypeConfig.get("defaultPerm").toString());
+                if (_defaultPerm == null) {
+                    throw new PoiException(PoiException.SYSTEM_ERROR, "Invalid value for POI type defaultPerm.");
+                }
             }
             else {
-                _defaultPerm = true;
+                _defaultPerm = PermissionDefault.TRUE;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,10 +99,27 @@ public class PoiType
 
     public Map<String, Object>toMap() {
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", _id);
-        map.put("label", _label);
-        map.put("defaultPerm", _defaultPerm);
+
+        // Manually translate default perm to config string.
+        switch (_defaultPerm) {
+            case TRUE:
+                map.put("defaultPerm", true);
+                break;
+            case FALSE:
+                map.put("defaultPerm", false);
+                break;
+            case OP:
+                map.put("defaultPerm", "op");
+                break;
+            case NOT_OP:
+                map.put("defaultPerm", "notOp");
+                break;
+        }
+
+        // Translate the other properties.
         map.put("mapMarkerIcon", _mapMarkerIcon);
+        map.put("label", _label);
+        map.put("id", _id);
 
         return map;
     }

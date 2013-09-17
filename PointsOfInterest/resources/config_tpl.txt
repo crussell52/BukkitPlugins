@@ -170,10 +170,14 @@
 #       This is the display name of the POI type. The format of this value will be preserved and
 #       will be used when displaying the POI type to players.
 #
-#     defaultPerm: true/false, optional, default - true
-#       If this is true, then all players will have be able to create POIs of this type unless they
-#       are explicitly denied access through related permission. If it is false, then only players
-#       which are granted the permission will be able to create POIs of this type.
+#     defaultPerm: true/false/op/notOp, optional, default - true
+#       This defines the default value for the dynamic permission related to this POI type. The
+#       behavior for each value is as follows:
+#
+#       "true"  - All players will have permission to use this POI type, by default.
+#       "false" - No players will have permission to use this POI type, by default.
+#       "op"    - Only server-op players will have permission to use this POI, by default.
+#       "notOp" - Only non-op players will have permission to use this POI, by default.
 #
 #     mapMarkerIcon: string, optional, default - null
 #       This value only applies if dynmap, map marker support is enabled (see other config options

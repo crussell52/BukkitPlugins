@@ -47,7 +47,17 @@ public class PoiException extends Exception {
     /**
      * Indicates that an invalid POI type was specified.
      */
-    public static final int POI_INVALID_TYPE = 4;
+    public static final int POI_INVALID_TYPE = 8;
+
+    /**
+     * Indicates that a player does not have permission to add a POI, but tried to.
+     */
+    public static final int POI_NO_ADD_PERMISSION = 9;
+
+    /**
+     * Indicates that a player does not have permission to use the specified POI type, but tried to.
+     */
+    public static final int POI_NO_TYPE_PERMISSION = 10;
 
     /**
      * The specific type of error related to this exception

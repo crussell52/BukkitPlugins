@@ -1,10 +1,7 @@
 package crussell52.poi.config;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import crussell52.poi.PoiException;
@@ -211,10 +208,24 @@ public class Config {
         return id != null && _instance._poiTypes.containsKey(id.toLowerCase());
     }
 
+    public static String getPoiTypePerm(String id)
+    {
+        if (id == null || id.equalsIgnoreCase("default")) {
+            return "crussell52.poi.type.default";
+        }
+
+        return "crussell52.poi.type." + id.toLowerCase();
+    }
+
+    public static Collection<PoiType> getPoiTypes()
+    {
+        return _instance._poiTypes.values();
+    }
+
     public static PoiType getPoiType(String id)
     {
-        if (_instance._poiTypes.containsKey(id)) {
-            return _instance._poiTypes.get(id);
+        if (id != null &&_instance._poiTypes.containsKey(id.toLowerCase())) {
+            return _instance._poiTypes.get(id.toLowerCase());
         }
         else {
             return _instance._poiTypes.get("default");

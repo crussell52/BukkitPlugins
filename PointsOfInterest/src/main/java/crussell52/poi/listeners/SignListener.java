@@ -100,12 +100,6 @@ public class SignListener implements Listener {
                 return;
             }
 
-            if (!player.hasPermission("crussell52.poi.action.add")) {
-                event.setCancelled(true);
-                player.sendMessage("You do not have permission to create Points of Interest.");
-                return;
-            }
-
             // Cleanup the sign lines.
             lines[1] = StringUtils.trimToEmpty(lines[1]);
             lines[2] = StringUtils.trimToEmpty(lines[2]);
@@ -120,14 +114,22 @@ public class SignListener implements Listener {
 
             String name = StringUtils.trim(lines[1] + " " + lines[2]);
             try {
-                int id = this._poiManager.add(name, player.getName(), lines[3], event.getBlock().getLocation(), Config.getMinPoiGap(), Config.getMaxPoiPerWorld(player)).getId();
+                int id = this._poiManager.add(player, name, lines[3], event.getBlock().getLocation()).getId();
                 PointsOfInterest.setSignText(lines, lines[1], lines[2], player.getName(), id);
                 player.sendMessage("POI " + name + " Created!");
             }
             catch (PoiException poiEx) {
-                if (poiEx.getErrorCode() == PoiException.POI_INVALID_TYPE) {
+
+                if (poiEx.getErrorCode() == PoiException.POI_NO_ADD_PERMISSION) {
+                    player.sendMessage("You do not have permission to create Points of Interest.");
+                }
+                else if (poiEx.getErrorCode() == PoiException.POI_NO_TYPE_PERMISSION) {
+                    player.sendMessage("You do not have permission to use that POI type (" + Config.getPoiType(lines[3]).getID() + ").");
+                    player.sendMessage("You can use " + ChatColor.GOLD + "/poi types " + ChatColor.RESET + " for a list of all available POI types.");
+                }
+                else if (poiEx.getErrorCode() == PoiException.POI_INVALID_TYPE) {
                     player.sendMessage("The fourth line contained an unknown POI type (" + lines[3] + ").");
-                    player.sendMessage("You can use " + ChatColor.GOLD + "/poi types " + ChatColor.RESET + " for a list of all known POI types.");
+                    player.sendMessage("You can use " + ChatColor.GOLD + "/poi types " + ChatColor.RESET + " for a list of all available POI types.");
                 }
                 else if (poiEx.getErrorCode() == PoiException.TOO_CLOSE_TO_ANOTHER_POI) {
                     player.sendMessage("You are too close to another POI.");
@@ -136,7 +138,7 @@ public class SignListener implements Listener {
                     player.sendMessage("You have reached your maximum allowed POIs for this world.");
                 }
                 else {
-                    _plugin.getLogger().severe("There was an unexpected error while trying to add a poi from a sign: " + name + "|" + player + "|" + Config.getMinPoiGap());
+                    _plugin.getLogger().severe("There was an unexpected error while trying to add a poi from a sign: " + lines[3] + "|" + name + "|" + player + "|" + Config.getMinPoiGap());
                     poiEx.printStackTrace();
                     player.sendMessage("There was a system error setting your POI.");
                 }

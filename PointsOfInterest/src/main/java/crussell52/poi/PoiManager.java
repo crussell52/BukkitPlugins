@@ -456,10 +456,20 @@ public class PoiManager {
         return typeID.toLowerCase();
     }
 
-    public Poi add(String name, String playerName, String typeID, Location location, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
+    public Poi add(Player player, String name, String typeID, Location location) throws PoiException
     {
+        // Make sure player has permission to add the POI.
+        if (!player.hasPermission("crussell52.poi.action.add")) {
+            throw new PoiException(PoiException.POI_NO_ADD_PERMISSION, "Player does not have permission to add a POI.");
+        }
+
         // Sanitize the type id
         typeID = _scrubTypeID(typeID);
+
+        // Make sure the player has permission to use this POI type.
+        if (!player.hasPermission(Config.getPoiTypePerm(typeID))) {
+            throw new PoiException(PoiException.POI_NO_TYPE_PERMISSION, "Player does not have permission to add a POI of this type.");
+        }
 
         // Get a db connection and prepare result set vars.
         Connection conn = _getDBConn();
@@ -467,6 +477,7 @@ public class PoiManager {
         ResultSet keys = null;
 
         try {
+            int minPoiGap = Config.getMinPoiGap();
             ArrayList<Poi> list = getNearby(location, minPoiGap, 1);
             if (list.size() > 0) {
                 throw new PoiException(PoiException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI. Threshold: " + minPoiGap);
@@ -479,12 +490,12 @@ public class PoiManager {
                             "WHERE owner = ? " +
                             "AND world = ?;");
 
-            sql.setString(1, playerName);
+            sql.setString(1, player.getName());
             sql.setString(2, location.getWorld().getName());
 
             rs = sql.executeQuery();
             rs.next();
-            if (rs.getInt("count") >= maxPlayerPoiPerWorld) {
+            if (rs.getInt("count") >= Config.getMaxPoiPerWorld(player)) {
                 throw new PoiException(PoiException.MAX_PLAYER_POI_EXCEEDED);
             }
             _closeResultSet(rs);
@@ -494,7 +505,7 @@ public class PoiManager {
             sql.setInt(2, (int)location.getY());
             sql.setInt(3, (int)location.getZ());
             sql.setString(4, name);
-            sql.setString(5, playerName);
+            sql.setString(5, player.getName());
             sql.setString(6, location.getWorld().getName());
             sql.setString(7, typeID);
             sql.executeUpdate();

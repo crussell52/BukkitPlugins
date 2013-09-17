@@ -5,6 +5,7 @@ import crussell52.poi.api.IPointsOfInterest;
 import crussell52.poi.api.PoiEvent;
 import crussell52.poi.commands.PoiCommand;
 import crussell52.poi.config.Config;
+import crussell52.poi.config.PoiType;
 import crussell52.poi.listeners.PlayerListener;
 import crussell52.poi.listeners.SignListener;
 import crussell52.poi.markers.MarkerManager;
@@ -132,11 +133,19 @@ public class PointsOfInterest extends JavaPlugin implements IPointsOfInterest
             return;
         }
 
-        // Build dynamic permissions based on values from the config. Give them all a default value
-        // of false so that ops don't automatically end up with them and get stuck with the lowest
-        // maximum possible.
+        getLogger().info("Building dynamic permissions...");
+
+        // Build dynamic permissions for POI maximums based on values from the config. Give them all
+        // a default value of false so that ops don't automatically end up with them and get stuck
+        // with the lowest maximum possible.
         for (String key : Config.getMaxPoiMap().keySet()) {
             getServer().getPluginManager().addPermission(new Permission("crussell52.poi.max." + key, PermissionDefault.FALSE));
+        }
+
+        // Build dynamic permissions for POI types. Default permission is specified as part of the
+        // type configuration.
+        for (PoiType poiType : Config.getPoiTypes()) {
+            getServer().getPluginManager().addPermission(new Permission(Config.getPoiTypePerm(poiType.getID()), poiType.getDefaultPerm()));
         }
 
         // attempt to initialize the the poi manager.
