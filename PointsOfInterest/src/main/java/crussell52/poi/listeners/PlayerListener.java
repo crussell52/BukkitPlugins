@@ -183,19 +183,23 @@ public class PlayerListener implements Listener {
                                 _plugin, new Runnable() {
                                     @Override
                                     public void run() {
+                                        player.sendMessage("");
                                         Poi summaryPoi = _poiManager.getSelectedPoi(player);
-                                        if (summaryPoi == null && player.getCompassTarget() != null) {
-                                            player.sendMessage("");
-                                            player.sendMessage(ChatColor.YELLOW + "---- Spawn Location ----");
-                                            player.sendMessage(PointsOfInterest.getDirections(
-                                                    player.getLocation().toVector(),
-                                                    player.getCompassTarget().toVector(),
-                                                    ChatColor.WHITE));
+                                        if (summaryPoi == null) {
+                                            if (player.getCompassTarget() != null) {
+                                                player.sendMessage(ChatColor.YELLOW + "---- Spawn Location ----");
+                                                player.sendMessage(PointsOfInterest.getDirections(
+                                                        player.getLocation().toVector(),
+                                                        player.getCompassTarget().toVector(),
+                                                        ChatColor.WHITE));
+                                            }
+                                            else {
+                                                player.sendMessage("No active Point of Interest.");
+                                            }
                                         }
                                         else {
                                             // send a summary report to the user with a nice header.
-                                            player.sendMessage("");
-                                            player.sendMessage(ChatColor.YELLOW + "---- POI ----");
+                                            player.sendMessage(ChatColor.YELLOW + "---- " + Config.getPoiType(summaryPoi.getType()).getLabel() + " ----");
                                             SummaryAction.sendSummary(player, summaryPoi);
                                         }
                                         _pendingSummaries.remove(player);
@@ -233,7 +237,7 @@ public class PlayerListener implements Listener {
 
             // Notify the user and give them a summary of what was selected.
             player.sendMessage("");
-            player.sendMessage(ChatColor.YELLOW + "---- Compass changed to POI ----");
+            player.sendMessage(ChatColor.YELLOW + "---- Compass changed to nearby " + Config.getPoiType(poi.getType()).getLabel() + " ----");
             SummaryAction.sendSummary(player, poi);
         }
     }

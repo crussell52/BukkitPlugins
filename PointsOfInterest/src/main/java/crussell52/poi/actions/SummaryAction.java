@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import crussell52.poi.commands.PoiCommand;
+import crussell52.poi.config.Config;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -57,7 +58,7 @@ public class SummaryAction extends ActionHandler {
 
         // send a summary report to the user with a nice header.
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.YELLOW + "---- POI Summary ----");
+        sender.sendMessage(ChatColor.YELLOW + "---- " + Config.getPoiType(poi.getType()).getLabel() + " Summary ----");
         sendSummary((Player) sender, poi);
     }
 

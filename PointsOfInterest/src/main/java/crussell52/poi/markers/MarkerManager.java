@@ -82,8 +82,11 @@ public class MarkerManager {
 
     private String _getLabelMarkup(Poi poi)
     {
-        return  poi.getName() + "<br />" +
+        return  "<div style=\"text-align:center;\">" +
+                "<div style=\"font-weight:bold;text-decoration:underline\">" + Config.getPoiType(poi.getType()).getLabel() + "</div>" +
+                poi.getName() + "<br />" +
                 "By: " + poi.getOwner() + "<br />" +
-                "ID: " + poi.getId();
+                "(ID: " + poi.getId() + ")" +
+                "</div>";
     }
 }
