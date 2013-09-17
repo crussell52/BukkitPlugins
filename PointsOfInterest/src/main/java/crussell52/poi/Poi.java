@@ -63,6 +63,11 @@ public class Poi implements IPoi {
         _world = world;
     }
 
+    public void setType(String typeID)
+    {
+        _type = typeID;
+    }
+
     /**
      * Name of the world the POI exists in.
      */

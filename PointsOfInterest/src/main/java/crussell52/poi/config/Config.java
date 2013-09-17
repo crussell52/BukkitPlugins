@@ -206,6 +206,11 @@ public class Config {
         return _instance._defaultMapMarkerIcon;
     }
 
+    public static boolean isPoiType(String id)
+    {
+        return id != null && _instance._poiTypes.containsKey(id.toLowerCase());
+    }
+
     public static PoiType getPoiType(String id)
     {
         if (_instance._poiTypes.containsKey(id)) {
@@ -513,7 +518,7 @@ public class Config {
 
                 for (Map<String, Object> poiTypeConfig : poiTypeList) {
                     PoiType poiType = new PoiType(poiTypeConfig);
-                    _instance._poiTypes.put(poiType.getID(), poiType);
+                    _instance._poiTypes.put(poiType.getID().toLowerCase(), poiType);
                 }
             }
             catch (Exception e) {

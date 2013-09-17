@@ -118,20 +118,18 @@ public class SignListener implements Listener {
                 return;
             }
 
-            if (!lines[3].equals("")) {
-                player.sendMessage(ChatColor.RED + "The last line on a POI sign must be empty.");
-                event.setCancelled(true);
-                return;
-            }
-
             String name = StringUtils.trim(lines[1] + " " + lines[2]);
             try {
-                int id = this._poiManager.add(name, player.getName(), event.getBlock().getLocation(), Config.getMinPoiGap(), Config.getMaxPoiPerWorld(player)).getId();
+                int id = this._poiManager.add(name, player.getName(), lines[3], event.getBlock().getLocation(), Config.getMinPoiGap(), Config.getMaxPoiPerWorld(player)).getId();
                 PointsOfInterest.setSignText(lines, lines[1], lines[2], player.getName(), id);
                 player.sendMessage("POI " + name + " Created!");
             }
             catch (PoiException poiEx) {
-                if (poiEx.getErrorCode() == PoiException.TOO_CLOSE_TO_ANOTHER_POI) {
+                if (poiEx.getErrorCode() == PoiException.POI_INVALID_TYPE) {
+                    player.sendMessage("The fourth line contained an unknown POI type (" + lines[3] + ").");
+                    player.sendMessage("You can use " + ChatColor.GOLD + "/poi types " + ChatColor.RESET + " for a list of all known POI types.");
+                }
+                else if (poiEx.getErrorCode() == PoiException.TOO_CLOSE_TO_ANOTHER_POI) {
                     player.sendMessage("You are too close to another POI.");
                 }
                 else if (poiEx.getErrorCode() == PoiException.MAX_PLAYER_POI_EXCEEDED) {

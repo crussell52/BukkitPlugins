@@ -49,7 +49,7 @@ public class PoiManager {
     /**
      * SQL SELECT statement fragment used as a basis for all SELECT statements.
      */
-    private static final String SELECT_BASE = "SELECT id, name, world, owner, x, y, z ";
+    private static final String SELECT_BASE = "SELECT id, name, world, owner, type, x, y, z ";
 
     /**
      * The canonical path to the database which stores POIs.
@@ -444,8 +444,24 @@ public class PoiManager {
         }
     }
 
-    public Poi add(String name, String playerName, Location location, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
+    private String _scrubTypeID(String typeID) throws PoiException {
+        if (typeID == null || typeID.equals("") || typeID.equalsIgnoreCase("default")) {
+            return null;
+        }
+
+        if (!Config.isPoiType(typeID)) {
+            throw new PoiException(PoiException.POI_INVALID_TYPE, "Unrecognized POI type: " + typeID);
+        }
+
+        return typeID.toLowerCase();
+    }
+
+    public Poi add(String name, String playerName, String typeID, Location location, int minPoiGap, int maxPlayerPoiPerWorld) throws PoiException
     {
+        // Sanitize the type id
+        typeID = _scrubTypeID(typeID);
+
+        // Get a db connection and prepare result set vars.
         Connection conn = _getDBConn();
         ResultSet rs = null;
         ResultSet keys = null;
@@ -453,7 +469,7 @@ public class PoiManager {
         try {
             ArrayList<Poi> list = getNearby(location, minPoiGap, 1);
             if (list.size() > 0) {
-                throw new PoiException(PoiException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI threshold: " + minPoiGap);
+                throw new PoiException(PoiException.TOO_CLOSE_TO_ANOTHER_POI, "Player is too close to an existing POI. Threshold: " + minPoiGap);
             }
 
             // check to see if the Player has reached their limit for this world
@@ -473,13 +489,14 @@ public class PoiManager {
             }
             _closeResultSet(rs);
 
-            sql = conn.prepareStatement("insert into poi (x, y, z, name, owner, world) values (?, ?, ?, ?, ?, ?);");
+            sql = conn.prepareStatement("insert into poi (x, y, z, name, owner, world, type) values (?, ?, ?, ?, ?, ?, ?);");
             sql.setInt(1, (int)location.getX());
             sql.setInt(2, (int)location.getY());
             sql.setInt(3, (int)location.getZ());
             sql.setString(4, name);
             sql.setString(5, playerName);
             sql.setString(6, location.getWorld().getName());
+            sql.setString(7, typeID);
             sql.executeUpdate();
             keys = sql.getGeneratedKeys();
             keys.next();
@@ -546,6 +563,7 @@ public class PoiManager {
         try {
             rs = sql.executeQuery();
             while (rs.next()) {
+                // Create POI and set properties based on result set values
                 poi = new Poi();
                 poi.setX(rs.getInt("x"));
                 poi.setY(rs.getInt("y"));
@@ -554,6 +572,14 @@ public class PoiManager {
                 poi.setName(rs.getString("name"));
                 poi.setOwner(rs.getString("owner"));
                 poi.setWorld(rs.getString("world"));
+                poi.setType(rs.getString("type"));
+
+                // Normalize an empty string type into a true null value.
+                if (poi.getType() != null && poi.getType().equals("")) {
+                    poi.setType(null);
+                }
+
+                // Add POI to list of results.
                 results.add(poi);
             }
         }

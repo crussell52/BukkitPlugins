@@ -45,6 +45,11 @@ public class PoiException extends Exception {
     public static final int MAX_PLAYER_POI_EXCEEDED = 7;
 
     /**
+     * Indicates that an invalid POI type was specified.
+     */
+    public static final int POI_INVALID_TYPE = 4;
+
+    /**
      * The specific type of error related to this exception
      */
     private int _errorCode;
