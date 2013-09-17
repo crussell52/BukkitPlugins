@@ -9,6 +9,9 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TeleportAction extends ActionHandler {
     /**
      * Creates a new instance.
@@ -56,5 +59,23 @@ public class TeleportAction extends ActionHandler {
         if (!((Player)sender).teleport((new TeleportUtil()).findSafeLanding(poiLocation))) {
             sender.sendMessage(ChatColor.RED + "An unknown force prevented you from teleporting!");
         }
+    }
+
+    public static List<String> getHelp(boolean isShort) {
+        ArrayList<String> messages = new ArrayList<String>();
+        String basic = HelpAction.action(PoiCommand.ACTION_TELEPORT) + HelpAction.required("id");
+        if (isShort) {
+            basic += HelpAction.shortDescription("Teleport directly to a POI.");
+            messages.add(basic);
+            return messages;
+        }
+
+        messages.add(basic);
+        messages.add(ChatColor.GREEN + "------------");
+        messages.add(ChatColor.YELLOW + "Use this action to teleport directly to a Point of Interest.");
+        messages.add(ChatColor.YELLOW + "If the Point of Interest has become unsafe, you will be");
+        messages.add(ChatColor.YELLOW + "teleported to a safe spot in the area.");
+
+        return messages;
     }
 }

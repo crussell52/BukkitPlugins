@@ -33,6 +33,7 @@ public class PoiCommand implements CommandExecutor {
     public static final String ACTION_LIST = "list";
     public static final String ACTION_HELP = "help";
     public static final String ACTION_RELOAD_CONFIG = "config";
+    public static final String ACTION_LIST_TYPES = "types";
 
     /**
      * Map between action strings and the ActionHandler subclass that should handle each.
@@ -49,6 +50,7 @@ public class PoiCommand implements CommandExecutor {
 
         // set up action handlers for all available actions
         actionHandlers.put(ACTION_TELEPORT, new TeleportAction(poiManager));
+        actionHandlers.put(ACTION_LIST_TYPES, new ListTypes(poiManager));
         actionHandlers.put(ACTION_SEARCH, new SearchAction(poiManager));
         actionHandlers.put(ACTION_SELECT, new SelectAction(poiManager));
         actionHandlers.put(ACTION_PAGE, new PageReportAction(poiManager));

@@ -47,7 +47,13 @@ public class HelpAction extends ActionHandler {
         }
 
         // try to output help for a specific action.
-        if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_LIST)) {
+        if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_TELEPORT)) {
+            messages = TeleportAction   .getHelp(false);
+        }
+        else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_LIST_TYPES)) {
+            messages = ListTypes.getHelp(false);
+        }
+        else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_LIST)) {
             messages = OwnerListAction.getHelp(false);
         }
         else if (targetAction.equalsIgnoreCase(PoiCommand.ACTION_RELOAD_CONFIG)) {
@@ -99,9 +105,11 @@ public class HelpAction extends ActionHandler {
         messages.add(ChatColor.GOLD + "|     [POI]     |                                  |   Title Line 1   |");
         messages.add(ChatColor.GOLD + "| Title Line 1 |  Which will change to -->   |   Title Line 2   |");
         messages.add(ChatColor.GOLD + "| Title Line 2 |                                  |    POI[7] by:    |");
-        messages.add(ChatColor.GOLD + "|                |                                  | YourNameHere |");
+        messages.add(ChatColor.GOLD + "|   poiType    |                                  | YourNameHere |");
         messages.add(ChatColor.GOLD + "-----------                                   -------------");
-        messages.add(ChatColor.YELLOW + "You can remove it by simply destroying the sign. You can");
+        messages.add(ChatColor.YELLOW + "The poiType (4th line) is optional. Use " + actionXRef(PoiCommand.ACTION_LIST_TYPES) + " for a");
+        messages.add(ChatColor.YELLOW + "list of available types. The default type is simply \"default\".");
+        messages.add(ChatColor.YELLOW + "You can remove a POI by destroying its sign sign. You can");
         messages.add(ChatColor.YELLOW + "also \"use\" a POI sign for more information about the POI.");
 
         return messages;
@@ -160,6 +168,8 @@ public class HelpAction extends ActionHandler {
         messages.add(SearchAction.getHelp(true).get(0));
         messages.add(OwnerListAction.getHelp(true).get(0));
         messages.add(PageReportAction.getHelp(true).get(0));
+        messages.add(ListTypes.getHelp(true).get(0));
+        messages.add(TeleportAction.getHelp(true).get(0));
         messages.add(ConfigReload.getHelp(true).get(0));
 
         return messages;
